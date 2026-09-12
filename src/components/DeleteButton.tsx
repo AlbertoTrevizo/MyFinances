@@ -26,7 +26,7 @@ export function DeleteButton({
           });
         }
       }}
-      className="text-sm font-medium text-red-600 transition-colors hover:text-red-800 disabled:opacity-50 dark:text-red-500 dark:hover:text-red-400"
+      className="text-sm font-medium text-danger transition-colors hover:text-danger-strong disabled:opacity-50"
     >
       {isPending ? pendingLabel : label}
     </button>
