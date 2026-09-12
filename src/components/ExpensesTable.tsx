@@ -80,6 +80,7 @@ export function ExpensesTable({
   } | null>(null);
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
   const [fieldError, setFieldError] = useState<string | null>(null);
+  const [hoverNote, setHoverNote] = useState<{ text: string; x: number; y: number } | null>(null);
   const [isPending, startTransition] = useTransition();
 
   function commit(id: string, field: EditableExpenseField, value: string) {
@@ -133,9 +134,15 @@ export function ExpensesTable({
             {expenses.map((expense) => (
               <tr
                 key={expense.id}
-                className={`group border-t border-line transition-colors hover:bg-canvas ${
+                className={`border-t border-line transition-colors hover:bg-canvas ${
                   expense.excludeFromTotals ? "opacity-50" : ""
                 }`}
+                onMouseMove={(e) => {
+                  if (expense.notes) {
+                    setHoverNote({ text: expense.notes, x: e.clientX, y: e.clientY });
+                  }
+                }}
+                onMouseLeave={() => setHoverNote(null)}
               >
                 <td
                   className="whitespace-nowrap px-4 py-3 font-mono text-ink-muted"
@@ -160,7 +167,7 @@ export function ExpensesTable({
                 </td>
 
                 <td
-                  className="relative px-4 py-3 text-ink"
+                  className="px-4 py-3 text-ink"
                   onDoubleClick={() => setEditingCell({ id: expense.id, field: "description" })}
                 >
                   {isEditing(expense.id, "description") ? (
@@ -186,12 +193,7 @@ export function ExpensesTable({
                         </span>
                       )}
                       {expense.notes && (
-                        <>
-                          <NoteIcon className="ml-1.5 inline-block h-3.5 w-3.5 align-text-bottom text-ink-faint" />
-                          <div className="pointer-events-none invisible absolute left-4 top-full z-20 mt-1 w-64 rounded-lg border border-line bg-surface p-3 text-xs leading-relaxed whitespace-pre-wrap text-ink opacity-0 shadow-card transition-opacity group-hover:visible group-hover:opacity-100">
-                            {expense.notes}
-                          </div>
-                        </>
+                        <NoteIcon className="ml-1.5 inline-block h-3.5 w-3.5 align-text-bottom text-ink-faint" />
                       )}
                     </>
                   )}
@@ -332,6 +334,18 @@ export function ExpensesTable({
       </div>
 
       {fieldError && <p className="mt-2 text-sm text-danger">{fieldError}</p>}
+
+      {hoverNote && (
+        <div
+          className="pointer-events-none fixed z-50 w-64 rounded-lg border border-line bg-surface p-3 text-xs leading-relaxed whitespace-pre-wrap text-ink shadow-card"
+          style={{
+            left: Math.min(hoverNote.x + 14, window.innerWidth - 272),
+            top: Math.min(hoverNote.y + 14, window.innerHeight - 16),
+          }}
+        >
+          {hoverNote.text}
+        </div>
+      )}
 
       {editingExpense && (
         <EditExpenseModal
