@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { NavBar } from "@/components/NavBar";
+import { getTranslations } from "@/i18n/get-locale";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,19 +14,24 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Nuestras Finanzas",
-  description: "Control de gastos personales",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getTranslations();
+  return {
+    title: t.appName,
+    description: t.meta.description,
+  };
+}
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const { locale, t } = await getTranslations();
+
   return (
     <html
-      lang="es"
+      lang={locale}
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-zinc-50 dark:bg-black">
-        <NavBar />
+        <NavBar t={t} locale={locale} />
         <main className="flex flex-1 flex-col">{children}</main>
       </body>
     </html>

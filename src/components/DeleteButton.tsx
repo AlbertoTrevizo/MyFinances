@@ -5,9 +5,13 @@ import { useTransition } from "react";
 export function DeleteButton({
   action,
   confirmMessage,
+  label,
+  pendingLabel,
 }: {
   action: () => Promise<void>;
   confirmMessage: string;
+  label: string;
+  pendingLabel: string;
 }) {
   const [isPending, startTransition] = useTransition();
 
@@ -24,7 +28,7 @@ export function DeleteButton({
       }}
       className="text-sm font-medium text-red-600 transition-colors hover:text-red-800 disabled:opacity-50 dark:text-red-500 dark:hover:text-red-400"
     >
-      {isPending ? "Eliminando…" : "Eliminar"}
+      {isPending ? pendingLabel : label}
     </button>
   );
 }

@@ -1,0 +1,120 @@
+import type { Dictionary } from "../types";
+
+const en: Dictionary = {
+  appName: "Our Finances",
+  meta: {
+    description: "Personal expense tracker",
+  },
+  nav: {
+    home: "Home",
+    expenses: "Expenses",
+    accounts: "Accounts",
+    categories: "Categories",
+  },
+  common: {
+    edit: "Edit",
+    delete: "Delete",
+    deleting: "Deleting…",
+    saving: "Saving…",
+  },
+  home: {
+    greeting: "Hi 👋",
+    spentThisMonth: "Spent this month:",
+    expensesCard: {
+      label: "Expenses",
+      description: "Record and review all your expenses.",
+      stat: (count) => `${count} recorded`,
+    },
+    accountsCard: {
+      label: "Accounts",
+      description: "Banks, cards, and cash.",
+      stat: (count) => `${count} accounts`,
+    },
+    categoriesCard: {
+      label: "Categories",
+      description: "Organize your expenses by type.",
+      stat: (count) => `${count} categories`,
+    },
+  },
+  accounts: {
+    title: "Accounts",
+    newButton: "New account",
+    editTitle: "Edit account",
+    newTitle: "New account",
+    emptyMessage: "You don't have any accounts yet.",
+    tableName: "Name",
+    tableType: "Type",
+    createSubmit: "Create account",
+    editSubmit: "Save changes",
+    form: {
+      nameLabel: "Name",
+      namePlaceholder: "E.g. BBVA Debit",
+      typeLabel: "Type",
+      typePlaceholder: "E.g. Debit, Cash, Credit, Savings",
+    },
+    confirmDelete: (name) => `Delete the account "${name}"?`,
+    errors: {
+      nameRequired: "Name is required.",
+      typeRequired: "Type is required.",
+      hasExpenses: "You can't delete an account that has expenses linked to it.",
+    },
+  },
+  categories: {
+    title: "Categories",
+    newButton: "New category",
+    editTitle: "Edit category",
+    newTitle: "New category",
+    emptyMessage: "You don't have any categories yet.",
+    tableName: "Name",
+    createSubmit: "Create category",
+    editSubmit: "Save changes",
+    form: {
+      nameLabel: "Name",
+      namePlaceholder: "E.g. Groceries, Transport, Rent",
+    },
+    confirmDelete: (name) => `Delete the category "${name}"?`,
+    errors: {
+      nameRequired: "Name is required.",
+      hasExpenses: "You can't delete a category that has expenses linked to it.",
+    },
+  },
+  expenses: {
+    title: "Expenses",
+    newButton: "New expense",
+    editTitle: "Edit expense",
+    newTitle: "New expense",
+    emptyMessage: "You don't have any expenses yet.",
+    tableDate: "Date",
+    tableDescription: "Description",
+    tableAccount: "Account",
+    tableCategory: "Category",
+    tableAmount: "Amount",
+    createSubmit: "Create expense",
+    editSubmit: "Save changes",
+    needsAccountAndCategory:
+      "You need at least one account and one category before recording an expense.",
+    createAccountLink: "Create account",
+    createCategoryLink: "Create category",
+    form: {
+      descriptionLabel: "Description",
+      descriptionPlaceholder: "E.g. Weekly groceries",
+      amountLabel: "Amount (MXN)",
+      amountPlaceholder: "E.g. 350.00",
+      dateLabel: "Date",
+      accountLabel: "Account",
+      accountPlaceholder: "Select an account",
+      categoryLabel: "Category",
+      categoryPlaceholder: "Select a category",
+    },
+    confirmDelete: (description) => `Delete the expense "${description}"?`,
+    errors: {
+      descriptionRequired: "Description is required.",
+      accountRequired: "Select an account.",
+      categoryRequired: "Select a category.",
+      invalidAmount: "Amount must be a number greater than zero.",
+      invalidDate: "Date is not valid.",
+    },
+  },
+};
+
+export default en;

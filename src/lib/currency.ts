@@ -1,10 +1,12 @@
-const formatter = new Intl.NumberFormat("es-MX", {
-  style: "currency",
-  currency: "MXN",
-});
+import type { Locale } from "@/i18n/config";
 
-export function formatCents(cents: number): string {
-  return formatter.format(cents / 100);
+const formatters: Record<Locale, Intl.NumberFormat> = {
+  es: new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }),
+  en: new Intl.NumberFormat("en-US", { style: "currency", currency: "MXN" }),
+};
+
+export function formatCents(cents: number, locale: Locale = "es"): string {
+  return formatters[locale].format(cents / 100);
 }
 
 export function centsToPesosInput(cents: number): string {

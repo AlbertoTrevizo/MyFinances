@@ -1,28 +1,30 @@
-# Nuestras Finanzas
+# Our Finances
 
-App para organizar los gastos personales, con montos en pesos mexicanos (MXN).
+An app to organize personal expenses, with amounts in Mexican pesos (MXN). Available in Spanish and English (switch in the top nav bar).
 
-Cada gasto se registra con: cuenta, categoría, fecha, descripción y monto.
+Each expense is recorded with: account, category, date, description, and amount.
 
 ## Stack
 
 - [Next.js](https://nextjs.org) (App Router) + TypeScript + Tailwind CSS
-- [Prisma](https://www.prisma.io) + SQLite (`prisma/dev.db`, no se sube al repo)
+- [Prisma](https://www.prisma.io) + SQLite (`prisma/dev.db`, not committed to the repo)
 
-## Empezar
+## Getting started
 
 ```bash
 npm install
-npx prisma migrate dev   # crea/actualiza la base de datos local
+npx prisma migrate dev   # creates/updates the local database
 npm run dev
 ```
 
-Abre [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000).
 
-## Estructura
+## Structure
 
-- `/accounts` — cuentas (efectivo, débito, crédito, etc.)
-- `/categories` — categorías de gasto
-- `/expenses` — gastos, cada uno ligado a una cuenta y una categoría
+- `/accounts` — accounts (cash, debit, credit, etc.)
+- `/categories` — expense categories
+- `/expenses` — expenses, each linked to an account and a category
 
-Al cambiar el esquema en `prisma/schema.prisma`, corre `npx prisma migrate dev --name <descripcion>`.
+The UI language (Spanish/English) is stored in a cookie and can be changed from the nav bar; strings live in `src/i18n/dictionaries`.
+
+When you change the schema in `prisma/schema.prisma`, run `npx prisma migrate dev --name <description>`.

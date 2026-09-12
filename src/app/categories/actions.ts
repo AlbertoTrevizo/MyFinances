@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { getTranslations } from "@/i18n/get-locale";
 
 export type ActionState = { error?: string } | undefined;
 
@@ -15,8 +16,9 @@ export async function createCategory(
   _prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
+  const { t } = await getTranslations();
   const { name } = readFields(formData);
-  if (!name) return { error: "El nombre es requerido." };
+  if (!name) return { error: t.categories.errors.nameRequired };
 
   await prisma.category.create({ data: { name } });
   revalidatePath("/categories");
@@ -28,8 +30,9 @@ export async function updateCategory(
   _prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
+  const { t } = await getTranslations();
   const { name } = readFields(formData);
-  if (!name) return { error: "El nombre es requerido." };
+  if (!name) return { error: t.categories.errors.nameRequired };
 
   await prisma.category.update({ where: { id }, data: { name } });
   revalidatePath("/categories");
@@ -37,13 +40,10 @@ export async function updateCategory(
 }
 
 export async function deleteCategory(id: string): Promise<void> {
+  const { t } = await getTranslations();
   const expenseCount = await prisma.expense.count({ where: { categoryId: id } });
   if (expenseCount > 0) {
-    redirect(
-      `/categories?error=${encodeURIComponent(
-        "No puedes eliminar una categoría con gastos asociados."
-      )}`
-    );
+    redirect(`/categories?error=${encodeURIComponent(t.categories.errors.hasExpenses)}`);
   }
   await prisma.category.delete({ where: { id } });
   revalidatePath("/categories");

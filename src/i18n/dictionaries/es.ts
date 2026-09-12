@@ -1,0 +1,120 @@
+import type { Dictionary } from "../types";
+
+const es: Dictionary = {
+  appName: "Nuestras Finanzas",
+  meta: {
+    description: "Control de gastos personales",
+  },
+  nav: {
+    home: "Inicio",
+    expenses: "Gastos",
+    accounts: "Cuentas",
+    categories: "Categorías",
+  },
+  common: {
+    edit: "Editar",
+    delete: "Eliminar",
+    deleting: "Eliminando…",
+    saving: "Guardando…",
+  },
+  home: {
+    greeting: "Hola 👋",
+    spentThisMonth: "Gastado este mes:",
+    expensesCard: {
+      label: "Gastos",
+      description: "Registra y consulta todos los gastos.",
+      stat: (count) => `${count} registrados`,
+    },
+    accountsCard: {
+      label: "Cuentas",
+      description: "Bancos, tarjetas y efectivo.",
+      stat: (count) => `${count} cuentas`,
+    },
+    categoriesCard: {
+      label: "Categorías",
+      description: "Organiza tus gastos por tipo.",
+      stat: (count) => `${count} categorías`,
+    },
+  },
+  accounts: {
+    title: "Cuentas",
+    newButton: "Nueva cuenta",
+    editTitle: "Editar cuenta",
+    newTitle: "Nueva cuenta",
+    emptyMessage: "Aún no tienes cuentas registradas.",
+    tableName: "Nombre",
+    tableType: "Tipo",
+    createSubmit: "Crear cuenta",
+    editSubmit: "Guardar cambios",
+    form: {
+      nameLabel: "Nombre",
+      namePlaceholder: "Ej. BBVA Débito",
+      typeLabel: "Tipo",
+      typePlaceholder: "Ej. Débito, Efectivo, Crédito, Ahorro",
+    },
+    confirmDelete: (name) => `¿Eliminar la cuenta "${name}"?`,
+    errors: {
+      nameRequired: "El nombre es requerido.",
+      typeRequired: "El tipo es requerido.",
+      hasExpenses: "No puedes eliminar una cuenta con gastos asociados.",
+    },
+  },
+  categories: {
+    title: "Categorías",
+    newButton: "Nueva categoría",
+    editTitle: "Editar categoría",
+    newTitle: "Nueva categoría",
+    emptyMessage: "Aún no tienes categorías registradas.",
+    tableName: "Nombre",
+    createSubmit: "Crear categoría",
+    editSubmit: "Guardar cambios",
+    form: {
+      nameLabel: "Nombre",
+      namePlaceholder: "Ej. Comida, Transporte, Renta",
+    },
+    confirmDelete: (name) => `¿Eliminar la categoría "${name}"?`,
+    errors: {
+      nameRequired: "El nombre es requerido.",
+      hasExpenses: "No puedes eliminar una categoría con gastos asociados.",
+    },
+  },
+  expenses: {
+    title: "Gastos",
+    newButton: "Nuevo gasto",
+    editTitle: "Editar gasto",
+    newTitle: "Nuevo gasto",
+    emptyMessage: "Aún no tienes gastos registrados.",
+    tableDate: "Fecha",
+    tableDescription: "Descripción",
+    tableAccount: "Cuenta",
+    tableCategory: "Categoría",
+    tableAmount: "Monto",
+    createSubmit: "Crear gasto",
+    editSubmit: "Guardar cambios",
+    needsAccountAndCategory:
+      "Necesitas al menos una cuenta y una categoría antes de registrar un gasto.",
+    createAccountLink: "Crear cuenta",
+    createCategoryLink: "Crear categoría",
+    form: {
+      descriptionLabel: "Descripción",
+      descriptionPlaceholder: "Ej. Súper de la semana",
+      amountLabel: "Monto (MXN)",
+      amountPlaceholder: "Ej. 350.00",
+      dateLabel: "Fecha",
+      accountLabel: "Cuenta",
+      accountPlaceholder: "Selecciona una cuenta",
+      categoryLabel: "Categoría",
+      categoryPlaceholder: "Selecciona una categoría",
+    },
+    confirmDelete: (description) => `¿Eliminar el gasto "${description}"?`,
+    errors: {
+      descriptionRequired: "La descripción es requerida.",
+      accountRequired: "Selecciona una cuenta.",
+      categoryRequired: "Selecciona una categoría.",
+      invalidAmount: "El monto debe ser un número mayor a cero.",
+      invalidDate: "La fecha no es válida.",
+    },
+  },
+};
+
+export default es;

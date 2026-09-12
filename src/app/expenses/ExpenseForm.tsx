@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import type { ActionState } from "./actions";
+import type { Dictionary } from "@/i18n/dictionaries";
 
 const initialState: ActionState = undefined;
 
@@ -13,6 +14,7 @@ export function ExpenseForm({
   categories,
   defaultValues,
   submitLabel,
+  t,
 }: {
   action: (state: ActionState, formData: FormData) => Promise<ActionState>;
   accounts: Option[];
@@ -25,6 +27,7 @@ export function ExpenseForm({
     categoryId: string;
   };
   submitLabel: string;
+  t: Dictionary;
 }) {
   const [state, formAction, isPending] = useActionState(action, initialState);
 
@@ -32,21 +35,21 @@ export function ExpenseForm({
     <form action={formAction} className="flex max-w-md flex-col gap-4">
       <label className="flex flex-col gap-1">
         <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          Descripción
+          {t.expenses.form.descriptionLabel}
         </span>
         <input
           name="description"
           type="text"
           required
           defaultValue={defaultValues?.description}
-          placeholder="Ej. Súper de la semana"
+          placeholder={t.expenses.form.descriptionPlaceholder}
           className="rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
         />
       </label>
 
       <label className="flex flex-col gap-1">
         <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          Monto (MXN)
+          {t.expenses.form.amountLabel}
         </span>
         <input
           name="amount"
@@ -54,14 +57,14 @@ export function ExpenseForm({
           inputMode="decimal"
           required
           defaultValue={defaultValues?.amount}
-          placeholder="Ej. 350.00"
+          placeholder={t.expenses.form.amountPlaceholder}
           className="rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
         />
       </label>
 
       <label className="flex flex-col gap-1">
         <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          Fecha
+          {t.expenses.form.dateLabel}
         </span>
         <input
           name="date"
@@ -74,7 +77,7 @@ export function ExpenseForm({
 
       <label className="flex flex-col gap-1">
         <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          Cuenta
+          {t.expenses.form.accountLabel}
         </span>
         <select
           name="accountId"
@@ -83,7 +86,7 @@ export function ExpenseForm({
           className="rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
         >
           <option value="" disabled>
-            Selecciona una cuenta
+            {t.expenses.form.accountPlaceholder}
           </option>
           {accounts.map((account) => (
             <option key={account.id} value={account.id}>
@@ -95,7 +98,7 @@ export function ExpenseForm({
 
       <label className="flex flex-col gap-1">
         <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          Categoría
+          {t.expenses.form.categoryLabel}
         </span>
         <select
           name="categoryId"
@@ -104,7 +107,7 @@ export function ExpenseForm({
           className="rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
         >
           <option value="" disabled>
-            Selecciona una categoría
+            {t.expenses.form.categoryPlaceholder}
           </option>
           {categories.map((category) => (
             <option key={category.id} value={category.id}>
@@ -123,7 +126,7 @@ export function ExpenseForm({
         disabled={isPending}
         className="w-fit rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-300"
       >
-        {isPending ? "Guardando…" : submitLabel}
+        {isPending ? t.common.saving : submitLabel}
       </button>
     </form>
   );

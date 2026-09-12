@@ -1,10 +1,12 @@
-const dateFormatter = new Intl.DateTimeFormat("es-MX", {
-  dateStyle: "medium",
-  timeZone: "UTC",
-});
+import type { Locale } from "@/i18n/config";
 
-export function formatDate(date: Date): string {
-  return dateFormatter.format(date);
+const dateFormatters: Record<Locale, Intl.DateTimeFormat> = {
+  es: new Intl.DateTimeFormat("es-MX", { dateStyle: "medium", timeZone: "UTC" }),
+  en: new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeZone: "UTC" }),
+};
+
+export function formatDate(date: Date, locale: Locale = "es"): string {
+  return dateFormatters[locale].format(date);
 }
 
 export function dateToInputValue(date: Date): string {

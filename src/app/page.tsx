@@ -1,8 +1,11 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { formatCents } from "@/lib/currency";
+import { getTranslations } from "@/i18n/get-locale";
 
 export default async function Home() {
+  const { locale, t } = await getTranslations();
+
   const now = new Date();
   const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
   const monthEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
@@ -20,21 +23,21 @@ export default async function Home() {
   const cards = [
     {
       href: "/expenses",
-      label: "Gastos",
-      description: "Registra y consulta todos los gastos.",
-      stat: `${expenseCount} registrados`,
+      label: t.home.expensesCard.label,
+      description: t.home.expensesCard.description,
+      stat: t.home.expensesCard.stat(expenseCount),
     },
     {
       href: "/accounts",
-      label: "Cuentas",
-      description: "Bancos, tarjetas y efectivo.",
-      stat: `${accountCount} cuentas`,
+      label: t.home.accountsCard.label,
+      description: t.home.accountsCard.description,
+      stat: t.home.accountsCard.stat(accountCount),
     },
     {
       href: "/categories",
-      label: "Categorías",
-      description: "Organiza tus gastos por tipo.",
-      stat: `${categoryCount} categorías`,
+      label: t.home.categoriesCard.label,
+      description: t.home.categoriesCard.description,
+      stat: t.home.categoriesCard.stat(categoryCount),
     },
   ];
 
@@ -42,12 +45,12 @@ export default async function Home() {
     <div className="mx-auto flex max-w-4xl flex-col gap-8 px-6 py-10">
       <div>
         <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-          Hola 👋
+          {t.home.greeting}
         </h1>
         <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-          Gastado este mes:{" "}
+          {t.home.spentThisMonth}{" "}
           <span className="font-semibold text-zinc-900 dark:text-zinc-50">
-            {formatCents(monthTotal._sum.amountCents ?? 0)}
+            {formatCents(monthTotal._sum.amountCents ?? 0, locale)}
           </span>
         </p>
       </div>

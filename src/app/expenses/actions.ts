@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { pesosToCents } from "@/lib/currency";
 import { inputValueToDate } from "@/lib/date";
+import { getTranslations } from "@/i18n/get-locale";
+import type { Dictionary } from "@/i18n/dictionaries";
 
 export type ActionState = { error?: string } | undefined;
 
@@ -18,14 +20,14 @@ function readFields(formData: FormData) {
   };
 }
 
-function validate(fields: ReturnType<typeof readFields>) {
-  if (!fields.description) return "La descripción es requerida.";
-  if (!fields.accountId) return "Selecciona una cuenta.";
-  if (!fields.categoryId) return "Selecciona una categoría.";
+function validate(fields: ReturnType<typeof readFields>, t: Dictionary): string | null {
+  if (!fields.description) return t.expenses.errors.descriptionRequired;
+  if (!fields.accountId) return t.expenses.errors.accountRequired;
+  if (!fields.categoryId) return t.expenses.errors.categoryRequired;
   const cents = pesosToCents(fields.amount);
-  if (cents === null) return "El monto debe ser un número mayor a cero.";
+  if (cents === null) return t.expenses.errors.invalidAmount;
   const date = inputValueToDate(fields.date);
-  if (!date) return "La fecha no es válida.";
+  if (!date) return t.expenses.errors.invalidDate;
   return null;
 }
 
@@ -33,8 +35,9 @@ export async function createExpense(
   _prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
+  const { t } = await getTranslations();
   const fields = readFields(formData);
-  const error = validate(fields);
+  const error = validate(fields, t);
   if (error) return { error };
 
   const cents = pesosToCents(fields.amount)!;
@@ -58,8 +61,9 @@ export async function updateExpense(
   _prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
+  const { t } = await getTranslations();
   const fields = readFields(formData);
-  const error = validate(fields);
+  const error = validate(fields, t);
   if (error) return { error };
 
   const cents = pesosToCents(fields.amount)!;
