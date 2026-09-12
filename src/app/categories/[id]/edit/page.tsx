@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { CategoryForm } from "../../CategoryForm";
 import { updateCategory } from "../../actions";
 import { getTranslations } from "@/i18n/get-locale";
+import { PageContainer, PageTitle } from "@/components/PageContainer";
 
 export default async function EditCategoryPage({
   params,
@@ -15,16 +16,14 @@ export default async function EditCategoryPage({
   if (!category) notFound();
 
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-6 px-6 py-10">
-      <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-        {t.categories.editTitle}
-      </h1>
+    <PageContainer title={<PageTitle>{t.categories.editTitle}</PageTitle>}>
       <CategoryForm
         action={updateCategory.bind(null, id)}
         defaultValues={{ name: category.name }}
         submitLabel={t.categories.editSubmit}
-        t={t}
+        form={t.categories.form}
+        saving={t.common.saving}
       />
-    </div>
+    </PageContainer>
   );
 }

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { ExpenseForm } from "../ExpenseForm";
 import { createExpense } from "../actions";
 import { getTranslations } from "@/i18n/get-locale";
+import { PageContainer, PageTitle } from "@/components/PageContainer";
 
 export default async function NewExpensePage() {
   const { t } = await getTranslations();
@@ -13,41 +14,34 @@ export default async function NewExpensePage() {
 
   if (accounts.length === 0 || categories.length === 0) {
     return (
-      <div className="mx-auto flex max-w-4xl flex-col gap-4 px-6 py-10">
-        <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-          {t.expenses.newTitle}
-        </h1>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          {t.expenses.needsAccountAndCategory}
-        </p>
+      <PageContainer title={<PageTitle>{t.expenses.newTitle}</PageTitle>}>
+        <p className="text-sm text-ink-muted">{t.expenses.needsAccountAndCategory}</p>
         <div className="flex gap-4 text-sm font-medium">
           {accounts.length === 0 && (
-            <Link href="/accounts/new" className="text-zinc-900 underline dark:text-zinc-50">
+            <Link href="/accounts/new" className="text-primary underline underline-offset-2">
               {t.expenses.createAccountLink}
             </Link>
           )}
           {categories.length === 0 && (
-            <Link href="/categories/new" className="text-zinc-900 underline dark:text-zinc-50">
+            <Link href="/categories/new" className="text-primary underline underline-offset-2">
               {t.expenses.createCategoryLink}
             </Link>
           )}
         </div>
-      </div>
+      </PageContainer>
     );
   }
 
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-6 px-6 py-10">
-      <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-        {t.expenses.newTitle}
-      </h1>
+    <PageContainer title={<PageTitle>{t.expenses.newTitle}</PageTitle>}>
       <ExpenseForm
         action={createExpense}
         accounts={accounts.map((a) => ({ id: a.id, label: `${a.name} (${a.type})` }))}
         categories={categories.map((c) => ({ id: c.id, label: c.name }))}
         submitLabel={t.expenses.createSubmit}
-        t={t}
+        form={t.expenses.form}
+        saving={t.common.saving}
       />
-    </div>
+    </PageContainer>
   );
 }

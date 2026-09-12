@@ -1,16 +1,19 @@
 import { AccountForm } from "../AccountForm";
 import { createAccount } from "../actions";
 import { getTranslations } from "@/i18n/get-locale";
+import { PageContainer, PageTitle } from "@/components/PageContainer";
 
 export default async function NewAccountPage() {
   const { t } = await getTranslations();
 
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-6 px-6 py-10">
-      <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-        {t.accounts.newTitle}
-      </h1>
-      <AccountForm action={createAccount} submitLabel={t.accounts.createSubmit} t={t} />
-    </div>
+    <PageContainer title={<PageTitle>{t.accounts.newTitle}</PageTitle>}>
+      <AccountForm
+        action={createAccount}
+        submitLabel={t.accounts.createSubmit}
+        form={t.accounts.form}
+        saving={t.common.saving}
+      />
+    </PageContainer>
   );
 }
