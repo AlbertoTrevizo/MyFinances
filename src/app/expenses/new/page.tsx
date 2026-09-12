@@ -35,6 +35,7 @@ export default async function NewExpensePage() {
         submitLabel={t.expenses.createSubmit}
         form={t.expenses.form}
         noCategory={t.expenses.noCategory}
+        expenseTypes={t.expenseTypes}
         saving={t.common.saving}
       />
     </PageContainer>

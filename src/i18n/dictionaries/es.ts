@@ -17,9 +17,20 @@ const es: Dictionary = {
     deleting: "Eliminando…",
     saving: "Guardando…",
   },
+  expenseTypes: {
+    needs: "Necesidades",
+    wants: "Deseo",
+    savings: "Ahorro",
+  },
   home: {
     greeting: "Hola 👋",
-    spentThisMonth: "Gastado este mes:",
+    monthSelectLabel: "Seleccionar mes",
+    spentInMonth: (month) => `Gastado en ${month}:`,
+    byCategoryTitle: "Gastos por categoría",
+    byTypeTitle: "Gastos por tipo",
+    topCategoriesTitle: "Categorías principales",
+    noExpensesMonth: "No hay gastos registrados este mes.",
+    otherCategory: "Otros",
     expensesCard: {
       label: "Gastos",
       description: "Registra y consulta todos los gastos.",
@@ -90,12 +101,14 @@ const es: Dictionary = {
     tableDescription: "Descripción",
     tableAccount: "Cuenta",
     tableCategory: "Categoría",
+    tableType: "Tipo",
     tableAmount: "Monto",
     createSubmit: "Crear gasto",
     editSubmit: "Guardar cambios",
     needsAccount: "Necesitas al menos una cuenta antes de registrar un gasto.",
     createAccountLink: "Crear cuenta",
     noCategory: "Sin categoría",
+    noType: "Sin tipo",
     form: {
       descriptionLabel: "Descripción",
       descriptionPlaceholder: "Ej. Súper de la semana",
@@ -105,6 +118,8 @@ const es: Dictionary = {
       accountLabel: "Cuenta",
       accountPlaceholder: "Selecciona una cuenta",
       categoryLabel: "Categoría",
+      typeLabel: "Tipo",
+      typePlaceholder: "Selecciona un tipo",
     },
     confirmDelete: (description) => `¿Eliminar el gasto "${description}"?`,
     errors: {
@@ -112,6 +127,7 @@ const es: Dictionary = {
       accountRequired: "Selecciona una cuenta.",
       invalidAmount: "El monto debe ser un número mayor a cero.",
       invalidDate: "La fecha no es válida.",
+      typeRequired: "Selecciona un tipo.",
     },
   },
 };

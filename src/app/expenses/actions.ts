@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { pesosToCents } from "@/lib/currency";
 import { inputValueToDate } from "@/lib/date";
+import { isExpenseType } from "@/lib/expense-type";
 import { getTranslations } from "@/i18n/get-locale";
 import type { Dictionary } from "@/i18n/dictionaries";
 
@@ -17,6 +18,7 @@ function readFields(formData: FormData) {
     date: String(formData.get("date") ?? "").trim(),
     accountId: String(formData.get("accountId") ?? "").trim(),
     categoryId: String(formData.get("categoryId") ?? "").trim(),
+    type: String(formData.get("type") ?? "").trim(),
   };
 }
 
@@ -27,6 +29,7 @@ function validate(fields: ReturnType<typeof readFields>, t: Dictionary): string 
   if (cents === null) return t.expenses.errors.invalidAmount;
   const date = inputValueToDate(fields.date);
   if (!date) return t.expenses.errors.invalidDate;
+  if (!isExpenseType(fields.type)) return t.expenses.errors.typeRequired;
   return null;
 }
 
@@ -49,6 +52,7 @@ export async function createExpense(
       date,
       accountId: fields.accountId,
       categoryId: fields.categoryId || null,
+      type: fields.type,
     },
   });
   revalidatePath("/expenses");
@@ -76,6 +80,7 @@ export async function updateExpense(
       date,
       accountId: fields.accountId,
       categoryId: fields.categoryId || null,
+      type: fields.type,
     },
   });
   revalidatePath("/expenses");

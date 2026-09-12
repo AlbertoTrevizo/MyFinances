@@ -15,9 +15,20 @@ export type Dictionary = {
     deleting: string;
     saving: string;
   };
+  expenseTypes: {
+    needs: string;
+    wants: string;
+    savings: string;
+  };
   home: {
     greeting: string;
-    spentThisMonth: string;
+    monthSelectLabel: string;
+    spentInMonth: (month: string) => string;
+    byCategoryTitle: string;
+    byTypeTitle: string;
+    topCategoriesTitle: string;
+    noExpensesMonth: string;
+    otherCategory: string;
     expensesCard: { label: string; description: string; stat: (count: number) => string };
     accountsCard: { label: string; description: string; stat: (count: number) => string };
     categoriesCard: { label: string; description: string; stat: (count: number) => string };
@@ -76,12 +87,14 @@ export type Dictionary = {
     tableDescription: string;
     tableAccount: string;
     tableCategory: string;
+    tableType: string;
     tableAmount: string;
     createSubmit: string;
     editSubmit: string;
     needsAccount: string;
     createAccountLink: string;
     noCategory: string;
+    noType: string;
     form: {
       descriptionLabel: string;
       descriptionPlaceholder: string;
@@ -91,6 +104,8 @@ export type Dictionary = {
       accountLabel: string;
       accountPlaceholder: string;
       categoryLabel: string;
+      typeLabel: string;
+      typePlaceholder: string;
     };
     confirmDelete: (description: string) => string;
     errors: {
@@ -98,6 +113,7 @@ export type Dictionary = {
       accountRequired: string;
       invalidAmount: string;
       invalidDate: string;
+      typeRequired: string;
     };
   };
 };

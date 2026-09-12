@@ -34,10 +34,12 @@ export default async function EditExpensePage({
           date: dateToInputValue(expense.date),
           accountId: expense.accountId,
           categoryId: expense.categoryId ?? "",
+          type: expense.type ?? "",
         }}
         submitLabel={t.expenses.editSubmit}
         form={t.expenses.form}
         noCategory={t.expenses.noCategory}
+        expenseTypes={t.expenseTypes}
         saving={t.common.saving}
       />
     </PageContainer>

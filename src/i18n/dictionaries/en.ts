@@ -17,9 +17,20 @@ const en: Dictionary = {
     deleting: "Deleting…",
     saving: "Saving…",
   },
+  expenseTypes: {
+    needs: "Needs",
+    wants: "Wants",
+    savings: "Savings",
+  },
   home: {
     greeting: "Hi 👋",
-    spentThisMonth: "Spent this month:",
+    monthSelectLabel: "Select month",
+    spentInMonth: (month) => `Spent in ${month}:`,
+    byCategoryTitle: "Expenses by category",
+    byTypeTitle: "Expenses by type",
+    topCategoriesTitle: "Top categories",
+    noExpensesMonth: "No expenses recorded for this month.",
+    otherCategory: "Other",
     expensesCard: {
       label: "Expenses",
       description: "Record and review all your expenses.",
@@ -90,12 +101,14 @@ const en: Dictionary = {
     tableDescription: "Description",
     tableAccount: "Account",
     tableCategory: "Category",
+    tableType: "Type",
     tableAmount: "Amount",
     createSubmit: "Create expense",
     editSubmit: "Save changes",
     needsAccount: "You need at least one account before recording an expense.",
     createAccountLink: "Create account",
     noCategory: "No category",
+    noType: "No type",
     form: {
       descriptionLabel: "Description",
       descriptionPlaceholder: "E.g. Weekly groceries",
@@ -105,6 +118,8 @@ const en: Dictionary = {
       accountLabel: "Account",
       accountPlaceholder: "Select an account",
       categoryLabel: "Category",
+      typeLabel: "Type",
+      typePlaceholder: "Select a type",
     },
     confirmDelete: (description) => `Delete the expense "${description}"?`,
     errors: {
@@ -112,6 +127,7 @@ const en: Dictionary = {
       accountRequired: "Select an account.",
       invalidAmount: "Amount must be a number greater than zero.",
       invalidDate: "Date is not valid.",
+      typeRequired: "Select a type.",
     },
   },
 };

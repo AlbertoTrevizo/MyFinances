@@ -9,9 +9,10 @@ import { SortableHeader } from "@/components/SortableHeader";
 import { PencilIcon } from "@/components/icons";
 import { buttonPrimary, iconButton, card } from "@/lib/styles";
 import { resolveSort } from "@/lib/sort";
+import { isExpenseType } from "@/lib/expense-type";
 import { deleteExpense } from "./actions";
 
-const SORT_FIELDS = ["date", "description", "account", "category", "amount"] as const;
+const SORT_FIELDS = ["date", "description", "account", "category", "type", "amount"] as const;
 
 export default async function ExpensesPage({
   searchParams,
@@ -27,11 +28,13 @@ export default async function ExpensesPage({
       ? { account: { name: dir } }
       : field === "category"
         ? { category: { name: dir } }
-        : field === "amount"
-          ? { amountCents: dir }
-          : field === "description"
-            ? { description: dir }
-            : { date: dir };
+        : field === "type"
+          ? { type: dir }
+          : field === "amount"
+            ? { amountCents: dir }
+            : field === "description"
+              ? { description: dir }
+              : { date: dir };
 
   const expenses = await prisma.expense.findMany({
     orderBy,
@@ -74,6 +77,7 @@ export default async function ExpensesPage({
                   <th className="px-4 py-3 font-medium">
                     {header(t.expenses.tableCategory, "category")}
                   </th>
+                  <th className="px-4 py-3 font-medium">{header(t.expenses.tableType, "type")}</th>
                   <th className="px-4 py-3 text-right font-medium">
                     {header(t.expenses.tableAmount, "amount", "right")}
                   </th>
@@ -94,6 +98,13 @@ export default async function ExpensesPage({
                     <td className="px-4 py-3 text-ink-muted">
                       {expense.category?.name ?? (
                         <span className="text-ink-faint">{t.expenses.noCategory}</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-ink-muted">
+                      {isExpenseType(expense.type) ? (
+                        t.expenseTypes[expense.type]
+                      ) : (
+                        <span className="text-ink-faint">{t.expenses.noType}</span>
                       )}
                     </td>
                     <td className="whitespace-nowrap px-4 py-3 text-right font-mono font-semibold tabular-nums text-ink">

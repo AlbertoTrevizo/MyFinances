@@ -1,27 +1,113 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { formatCents } from "@/lib/currency";
+import { monthKey, parseMonthKey, formatMonth } from "@/lib/date";
+import { EXPENSE_TYPES, isExpenseType } from "@/lib/expense-type";
 import { getTranslations } from "@/i18n/get-locale";
 import { PageContainer, PageTitle } from "@/components/PageContainer";
+import { MonthSelect } from "@/components/MonthSelect";
+import { DoughnutChart } from "@/components/DoughnutChart";
+import { TopCategories } from "@/components/TopCategories";
 import { ExpensesIcon, AccountsIcon, CategoriesIcon } from "@/components/icons";
 import { card } from "@/lib/styles";
 
-export default async function Home() {
+const CHART_PALETTE = [
+  "#3457FF",
+  "#16A34A",
+  "#F59E0B",
+  "#DC2626",
+  "#8B5CF6",
+  "#0EA5E9",
+  "#EC4899",
+  "#65A30D",
+];
+const CHART_SLICE_LIMIT = 6;
+const OTHER_COLOR = "#98A2B3";
+
+const TYPE_COLORS: Record<(typeof EXPENSE_TYPES)[number], string> = {
+  needs: "#3457FF",
+  wants: "#F59E0B",
+  savings: "#16A34A",
+};
+
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ month?: string }>;
+}) {
   const { locale, t } = await getTranslations();
 
-  const now = new Date();
-  const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
-  const monthEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+  const currentMonthKey = monthKey(new Date());
+  const sp = await searchParams;
+  const requestedMonth = sp.month && parseMonthKey(sp.month) ? sp.month : currentMonthKey;
+  const monthStart = parseMonthKey(requestedMonth)!;
+  const monthEnd = new Date(Date.UTC(monthStart.getUTCFullYear(), monthStart.getUTCMonth() + 1, 1));
+  const monthLabel = formatMonth(monthStart, locale);
 
-  const [accountCount, categoryCount, expenseCount, monthTotal] = await Promise.all([
-    prisma.account.count(),
-    prisma.category.count(),
-    prisma.expense.count(),
-    prisma.expense.aggregate({
-      _sum: { amountCents: true },
-      where: { date: { gte: monthStart, lt: monthEnd } },
-    }),
-  ]);
+  const [accountCount, categoryCount, expenseCount, monthExpenses, allExpenseDates] =
+    await Promise.all([
+      prisma.account.count(),
+      prisma.category.count(),
+      prisma.expense.count(),
+      prisma.expense.findMany({
+        where: { date: { gte: monthStart, lt: monthEnd } },
+        include: { category: true },
+      }),
+      prisma.expense.findMany({ select: { date: true } }),
+    ]);
+
+  const monthTotal = monthExpenses.reduce((sum, expense) => sum + expense.amountCents, 0);
+
+  const totalsByCategory = new Map<string, { label: string; value: number }>();
+  for (const expense of monthExpenses) {
+    const key = expense.category?.id ?? "__none__";
+    const label = expense.category?.name ?? t.expenses.noCategory;
+    const entry = totalsByCategory.get(key) ?? { label, value: 0 };
+    entry.value += expense.amountCents;
+    totalsByCategory.set(key, entry);
+  }
+  const sortedCategories = [...totalsByCategory.values()].sort((a, b) => b.value - a.value);
+
+  const chartSlices = sortedCategories.slice(0, CHART_SLICE_LIMIT).map((category, index) => ({
+    ...category,
+    color: CHART_PALETTE[index % CHART_PALETTE.length],
+  }));
+  const remaining = sortedCategories.slice(CHART_SLICE_LIMIT);
+  if (remaining.length > 0) {
+    chartSlices.push({
+      label: t.home.otherCategory,
+      value: remaining.reduce((sum, category) => sum + category.value, 0),
+      color: OTHER_COLOR,
+    });
+  }
+
+  const topCategories = sortedCategories.slice(0, 5).map((category, index) => ({
+    ...category,
+    color: CHART_PALETTE[index % CHART_PALETTE.length],
+  }));
+  const topCategoriesMax = topCategories[0]?.value ?? 0;
+
+  const totalsByType = new Map<string, number>();
+  for (const expense of monthExpenses) {
+    const key = isExpenseType(expense.type) ? expense.type : "__none__";
+    totalsByType.set(key, (totalsByType.get(key) ?? 0) + expense.amountCents);
+  }
+  const typeSlices = [
+    ...EXPENSE_TYPES.map((type) => ({
+      label: t.expenseTypes[type],
+      value: totalsByType.get(type) ?? 0,
+      color: TYPE_COLORS[type],
+    })).filter((slice) => slice.value > 0),
+    ...(totalsByType.get("__none__")
+      ? [{ label: t.expenses.noType, value: totalsByType.get("__none__")!, color: OTHER_COLOR }]
+      : []),
+  ];
+
+  const monthKeys = new Set(allExpenseDates.map((row) => monthKey(row.date)));
+  monthKeys.add(currentMonthKey);
+  const monthOptions = [...monthKeys]
+    .sort((a, b) => (a < b ? 1 : -1))
+    .map((key) => ({ value: key, label: formatMonth(parseMonthKey(key)!, locale) }));
 
   const cards = [
     {
@@ -48,12 +134,51 @@ export default async function Home() {
   ];
 
   return (
-    <PageContainer title={<PageTitle>{t.home.greeting}</PageTitle>}>
+    <PageContainer
+      title={<PageTitle>{t.home.greeting}</PageTitle>}
+      actions={
+        <MonthSelect value={requestedMonth} options={monthOptions} label={t.home.monthSelectLabel} />
+      }
+    >
       <div className={`${card} p-5 sm:p-6`}>
-        <p className="text-sm text-ink-muted">{t.home.spentThisMonth}</p>
+        <p className="text-sm text-ink-muted capitalize">{t.home.spentInMonth(monthLabel)}</p>
         <p className="mt-2 font-mono text-3xl font-semibold tabular-nums text-ink sm:text-4xl">
-          {formatCents(monthTotal._sum.amountCents ?? 0, locale)}
+          {formatCents(monthTotal, locale)}
         </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className={`${card} p-5 sm:p-6`}>
+          <h2 className="mb-4 text-sm font-semibold text-ink">{t.home.byCategoryTitle}</h2>
+          <DoughnutChart
+            data={chartSlices}
+            total={monthTotal}
+            centerValue={formatCents(monthTotal, locale)}
+            centerLabel={monthLabel}
+            emptyMessage={t.home.noExpensesMonth}
+          />
+        </div>
+
+        <div className={`${card} p-5 sm:p-6`}>
+          <h2 className="mb-4 text-sm font-semibold text-ink">{t.home.byTypeTitle}</h2>
+          <DoughnutChart
+            data={typeSlices}
+            total={monthTotal}
+            centerValue={formatCents(monthTotal, locale)}
+            centerLabel={monthLabel}
+            emptyMessage={t.home.noExpensesMonth}
+          />
+        </div>
+      </div>
+
+      <div className={`${card} p-5 sm:p-6`}>
+        <h2 className="mb-4 text-sm font-semibold text-ink">{t.home.topCategoriesTitle}</h2>
+        <TopCategories
+          items={topCategories}
+          maxValue={topCategoriesMax}
+          emptyMessage={t.home.noExpensesMonth}
+          formatValue={(value) => formatCents(value, locale)}
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">

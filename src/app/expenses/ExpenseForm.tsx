@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import type { ActionState } from "./actions";
 import type { Dictionary } from "@/i18n/dictionaries";
+import { EXPENSE_TYPES } from "@/lib/expense-type";
 import { buttonPrimary, inputField } from "@/lib/styles";
 
 const initialState: ActionState = undefined;
@@ -17,6 +18,7 @@ export function ExpenseForm({
   submitLabel,
   form,
   noCategory,
+  expenseTypes,
   saving,
 }: {
   action: (state: ActionState, formData: FormData) => Promise<ActionState>;
@@ -28,10 +30,12 @@ export function ExpenseForm({
     date: string;
     accountId: string;
     categoryId: string;
+    type: string;
   };
   submitLabel: string;
   form: Dictionary["expenses"]["form"];
   noCategory: string;
+  expenseTypes: Dictionary["expenseTypes"];
   saving: string;
 }) {
   const [state, formAction, isPending] = useActionState(action, initialState);
@@ -106,6 +110,25 @@ export function ExpenseForm({
           {categories.map((category) => (
             <option key={category.id} value={category.id}>
               {category.label}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <label className="flex flex-col gap-1.5">
+        <span className="text-sm font-medium text-ink-muted">{form.typeLabel}</span>
+        <select
+          name="type"
+          required
+          defaultValue={defaultValues?.type ?? ""}
+          className={inputField}
+        >
+          <option value="" disabled>
+            {form.typePlaceholder}
+          </option>
+          {EXPENSE_TYPES.map((type) => (
+            <option key={type} value={type}>
+              {expenseTypes[type]}
             </option>
           ))}
         </select>
