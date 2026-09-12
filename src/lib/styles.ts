@@ -4,8 +4,11 @@ export const buttonPrimary =
 export const inputField =
   "rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-ink-faint transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary-soft";
 
-export const linkMuted =
-  "text-sm font-medium text-ink-muted transition-colors hover:text-ink";
-
 export const card =
   "rounded-xl border border-line bg-surface shadow-card";
+
+export const iconButton =
+  "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-ink-muted transition-colors hover:bg-canvas hover:text-ink";
+
+export const iconButtonDanger =
+  "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-danger transition-colors hover:bg-danger-soft hover:text-danger-strong disabled:pointer-events-none disabled:opacity-50";

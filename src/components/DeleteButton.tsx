@@ -1,6 +1,8 @@
 "use client";
 
 import { useTransition } from "react";
+import { TrashIcon } from "./icons";
+import { iconButtonDanger } from "@/lib/styles";
 
 export function DeleteButton({
   action,
@@ -19,6 +21,8 @@ export function DeleteButton({
     <button
       type="button"
       disabled={isPending}
+      aria-label={isPending ? pendingLabel : label}
+      title={isPending ? pendingLabel : label}
       onClick={() => {
         if (window.confirm(confirmMessage)) {
           startTransition(() => {
@@ -26,9 +30,9 @@ export function DeleteButton({
           });
         }
       }}
-      className="text-sm font-medium text-danger transition-colors hover:text-danger-strong disabled:opacity-50"
+      className={iconButtonDanger}
     >
-      {isPending ? pendingLabel : label}
+      <TrashIcon className="h-4 w-4" />
     </button>
   );
 }

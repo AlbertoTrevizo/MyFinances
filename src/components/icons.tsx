@@ -46,6 +46,25 @@ export function CategoriesIcon({ className }: IconProps) {
   );
 }
 
+export function PencilIcon({ className }: IconProps) {
+  return (
+    <svg className={className} {...base}>
+      <path d="M15.5 4.5a1.7 1.7 0 0 1 2.4 2.4L7.5 17.3l-3.3.8.8-3.3L15.5 4.5Z" />
+    </svg>
+  );
+}
+
+export function TrashIcon({ className }: IconProps) {
+  return (
+    <svg className={className} {...base}>
+      <path d="M5 7h14" />
+      <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+      <path d="M7 7l.8 12a1 1 0 0 0 1 1h6.4a1 1 0 0 0 1-1L17 7" />
+      <path d="M10 11v5M14 11v5" />
+    </svg>
+  );
+}
+
 export function SortIcon({ direction, className }: { direction?: "asc" | "desc"; className?: string }) {
   return (
     <svg viewBox="0 0 12 12" className={className} fill="currentColor">

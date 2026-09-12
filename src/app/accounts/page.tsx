@@ -4,7 +4,8 @@ import { DeleteButton } from "@/components/DeleteButton";
 import { getTranslations } from "@/i18n/get-locale";
 import { PageContainer, PageTitle } from "@/components/PageContainer";
 import { SortableHeader } from "@/components/SortableHeader";
-import { buttonPrimary, linkMuted, card } from "@/lib/styles";
+import { PencilIcon } from "@/components/icons";
+import { buttonPrimary, iconButton, card } from "@/lib/styles";
 import { resolveSort } from "@/lib/sort";
 import { deleteAccount } from "./actions";
 
@@ -76,9 +77,14 @@ export default async function AccountsPage({
                     <td className="px-4 py-3 text-ink">{account.name}</td>
                     <td className="px-4 py-3 text-ink-muted">{account.type}</td>
                     <td className="px-4 py-3 text-right">
-                      <div className="flex justify-end gap-4">
-                        <Link href={`/accounts/${account.id}/edit`} className={linkMuted}>
-                          {t.common.edit}
+                      <div className="flex justify-end gap-1">
+                        <Link
+                          href={`/accounts/${account.id}/edit`}
+                          aria-label={t.common.edit}
+                          title={t.common.edit}
+                          className={iconButton}
+                        >
+                          <PencilIcon className="h-4 w-4" />
                         </Link>
                         <DeleteButton
                           action={deleteAccount.bind(null, account.id)}
