@@ -2,6 +2,9 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { formatCents } from "@/lib/currency";
 import { getTranslations } from "@/i18n/get-locale";
+import { PageContainer, PageTitle } from "@/components/PageContainer";
+import { ExpensesIcon, AccountsIcon, CategoriesIcon } from "@/components/icons";
+import { card } from "@/lib/styles";
 
 export default async function Home() {
   const { locale, t } = await getTranslations();
@@ -26,54 +29,51 @@ export default async function Home() {
       label: t.home.expensesCard.label,
       description: t.home.expensesCard.description,
       stat: t.home.expensesCard.stat(expenseCount),
+      icon: ExpensesIcon,
     },
     {
       href: "/accounts",
       label: t.home.accountsCard.label,
       description: t.home.accountsCard.description,
       stat: t.home.accountsCard.stat(accountCount),
+      icon: AccountsIcon,
     },
     {
       href: "/categories",
       label: t.home.categoriesCard.label,
       description: t.home.categoriesCard.description,
       stat: t.home.categoriesCard.stat(categoryCount),
+      icon: CategoriesIcon,
     },
   ];
 
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-8 px-6 py-10">
-      <div>
-        <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-          {t.home.greeting}
-        </h1>
-        <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-          {t.home.spentThisMonth}{" "}
-          <span className="font-semibold text-zinc-900 dark:text-zinc-50">
-            {formatCents(monthTotal._sum.amountCents ?? 0, locale)}
-          </span>
+    <PageContainer title={<PageTitle>{t.home.greeting}</PageTitle>}>
+      <div className={`${card} p-5 sm:p-6`}>
+        <p className="text-sm text-ink-muted">{t.home.spentThisMonth}</p>
+        <p className="mt-2 font-mono text-3xl font-semibold tabular-nums text-ink sm:text-4xl">
+          {formatCents(monthTotal._sum.amountCents ?? 0, locale)}
         </p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {cards.map((card) => (
+        {cards.map((item) => (
           <Link
-            key={card.href}
-            href={card.href}
-            className="flex flex-col gap-1 rounded-lg border border-zinc-200 p-5 transition-colors hover:border-zinc-400 dark:border-zinc-800 dark:hover:border-zinc-600"
+            key={item.href}
+            href={item.href}
+            className={`group flex flex-col gap-3 ${card} p-5 transition-colors hover:border-primary/40`}
           >
-            <span className="font-semibold text-zinc-900 dark:text-zinc-50">
-              {card.label}
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-soft text-primary">
+              <item.icon className="h-[18px] w-[18px]" />
             </span>
-            <span className="text-sm text-zinc-600 dark:text-zinc-400">
-              {card.description}
-            </span>
-            <span className="mt-2 text-sm font-medium text-zinc-500 dark:text-zinc-500">
-              {card.stat}
+            <span className="font-semibold text-ink">{item.label}</span>
+            <span className="text-sm text-ink-muted">{item.description}</span>
+            <span className="mt-1 font-mono text-sm font-medium text-ink-muted transition-colors group-hover:text-primary">
+              {item.stat}
             </span>
           </Link>
         ))}
       </div>
-    </div>
+    </PageContainer>
   );
 }
