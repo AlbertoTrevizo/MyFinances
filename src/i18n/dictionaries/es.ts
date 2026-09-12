@@ -29,6 +29,8 @@ const es: Dictionary = {
     byCategoryTitle: "Gastos por categoría",
     byTypeTitle: "Gastos por tipo",
     topCategoriesTitle: "Categorías principales",
+    monthRecordsTitle: "Registros del mes",
+    viewAllLink: "Ver todo en Gastos",
     noExpensesMonth: "No hay gastos registrados este mes.",
     otherCategory: "Otros",
     expensesCard: {

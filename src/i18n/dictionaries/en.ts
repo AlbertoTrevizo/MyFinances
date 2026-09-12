@@ -29,6 +29,8 @@ const en: Dictionary = {
     byCategoryTitle: "Expenses by category",
     byTypeTitle: "Expenses by type",
     topCategoriesTitle: "Top categories",
+    monthRecordsTitle: "This month's records",
+    viewAllLink: "View all in Expenses",
     noExpensesMonth: "No expenses recorded for this month.",
     otherCategory: "Other",
     expensesCard: {

@@ -27,6 +27,8 @@ export type Dictionary = {
     byCategoryTitle: string;
     byTypeTitle: string;
     topCategoriesTitle: string;
+    monthRecordsTitle: string;
+    viewAllLink: string;
     noExpensesMonth: string;
     otherCategory: string;
     expensesCard: { label: string; description: string; stat: (count: number) => string };

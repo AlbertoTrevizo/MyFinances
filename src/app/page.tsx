@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { formatCents } from "@/lib/currency";
-import { monthKey, parseMonthKey, formatMonth } from "@/lib/date";
+import { monthKey, parseMonthKey, formatMonth, dateToInputValue } from "@/lib/date";
 import { EXPENSE_TYPES, isExpenseType } from "@/lib/expense-type";
 import { getTranslations } from "@/i18n/get-locale";
 import { PageContainer, PageTitle } from "@/components/PageContainer";
 import { MonthSelect } from "@/components/MonthSelect";
 import { DoughnutChart } from "@/components/DoughnutChart";
 import { TopCategories } from "@/components/TopCategories";
+import { MonthExpensesTable } from "@/components/MonthExpensesTable";
 import { ExpensesIcon, AccountsIcon, CategoriesIcon } from "@/components/icons";
 import { card } from "@/lib/styles";
 
@@ -51,7 +52,8 @@ export default async function Home({
       prisma.expense.count(),
       prisma.expense.findMany({
         where: { date: { gte: monthStart, lt: monthEnd } },
-        include: { category: true },
+        include: { category: true, account: true },
+        orderBy: { date: "desc" },
       }),
       prisma.expense.findMany({ select: { date: true } }),
     ]);
@@ -102,6 +104,9 @@ export default async function Home({
       ? [{ label: t.expenses.noType, value: totalsByType.get("__none__")!, color: OTHER_COLOR }]
       : []),
   ];
+
+  const monthEndInclusive = new Date(monthEnd.getTime() - 24 * 60 * 60 * 1000);
+  const expensesHref = `/expenses?from=${dateToInputValue(monthStart)}&to=${dateToInputValue(monthEndInclusive)}`;
 
   const monthKeys = new Set(allExpenseDates.map((row) => monthKey(row.date)));
   monthKeys.add(currentMonthKey);
@@ -179,6 +184,28 @@ export default async function Home({
           emptyMessage={t.home.noExpensesMonth}
           formatValue={(value) => formatCents(value, locale)}
         />
+      </div>
+
+      <div className={`${card} p-5 sm:p-6`}>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-sm font-semibold text-ink">{t.home.monthRecordsTitle}</h2>
+          <Link
+            href={expensesHref}
+            className="text-sm font-medium text-primary hover:text-primary-strong"
+          >
+            {t.home.viewAllLink}
+          </Link>
+        </div>
+        {monthExpenses.length === 0 ? (
+          <p className="text-sm text-ink-muted">{t.home.noExpensesMonth}</p>
+        ) : (
+          <MonthExpensesTable
+            expenses={monthExpenses}
+            locale={locale}
+            t={t.expenses}
+            expenseTypes={t.expenseTypes}
+          />
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
