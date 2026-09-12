@@ -58,6 +58,7 @@ const en: Dictionary = {
     amountPlaceholder: "E.g. 5000.00",
     errors: {
       invalidAmount: "Amounts must be numbers of zero or more.",
+      categoryRequired: "Select a category.",
     },
     widgetTitle: "Monthly budget",
     setBudgetLink: "Set budget",
@@ -65,6 +66,19 @@ const en: Dictionary = {
     of: "of",
     remainingAmount: (amount) => `${amount} left`,
     overBy: (amount) => `${amount} over`,
+    byTypeTitle: "By expense type",
+    byCategoryTitle: "By category",
+    categoryDescription:
+      "Add a category and set a monthly budget for it. Only categories you add here will show a budget.",
+    categoryLabel: "Category",
+    categoryPlaceholder: "Select a category",
+    categoryAmountLabel: "Monthly budget (MXN)",
+    addCategoryButton: "Add",
+    saveCategoryButton: "Save",
+    noCategoriesAvailable: "All your categories already have a budget.",
+    noCategoryBudgets: "You haven't budgeted any category yet.",
+    confirmRemoveCategoryBudget: (name) => `Remove the budget for "${name}"?`,
+    categoryWidgetTitle: "Budget by category",
   },
   accounts: {
     title: "Accounts",

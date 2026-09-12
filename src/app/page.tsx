@@ -46,19 +46,27 @@ export default async function Home({
   const monthEnd = new Date(Date.UTC(monthStart.getUTCFullYear(), monthStart.getUTCMonth() + 1, 1));
   const monthLabel = formatMonth(monthStart, locale);
 
-  const [accountCount, categoryCount, expenseCount, monthExpenses, allExpenseDates, budgets] =
-    await Promise.all([
-      prisma.account.count(),
-      prisma.category.count(),
-      prisma.expense.count(),
-      prisma.expense.findMany({
-        where: { date: { gte: monthStart, lt: monthEnd } },
-        include: { category: true, account: true },
-        orderBy: { date: "desc" },
-      }),
-      prisma.expense.findMany({ select: { date: true } }),
-      prisma.budget.findMany(),
-    ]);
+  const [
+    accountCount,
+    categoryCount,
+    expenseCount,
+    monthExpenses,
+    allExpenseDates,
+    budgets,
+    categoryBudgets,
+  ] = await Promise.all([
+    prisma.account.count(),
+    prisma.category.count(),
+    prisma.expense.count(),
+    prisma.expense.findMany({
+      where: { date: { gte: monthStart, lt: monthEnd } },
+      include: { category: true, account: true },
+      orderBy: { date: "desc" },
+    }),
+    prisma.expense.findMany({ select: { date: true } }),
+    prisma.budget.findMany(),
+    prisma.categoryBudget.findMany({ include: { category: true } }),
+  ]);
 
   const countedExpenses = monthExpenses.filter((expense) => !expense.excludeFromTotals);
   const monthTotal = countedExpenses.reduce((sum, expense) => sum + expense.amountCents, 0);
@@ -115,6 +123,15 @@ export default async function Home({
     spentCents: totalsByType.get(type) ?? 0,
     budgetCents: budgetByType.get(type) ?? 0,
   })).filter((item) => item.budgetCents > 0);
+
+  const categoryBudgetItems = categoryBudgets
+    .map((cb, index) => ({
+      label: cb.category.name,
+      color: CHART_PALETTE[index % CHART_PALETTE.length],
+      spentCents: totalsByCategory.get(cb.categoryId)?.value ?? 0,
+      budgetCents: cb.amountCents,
+    }))
+    .filter((item) => item.budgetCents > 0);
 
   const monthEndInclusive = new Date(monthEnd.getTime() - 24 * 60 * 60 * 1000);
   const expensesHref = `/expenses?from=${dateToInputValue(monthStart)}&to=${dateToInputValue(monthEndInclusive)}`;
@@ -214,6 +231,23 @@ export default async function Home({
             formatValue={(value) => formatCents(value, locale)}
           />
         </div>
+      </div>
+
+      <div className={`${card} p-5 sm:p-6`}>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-sm font-semibold text-ink">{t.budget.categoryWidgetTitle}</h2>
+          <Link
+            href="/budget"
+            className="text-sm font-medium text-primary hover:text-primary-strong"
+          >
+            {t.budget.setBudgetLink}
+          </Link>
+        </div>
+        <BudgetProgress
+          items={categoryBudgetItems}
+          t={t.budget}
+          formatValue={(value) => formatCents(value, locale)}
+        />
       </div>
 
       <div className={`${card} p-5 sm:p-6`}>

@@ -44,6 +44,7 @@ export type Dictionary = {
     amountPlaceholder: string;
     errors: {
       invalidAmount: string;
+      categoryRequired: string;
     };
     widgetTitle: string;
     setBudgetLink: string;
@@ -51,6 +52,18 @@ export type Dictionary = {
     of: string;
     remainingAmount: (amount: string) => string;
     overBy: (amount: string) => string;
+    byTypeTitle: string;
+    byCategoryTitle: string;
+    categoryDescription: string;
+    categoryLabel: string;
+    categoryPlaceholder: string;
+    categoryAmountLabel: string;
+    addCategoryButton: string;
+    saveCategoryButton: string;
+    noCategoriesAvailable: string;
+    noCategoryBudgets: string;
+    confirmRemoveCategoryBudget: (name: string) => string;
+    categoryWidgetTitle: string;
   };
   accounts: {
     title: string;

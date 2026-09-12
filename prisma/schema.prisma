@@ -25,10 +25,19 @@ model Budget {
 }
 
 model Category {
-  id        String    @id @default(cuid())
-  name      String    @unique
-  createdAt DateTime  @default(now())
-  expenses  Expense[]
+  id             String          @id @default(cuid())
+  name           String          @unique
+  createdAt      DateTime        @default(now())
+  expenses       Expense[]
+  categoryBudget CategoryBudget?
+}
+
+model CategoryBudget {
+  id          String   @id @default(cuid())
+  categoryId  String   @unique
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  amountCents Int
+  updatedAt   DateTime @updatedAt
 }
 
 model Expense {

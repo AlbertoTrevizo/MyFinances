@@ -58,6 +58,7 @@ const es: Dictionary = {
     amountPlaceholder: "Ej. 5000.00",
     errors: {
       invalidAmount: "Los montos deben ser números de cero o más.",
+      categoryRequired: "Selecciona una categoría.",
     },
     widgetTitle: "Presupuesto del mes",
     setBudgetLink: "Configurar presupuesto",
@@ -65,6 +66,19 @@ const es: Dictionary = {
     of: "de",
     remainingAmount: (amount) => `${amount} restante`,
     overBy: (amount) => `${amount} excedido`,
+    byTypeTitle: "Por tipo de gasto",
+    byCategoryTitle: "Por categoría",
+    categoryDescription:
+      "Agrega una categoría y asígnale un presupuesto mensual. Solo las categorías que agregues aquí mostrarán un presupuesto.",
+    categoryLabel: "Categoría",
+    categoryPlaceholder: "Selecciona una categoría",
+    categoryAmountLabel: "Presupuesto mensual (MXN)",
+    addCategoryButton: "Agregar",
+    saveCategoryButton: "Guardar",
+    noCategoriesAvailable: "Todas tus categorías ya tienen un presupuesto.",
+    noCategoryBudgets: "Aún no has presupuestado ninguna categoría.",
+    confirmRemoveCategoryBudget: (name) => `¿Quitar el presupuesto de "${name}"?`,
+    categoryWidgetTitle: "Presupuesto por categoría",
   },
   accounts: {
     title: "Cuentas",
