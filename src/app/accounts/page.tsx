@@ -3,18 +3,24 @@ import { prisma } from "@/lib/prisma";
 import { DeleteButton } from "@/components/DeleteButton";
 import { getTranslations } from "@/i18n/get-locale";
 import { PageContainer, PageTitle } from "@/components/PageContainer";
+import { SortableHeader } from "@/components/SortableHeader";
 import { buttonPrimary, linkMuted, card } from "@/lib/styles";
+import { resolveSort } from "@/lib/sort";
 import { deleteAccount } from "./actions";
+
+const SORT_FIELDS = ["name", "type"] as const;
 
 export default async function AccountsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; sort?: string; dir?: string }>;
 }) {
-  const { error } = await searchParams;
+  const { error, ...sp } = await searchParams;
   const { t } = await getTranslations();
+  const { field, dir } = resolveSort(sp, SORT_FIELDS, "name");
+
   const accounts = await prisma.account.findMany({
-    orderBy: { createdAt: "asc" },
+    orderBy: { [field]: dir },
   });
 
   return (
@@ -40,8 +46,24 @@ export default async function AccountsPage({
             <table className="w-full min-w-[480px] text-left text-sm">
               <thead className="bg-canvas text-ink-muted">
                 <tr>
-                  <th className="px-4 py-3 font-medium">{t.accounts.tableName}</th>
-                  <th className="px-4 py-3 font-medium">{t.accounts.tableType}</th>
+                  <th className="px-4 py-3 font-medium">
+                    <SortableHeader
+                      label={t.accounts.tableName}
+                      field="name"
+                      activeField={field}
+                      dir={dir}
+                      basePath="/accounts"
+                    />
+                  </th>
+                  <th className="px-4 py-3 font-medium">
+                    <SortableHeader
+                      label={t.accounts.tableType}
+                      field="type"
+                      activeField={field}
+                      dir={dir}
+                      basePath="/accounts"
+                    />
+                  </th>
                   <th className="px-4 py-3 font-medium"></th>
                 </tr>
               </thead>

@@ -45,3 +45,12 @@ export function CategoriesIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+export function SortIcon({ direction, className }: { direction?: "asc" | "desc"; className?: string }) {
+  return (
+    <svg viewBox="0 0 12 12" className={className} fill="currentColor">
+      <path d="M6 2.5 8.7 6H3.3L6 2.5Z" opacity={direction === "asc" ? 1 : 0.35} />
+      <path d="M6 9.5 3.3 6h5.4L6 9.5Z" opacity={direction === "desc" ? 1 : 0.35} />
+    </svg>
+  );
+}

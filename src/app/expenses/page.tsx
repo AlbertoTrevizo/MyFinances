@@ -5,15 +5,48 @@ import { formatDate } from "@/lib/date";
 import { DeleteButton } from "@/components/DeleteButton";
 import { getTranslations } from "@/i18n/get-locale";
 import { PageContainer, PageTitle } from "@/components/PageContainer";
+import { SortableHeader } from "@/components/SortableHeader";
 import { buttonPrimary, linkMuted, card } from "@/lib/styles";
+import { resolveSort } from "@/lib/sort";
 import { deleteExpense } from "./actions";
 
-export default async function ExpensesPage() {
+const SORT_FIELDS = ["date", "description", "account", "category", "amount"] as const;
+
+export default async function ExpensesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ sort?: string; dir?: string }>;
+}) {
   const { locale, t } = await getTranslations();
+  const sp = await searchParams;
+  const { field, dir } = resolveSort(sp, SORT_FIELDS, "date", "desc");
+
+  const orderBy =
+    field === "account"
+      ? { account: { name: dir } }
+      : field === "category"
+        ? { category: { name: dir } }
+        : field === "amount"
+          ? { amountCents: dir }
+          : field === "description"
+            ? { description: dir }
+            : { date: dir };
+
   const expenses = await prisma.expense.findMany({
-    orderBy: { date: "desc" },
+    orderBy,
     include: { account: true, category: true },
   });
+
+  const header = (label: string, key: (typeof SORT_FIELDS)[number], align?: "right") => (
+    <SortableHeader
+      label={label}
+      field={key}
+      activeField={field}
+      dir={dir}
+      basePath="/expenses"
+      align={align}
+    />
+  );
 
   return (
     <PageContainer
@@ -32,11 +65,17 @@ export default async function ExpensesPage() {
             <table className="w-full min-w-[720px] text-left text-sm">
               <thead className="bg-canvas text-ink-muted">
                 <tr>
-                  <th className="px-4 py-3 font-medium">{t.expenses.tableDate}</th>
-                  <th className="px-4 py-3 font-medium">{t.expenses.tableDescription}</th>
-                  <th className="px-4 py-3 font-medium">{t.expenses.tableAccount}</th>
-                  <th className="px-4 py-3 font-medium">{t.expenses.tableCategory}</th>
-                  <th className="px-4 py-3 text-right font-medium">{t.expenses.tableAmount}</th>
+                  <th className="px-4 py-3 font-medium">{header(t.expenses.tableDate, "date")}</th>
+                  <th className="px-4 py-3 font-medium">
+                    {header(t.expenses.tableDescription, "description")}
+                  </th>
+                  <th className="px-4 py-3 font-medium">{header(t.expenses.tableAccount, "account")}</th>
+                  <th className="px-4 py-3 font-medium">
+                    {header(t.expenses.tableCategory, "category")}
+                  </th>
+                  <th className="px-4 py-3 text-right font-medium">
+                    {header(t.expenses.tableAmount, "amount", "right")}
+                  </th>
                   <th className="px-4 py-3 font-medium"></th>
                 </tr>
               </thead>
