@@ -17,6 +17,13 @@ model Account {
   expenses   Expense[]
 }
 
+model Budget {
+  id          String   @id @default(cuid())
+  type        String   @unique
+  amountCents Int
+  updatedAt   DateTime @updatedAt
+}
+
 model Category {
   id        String    @id @default(cuid())
   name      String    @unique

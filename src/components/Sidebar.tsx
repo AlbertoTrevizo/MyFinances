@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LanguageSwitcher } from "./LanguageSwitcher";
-import { HomeIcon, ExpensesIcon, AccountsIcon, CategoriesIcon } from "./icons";
+import { HomeIcon, ExpensesIcon, AccountsIcon, CategoriesIcon, BudgetIcon } from "./icons";
 import type { Dictionary } from "@/i18n/dictionaries";
 import type { Locale } from "@/i18n/config";
 
@@ -23,6 +23,7 @@ export function Sidebar({
     { href: "/expenses", label: nav.expenses, icon: ExpensesIcon },
     { href: "/accounts", label: nav.accounts, icon: AccountsIcon },
     { href: "/categories", label: nav.categories, icon: CategoriesIcon },
+    { href: "/budget", label: nav.budget, icon: BudgetIcon },
   ];
 
   const isActive = (href: string) =>

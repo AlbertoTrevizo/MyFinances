@@ -10,6 +10,7 @@ const en: Dictionary = {
     expenses: "Expenses",
     accounts: "Accounts",
     categories: "Categories",
+    budget: "Budget",
   },
   common: {
     edit: "Edit",
@@ -48,6 +49,22 @@ const en: Dictionary = {
       description: "Organize your expenses by type.",
       stat: (count) => `${count} categories`,
     },
+  },
+  budget: {
+    title: "Budget",
+    description: "Set a monthly budget for each expense type.",
+    saveSubmit: "Save budget",
+    amountLabel: (typeLabel) => `${typeLabel} (MXN)`,
+    amountPlaceholder: "E.g. 5000.00",
+    errors: {
+      invalidAmount: "Amounts must be numbers of zero or more.",
+    },
+    widgetTitle: "Monthly budget",
+    setBudgetLink: "Set budget",
+    noBudgetSet: "No budget set yet.",
+    of: "of",
+    remainingAmount: (amount) => `${amount} left`,
+    overBy: (amount) => `${amount} over`,
   },
   accounts: {
     title: "Accounts",

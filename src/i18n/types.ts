@@ -8,6 +8,7 @@ export type Dictionary = {
     expenses: string;
     accounts: string;
     categories: string;
+    budget: string;
   };
   common: {
     edit: string;
@@ -34,6 +35,22 @@ export type Dictionary = {
     expensesCard: { label: string; description: string; stat: (count: number) => string };
     accountsCard: { label: string; description: string; stat: (count: number) => string };
     categoriesCard: { label: string; description: string; stat: (count: number) => string };
+  };
+  budget: {
+    title: string;
+    description: string;
+    saveSubmit: string;
+    amountLabel: (typeLabel: string) => string;
+    amountPlaceholder: string;
+    errors: {
+      invalidAmount: string;
+    };
+    widgetTitle: string;
+    setBudgetLink: string;
+    noBudgetSet: string;
+    of: string;
+    remainingAmount: (amount: string) => string;
+    overBy: (amount: string) => string;
   };
   accounts: {
     title: string;

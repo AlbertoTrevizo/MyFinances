@@ -46,6 +46,16 @@ export function CategoriesIcon({ className }: IconProps) {
   );
 }
 
+export function BudgetIcon({ className }: IconProps) {
+  return (
+    <svg className={className} {...base}>
+      <circle cx="12" cy="12" r="8" />
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 4v2M12 18v2M4 12h2M18 12h2" />
+    </svg>
+  );
+}
+
 export function PencilIcon({ className }: IconProps) {
   return (
     <svg className={className} {...base}>

@@ -20,3 +20,11 @@ export function pesosToCents(value: string): number | null {
   if (Number.isNaN(pesos) || pesos <= 0) return null;
   return Math.round(pesos * 100);
 }
+
+export function pesosToCentsOrZero(value: string): number | null {
+  const normalized = value.replace(/,/g, "").trim();
+  if (!normalized) return 0;
+  const pesos = Number.parseFloat(normalized);
+  if (Number.isNaN(pesos) || pesos < 0) return null;
+  return Math.round(pesos * 100);
+}

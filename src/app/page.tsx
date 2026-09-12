@@ -9,6 +9,7 @@ import { MonthSelect } from "@/components/MonthSelect";
 import { DoughnutChart } from "@/components/DoughnutChart";
 import { TopCategories } from "@/components/TopCategories";
 import { MonthExpensesTable } from "@/components/MonthExpensesTable";
+import { BudgetProgress } from "@/components/BudgetProgress";
 import { ExpensesIcon, AccountsIcon, CategoriesIcon } from "@/components/icons";
 import { card } from "@/lib/styles";
 
@@ -45,7 +46,7 @@ export default async function Home({
   const monthEnd = new Date(Date.UTC(monthStart.getUTCFullYear(), monthStart.getUTCMonth() + 1, 1));
   const monthLabel = formatMonth(monthStart, locale);
 
-  const [accountCount, categoryCount, expenseCount, monthExpenses, allExpenseDates] =
+  const [accountCount, categoryCount, expenseCount, monthExpenses, allExpenseDates, budgets] =
     await Promise.all([
       prisma.account.count(),
       prisma.category.count(),
@@ -56,6 +57,7 @@ export default async function Home({
         orderBy: { date: "desc" },
       }),
       prisma.expense.findMany({ select: { date: true } }),
+      prisma.budget.findMany(),
     ]);
 
   const countedExpenses = monthExpenses.filter((expense) => !expense.excludeFromTotals);
@@ -106,6 +108,14 @@ export default async function Home({
       : []),
   ];
 
+  const budgetByType = new Map(budgets.map((b) => [b.type, b.amountCents]));
+  const budgetItems = EXPENSE_TYPES.map((type) => ({
+    label: t.expenseTypes[type],
+    color: TYPE_COLORS[type],
+    spentCents: totalsByType.get(type) ?? 0,
+    budgetCents: budgetByType.get(type) ?? 0,
+  })).filter((item) => item.budgetCents > 0);
+
   const monthEndInclusive = new Date(monthEnd.getTime() - 24 * 60 * 60 * 1000);
   const expensesHref = `/expenses?from=${dateToInputValue(monthStart)}&to=${dateToInputValue(monthEndInclusive)}`;
 
@@ -151,6 +161,23 @@ export default async function Home({
         <p className="mt-2 font-mono text-3xl font-semibold tabular-nums text-ink sm:text-4xl">
           {formatCents(monthTotal, locale)}
         </p>
+      </div>
+
+      <div className={`${card} p-5 sm:p-6`}>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-sm font-semibold text-ink">{t.budget.widgetTitle}</h2>
+          <Link
+            href="/budget"
+            className="text-sm font-medium text-primary hover:text-primary-strong"
+          >
+            {t.budget.setBudgetLink}
+          </Link>
+        </div>
+        <BudgetProgress
+          items={budgetItems}
+          t={t.budget}
+          formatValue={(value) => formatCents(value, locale)}
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
