@@ -30,7 +30,7 @@ model Expense {
   createdAt   DateTime @default(now())
 
   accountId  String
-  account    Account  @relation(fields: [accountId], references: [id])
-  categoryId String
-  category   Category @relation(fields: [categoryId], references: [id])
+  account    Account   @relation(fields: [accountId], references: [id])
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id])
 }

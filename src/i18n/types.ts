@@ -79,9 +79,9 @@ export type Dictionary = {
     tableAmount: string;
     createSubmit: string;
     editSubmit: string;
-    needsAccountAndCategory: string;
+    needsAccount: string;
     createAccountLink: string;
-    createCategoryLink: string;
+    noCategory: string;
     form: {
       descriptionLabel: string;
       descriptionPlaceholder: string;
@@ -91,13 +91,11 @@ export type Dictionary = {
       accountLabel: string;
       accountPlaceholder: string;
       categoryLabel: string;
-      categoryPlaceholder: string;
     };
     confirmDelete: (description: string) => string;
     errors: {
       descriptionRequired: string;
       accountRequired: string;
-      categoryRequired: string;
       invalidAmount: string;
       invalidDate: string;
     };

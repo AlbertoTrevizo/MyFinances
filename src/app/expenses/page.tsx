@@ -91,7 +91,11 @@ export default async function ExpensesPage({
                     </td>
                     <td className="px-4 py-3 text-ink">{expense.description}</td>
                     <td className="px-4 py-3 text-ink-muted">{expense.account.name}</td>
-                    <td className="px-4 py-3 text-ink-muted">{expense.category.name}</td>
+                    <td className="px-4 py-3 text-ink-muted">
+                      {expense.category?.name ?? (
+                        <span className="text-ink-faint">{t.expenses.noCategory}</span>
+                      )}
+                    </td>
                     <td className="whitespace-nowrap px-4 py-3 text-right font-mono font-semibold tabular-nums text-ink">
                       {formatCents(expense.amountCents, locale)}
                     </td>

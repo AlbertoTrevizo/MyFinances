@@ -23,7 +23,6 @@ function readFields(formData: FormData) {
 function validate(fields: ReturnType<typeof readFields>, t: Dictionary): string | null {
   if (!fields.description) return t.expenses.errors.descriptionRequired;
   if (!fields.accountId) return t.expenses.errors.accountRequired;
-  if (!fields.categoryId) return t.expenses.errors.categoryRequired;
   const cents = pesosToCents(fields.amount);
   if (cents === null) return t.expenses.errors.invalidAmount;
   const date = inputValueToDate(fields.date);
@@ -49,7 +48,7 @@ export async function createExpense(
       amountCents: cents,
       date,
       accountId: fields.accountId,
-      categoryId: fields.categoryId,
+      categoryId: fields.categoryId || null,
     },
   });
   revalidatePath("/expenses");
@@ -76,7 +75,7 @@ export async function updateExpense(
       amountCents: cents,
       date,
       accountId: fields.accountId,
-      categoryId: fields.categoryId,
+      categoryId: fields.categoryId || null,
     },
   });
   revalidatePath("/expenses");

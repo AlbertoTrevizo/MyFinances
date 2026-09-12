@@ -93,10 +93,9 @@ const es: Dictionary = {
     tableAmount: "Monto",
     createSubmit: "Crear gasto",
     editSubmit: "Guardar cambios",
-    needsAccountAndCategory:
-      "Necesitas al menos una cuenta y una categoría antes de registrar un gasto.",
+    needsAccount: "Necesitas al menos una cuenta antes de registrar un gasto.",
     createAccountLink: "Crear cuenta",
-    createCategoryLink: "Crear categoría",
+    noCategory: "Sin categoría",
     form: {
       descriptionLabel: "Descripción",
       descriptionPlaceholder: "Ej. Súper de la semana",
@@ -106,13 +105,11 @@ const es: Dictionary = {
       accountLabel: "Cuenta",
       accountPlaceholder: "Selecciona una cuenta",
       categoryLabel: "Categoría",
-      categoryPlaceholder: "Selecciona una categoría",
     },
     confirmDelete: (description) => `¿Eliminar el gasto "${description}"?`,
     errors: {
       descriptionRequired: "La descripción es requerida.",
       accountRequired: "Selecciona una cuenta.",
-      categoryRequired: "Selecciona una categoría.",
       invalidAmount: "El monto debe ser un número mayor a cero.",
       invalidDate: "La fecha no es válida.",
     },

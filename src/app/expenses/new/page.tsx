@@ -12,22 +12,16 @@ export default async function NewExpensePage() {
     prisma.category.findMany({ orderBy: { createdAt: "asc" } }),
   ]);
 
-  if (accounts.length === 0 || categories.length === 0) {
+  if (accounts.length === 0) {
     return (
       <PageContainer title={<PageTitle>{t.expenses.newTitle}</PageTitle>}>
-        <p className="text-sm text-ink-muted">{t.expenses.needsAccountAndCategory}</p>
-        <div className="flex gap-4 text-sm font-medium">
-          {accounts.length === 0 && (
-            <Link href="/accounts/new" className="text-primary underline underline-offset-2">
-              {t.expenses.createAccountLink}
-            </Link>
-          )}
-          {categories.length === 0 && (
-            <Link href="/categories/new" className="text-primary underline underline-offset-2">
-              {t.expenses.createCategoryLink}
-            </Link>
-          )}
-        </div>
+        <p className="text-sm text-ink-muted">{t.expenses.needsAccount}</p>
+        <Link
+          href="/accounts/new"
+          className="w-fit text-sm font-medium text-primary underline underline-offset-2"
+        >
+          {t.expenses.createAccountLink}
+        </Link>
       </PageContainer>
     );
   }
@@ -40,6 +34,7 @@ export default async function NewExpensePage() {
         categories={categories.map((c) => ({ id: c.id, label: c.name }))}
         submitLabel={t.expenses.createSubmit}
         form={t.expenses.form}
+        noCategory={t.expenses.noCategory}
         saving={t.common.saving}
       />
     </PageContainer>

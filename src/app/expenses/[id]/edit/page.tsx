@@ -33,10 +33,11 @@ export default async function EditExpensePage({
           amount: centsToPesosInput(expense.amountCents),
           date: dateToInputValue(expense.date),
           accountId: expense.accountId,
-          categoryId: expense.categoryId,
+          categoryId: expense.categoryId ?? "",
         }}
         submitLabel={t.expenses.editSubmit}
         form={t.expenses.form}
+        noCategory={t.expenses.noCategory}
         saving={t.common.saving}
       />
     </PageContainer>

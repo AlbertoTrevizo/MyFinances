@@ -16,6 +16,7 @@ export function ExpenseForm({
   defaultValues,
   submitLabel,
   form,
+  noCategory,
   saving,
 }: {
   action: (state: ActionState, formData: FormData) => Promise<ActionState>;
@@ -30,6 +31,7 @@ export function ExpenseForm({
   };
   submitLabel: string;
   form: Dictionary["expenses"]["form"];
+  noCategory: string;
   saving: string;
 }) {
   const [state, formAction, isPending] = useActionState(action, initialState);
@@ -97,13 +99,10 @@ export function ExpenseForm({
         <span className="text-sm font-medium text-ink-muted">{form.categoryLabel}</span>
         <select
           name="categoryId"
-          required
           defaultValue={defaultValues?.categoryId ?? ""}
           className={inputField}
         >
-          <option value="" disabled>
-            {form.categoryPlaceholder}
-          </option>
+          <option value="">{noCategory}</option>
           {categories.map((category) => (
             <option key={category.id} value={category.id}>
               {category.label}

@@ -93,10 +93,9 @@ const en: Dictionary = {
     tableAmount: "Amount",
     createSubmit: "Create expense",
     editSubmit: "Save changes",
-    needsAccountAndCategory:
-      "You need at least one account and one category before recording an expense.",
+    needsAccount: "You need at least one account before recording an expense.",
     createAccountLink: "Create account",
-    createCategoryLink: "Create category",
+    noCategory: "No category",
     form: {
       descriptionLabel: "Description",
       descriptionPlaceholder: "E.g. Weekly groceries",
@@ -106,13 +105,11 @@ const en: Dictionary = {
       accountLabel: "Account",
       accountPlaceholder: "Select an account",
       categoryLabel: "Category",
-      categoryPlaceholder: "Select a category",
     },
     confirmDelete: (description) => `Delete the expense "${description}"?`,
     errors: {
       descriptionRequired: "Description is required.",
       accountRequired: "Select an account.",
-      categoryRequired: "Select a category.",
       invalidAmount: "Amount must be a number greater than zero.",
       invalidDate: "Date is not valid.",
     },
