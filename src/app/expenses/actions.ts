@@ -15,6 +15,7 @@ export type ActionState = { error?: string } | undefined;
 function readFields(formData: FormData) {
   return {
     description: String(formData.get("description") ?? "").trim(),
+    notes: String(formData.get("notes") ?? "").trim(),
     amount: String(formData.get("amount") ?? "").trim(),
     date: String(formData.get("date") ?? "").trim(),
     accountId: String(formData.get("accountId") ?? "").trim(),
@@ -69,6 +70,7 @@ export async function createExpense(
       prisma.expense.create({
         data: {
           description: fields.description,
+          notes: fields.notes || null,
           amountCents: cents,
           date,
           accountId: fields.accountId,
@@ -82,6 +84,7 @@ export async function createExpense(
         prisma.expense.create({
           data: {
             description: `${fields.description} ${installment.index}/${months}`,
+            notes: fields.notes || null,
             amountCents: installment.amountCents,
             date: installment.date,
             accountId: fields.accountId,
@@ -100,6 +103,7 @@ export async function createExpense(
   await prisma.expense.create({
     data: {
       description: fields.description,
+      notes: fields.notes || null,
       amountCents: cents,
       date,
       accountId: fields.accountId,
@@ -128,6 +132,7 @@ export async function updateExpenseModal(
     where: { id },
     data: {
       description: fields.description,
+      notes: fields.notes || null,
       amountCents: cents,
       date,
       accountId: fields.accountId,

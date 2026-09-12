@@ -36,6 +36,7 @@ model Expense {
   amountCents       Int
   date              DateTime
   description       String
+  notes             String?
   type              String?
   excludeFromTotals Boolean  @default(false)
   msiGroupId        String?

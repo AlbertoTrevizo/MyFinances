@@ -75,6 +75,16 @@ export function TrashIcon({ className }: IconProps) {
   );
 }
 
+export function NoteIcon({ className }: IconProps) {
+  return (
+    <svg className={className} {...base}>
+      <path d="M6 3.5h9l3 3V20a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1Z" />
+      <path d="M15 3.5V7h3" />
+      <path d="M8 12h8M8 15.5h5" />
+    </svg>
+  );
+}
+
 export function SortIcon({ direction, className }: { direction?: "asc" | "desc"; className?: string }) {
   return (
     <svg viewBox="0 0 12 12" className={className} fill="currentColor">

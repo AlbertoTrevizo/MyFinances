@@ -29,6 +29,7 @@ export function ExpenseForm({
   categories: Option[];
   defaultValues?: {
     description: string;
+    notes?: string;
     amount: string;
     date: string;
     accountId: string;
@@ -69,6 +70,17 @@ export function ExpenseForm({
           required
           defaultValue={defaultValues?.description}
           placeholder={form.descriptionPlaceholder}
+          className={inputField}
+        />
+      </label>
+
+      <label className="flex flex-col gap-1.5">
+        <span className="text-sm font-medium text-ink-muted">{form.notesLabel}</span>
+        <textarea
+          name="notes"
+          rows={3}
+          defaultValue={defaultValues?.notes}
+          placeholder={form.notesPlaceholder}
           className={inputField}
         />
       </label>

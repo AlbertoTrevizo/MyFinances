@@ -11,7 +11,7 @@ import { inputField, iconButton } from "@/lib/styles";
 import { SortableHeader } from "./SortableHeader";
 import { DeleteButton } from "./DeleteButton";
 import { EditExpenseModal } from "./EditExpenseModal";
-import { PencilIcon } from "./icons";
+import { NoteIcon, PencilIcon } from "./icons";
 import {
   deleteExpense,
   updateExpenseField,
@@ -24,6 +24,7 @@ type Row = {
   id: string;
   date: Date;
   description: string;
+  notes: string | null;
   amountCents: number;
   type: string | null;
   excludeFromTotals: boolean;
@@ -132,7 +133,7 @@ export function ExpensesTable({
             {expenses.map((expense) => (
               <tr
                 key={expense.id}
-                className={`border-t border-line transition-colors hover:bg-canvas ${
+                className={`group border-t border-line transition-colors hover:bg-canvas ${
                   expense.excludeFromTotals ? "opacity-50" : ""
                 }`}
               >
@@ -159,7 +160,7 @@ export function ExpensesTable({
                 </td>
 
                 <td
-                  className="px-4 py-3 text-ink"
+                  className="relative px-4 py-3 text-ink"
                   onDoubleClick={() => setEditingCell({ id: expense.id, field: "description" })}
                 >
                   {isEditing(expense.id, "description") ? (
@@ -183,6 +184,14 @@ export function ExpensesTable({
                         <span className="ml-2 rounded-full bg-canvas px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-ink-faint">
                           {copy.msiBadge}
                         </span>
+                      )}
+                      {expense.notes && (
+                        <>
+                          <NoteIcon className="ml-1.5 inline-block h-3.5 w-3.5 align-text-bottom text-ink-faint" />
+                          <div className="pointer-events-none invisible absolute left-4 top-full z-20 mt-1 w-64 rounded-lg border border-line bg-surface p-3 text-xs leading-relaxed whitespace-pre-wrap text-ink opacity-0 shadow-card transition-opacity group-hover:visible group-hover:opacity-100">
+                            {expense.notes}
+                          </div>
+                        </>
                       )}
                     </>
                   )}

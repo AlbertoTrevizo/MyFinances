@@ -151,6 +151,8 @@ const es: Dictionary = {
     form: {
       descriptionLabel: "Descripción",
       descriptionPlaceholder: "Ej. Súper de la semana",
+      notesLabel: "Notas (opcional)",
+      notesPlaceholder: "Agrega cualquier detalle extra sobre este gasto",
       amountLabel: "Monto (MXN)",
       amountPlaceholder: "Ej. 350.00",
       dateLabel: "Fecha",

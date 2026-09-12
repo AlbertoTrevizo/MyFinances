@@ -150,6 +150,8 @@ const en: Dictionary = {
     form: {
       descriptionLabel: "Description",
       descriptionPlaceholder: "E.g. Weekly groceries",
+      notesLabel: "Notes (optional)",
+      notesPlaceholder: "Add any extra detail about this expense",
       amountLabel: "Amount (MXN)",
       amountPlaceholder: "E.g. 350.00",
       dateLabel: "Date",

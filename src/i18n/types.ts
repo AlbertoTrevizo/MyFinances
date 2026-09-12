@@ -136,6 +136,8 @@ export type Dictionary = {
     form: {
       descriptionLabel: string;
       descriptionPlaceholder: string;
+      notesLabel: string;
+      notesPlaceholder: string;
       amountLabel: string;
       amountPlaceholder: string;
       dateLabel: string;

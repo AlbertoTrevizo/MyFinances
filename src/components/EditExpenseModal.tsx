@@ -12,6 +12,7 @@ type Option = { id: string; label: string };
 type ExpenseForEdit = {
   id: string;
   description: string;
+  notes: string | null;
   amountCents: number;
   date: Date;
   accountId: string;
@@ -43,6 +44,7 @@ export function EditExpenseModal({
         categories={categories}
         defaultValues={{
           description: expense.description,
+          notes: expense.notes ?? "",
           amount: centsToPesosInput(expense.amountCents),
           date: dateToInputValue(expense.date),
           accountId: expense.accountId,
