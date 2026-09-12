@@ -1,5 +1,6 @@
 "use server";
 
+import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
@@ -12,6 +13,10 @@ function readFields(formData: FormData) {
   return { name };
 }
 
+function isUniqueConstraintError(error: unknown): boolean {
+  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
+}
+
 export async function createCategory(
   _prevState: ActionState,
   formData: FormData
@@ -20,7 +25,12 @@ export async function createCategory(
   const { name } = readFields(formData);
   if (!name) return { error: t.categories.errors.nameRequired };
 
-  await prisma.category.create({ data: { name } });
+  try {
+    await prisma.category.create({ data: { name } });
+  } catch (error) {
+    if (isUniqueConstraintError(error)) return { error: t.categories.errors.nameTaken };
+    throw error;
+  }
   revalidatePath("/categories");
   redirect("/categories");
 }
@@ -34,7 +44,12 @@ export async function updateCategory(
   const { name } = readFields(formData);
   if (!name) return { error: t.categories.errors.nameRequired };
 
-  await prisma.category.update({ where: { id }, data: { name } });
+  try {
+    await prisma.category.update({ where: { id }, data: { name } });
+  } catch (error) {
+    if (isUniqueConstraintError(error)) return { error: t.categories.errors.nameTaken };
+    throw error;
+  }
   revalidatePath("/categories");
   redirect("/categories");
 }

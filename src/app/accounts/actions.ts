@@ -1,5 +1,6 @@
 "use server";
 
+import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
@@ -13,6 +14,10 @@ function readFields(formData: FormData) {
   return { name, type };
 }
 
+function isUniqueConstraintError(error: unknown): boolean {
+  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
+}
+
 export async function createAccount(
   _prevState: ActionState,
   formData: FormData
@@ -22,7 +27,12 @@ export async function createAccount(
   if (!name) return { error: t.accounts.errors.nameRequired };
   if (!type) return { error: t.accounts.errors.typeRequired };
 
-  await prisma.account.create({ data: { name, type } });
+  try {
+    await prisma.account.create({ data: { name, type } });
+  } catch (error) {
+    if (isUniqueConstraintError(error)) return { error: t.accounts.errors.nameTaken };
+    throw error;
+  }
   revalidatePath("/accounts");
   redirect("/accounts");
 }
@@ -37,7 +47,12 @@ export async function updateAccount(
   if (!name) return { error: t.accounts.errors.nameRequired };
   if (!type) return { error: t.accounts.errors.typeRequired };
 
-  await prisma.account.update({ where: { id }, data: { name, type } });
+  try {
+    await prisma.account.update({ where: { id }, data: { name, type } });
+  } catch (error) {
+    if (isUniqueConstraintError(error)) return { error: t.accounts.errors.nameTaken };
+    throw error;
+  }
   revalidatePath("/accounts");
   redirect("/accounts");
 }

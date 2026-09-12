@@ -43,6 +43,7 @@ export type Dictionary = {
       nameRequired: string;
       typeRequired: string;
       hasExpenses: string;
+      nameTaken: string;
     };
   };
   categories: {
@@ -62,6 +63,7 @@ export type Dictionary = {
     errors: {
       nameRequired: string;
       hasExpenses: string;
+      nameTaken: string;
     };
   };
   expenses: {

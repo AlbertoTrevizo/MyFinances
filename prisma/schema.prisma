@@ -9,7 +9,7 @@ datasource db {
 
 model Account {
   id        String    @id @default(cuid())
-  name      String
+  name      String    @unique
   type      String
   createdAt DateTime  @default(now())
   expenses  Expense[]
@@ -17,7 +17,7 @@ model Account {
 
 model Category {
   id        String    @id @default(cuid())
-  name      String
+  name      String    @unique
   createdAt DateTime  @default(now())
   expenses  Expense[]
 }

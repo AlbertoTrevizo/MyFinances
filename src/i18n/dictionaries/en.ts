@@ -57,6 +57,7 @@ const en: Dictionary = {
       nameRequired: "Name is required.",
       typeRequired: "Type is required.",
       hasExpenses: "You can't delete an account that has expenses linked to it.",
+      nameTaken: "An account with that name already exists.",
     },
   },
   categories: {
@@ -76,6 +77,7 @@ const en: Dictionary = {
     errors: {
       nameRequired: "Name is required.",
       hasExpenses: "You can't delete a category that has expenses linked to it.",
+      nameTaken: "A category with that name already exists.",
     },
   },
   expenses: {

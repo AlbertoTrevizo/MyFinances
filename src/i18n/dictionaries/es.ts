@@ -57,6 +57,7 @@ const es: Dictionary = {
       nameRequired: "El nombre es requerido.",
       typeRequired: "El tipo es requerido.",
       hasExpenses: "No puedes eliminar una cuenta con gastos asociados.",
+      nameTaken: "Ya existe una cuenta con ese nombre.",
     },
   },
   categories: {
@@ -76,6 +77,7 @@ const es: Dictionary = {
     errors: {
       nameRequired: "El nombre es requerido.",
       hasExpenses: "No puedes eliminar una categoría con gastos asociados.",
+      nameTaken: "Ya existe una categoría con ese nombre.",
     },
   },
   expenses: {
