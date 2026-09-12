@@ -137,12 +137,6 @@ export function ExpensesTable({
                 className={`border-t border-line transition-colors hover:bg-canvas ${
                   expense.excludeFromTotals ? "opacity-50" : ""
                 }`}
-                onMouseMove={(e) => {
-                  if (expense.notes) {
-                    setHoverNote({ text: expense.notes, x: e.clientX, y: e.clientY });
-                  }
-                }}
-                onMouseLeave={() => setHoverNote(null)}
               >
                 <td
                   className="whitespace-nowrap px-4 py-3 font-mono text-ink-muted"
@@ -193,7 +187,15 @@ export function ExpensesTable({
                         </span>
                       )}
                       {expense.notes && (
-                        <NoteIcon className="ml-1.5 inline-block h-3.5 w-3.5 align-text-bottom text-ink-faint" />
+                        <span
+                          className="ml-1.5 inline-block align-text-bottom"
+                          onMouseEnter={(e) =>
+                            setHoverNote({ text: expense.notes!, x: e.clientX, y: e.clientY })
+                          }
+                          onMouseLeave={() => setHoverNote(null)}
+                        >
+                          <NoteIcon className="h-3.5 w-3.5 text-ink-faint" />
+                        </span>
                       )}
                     </>
                   )}
@@ -339,8 +341,8 @@ export function ExpensesTable({
         <div
           className="pointer-events-none fixed z-50 w-64 rounded-lg border border-line bg-surface p-3 text-xs leading-relaxed whitespace-pre-wrap text-ink shadow-card"
           style={{
-            left: Math.min(hoverNote.x + 14, window.innerWidth - 272),
-            top: Math.min(hoverNote.y + 14, window.innerHeight - 16),
+            left: Math.min(hoverNote.x + 10, window.innerWidth - 272),
+            bottom: Math.min(window.innerHeight - hoverNote.y + 10, window.innerHeight - 16),
           }}
         >
           {hoverNote.text}
