@@ -189,6 +189,16 @@ export default async function Home({
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className={`${card} p-5 sm:p-6`}>
+          <h2 className="mb-4 text-sm font-semibold text-ink">{t.home.topCategoriesTitle}</h2>
+          <TopCategories
+            items={topCategories}
+            maxValue={topCategoriesMax}
+            emptyMessage={t.home.noExpensesMonth}
+            formatValue={(value) => formatCents(value, locale)}
+          />
+        </div>
+
+        <div className={`${card} p-5 sm:p-6`}>
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-sm font-semibold text-ink">{t.budget.widgetTitle}</h2>
             <Link
@@ -201,16 +211,6 @@ export default async function Home({
           <BudgetProgress
             items={budgetItems}
             t={t.budget}
-            formatValue={(value) => formatCents(value, locale)}
-          />
-        </div>
-
-        <div className={`${card} p-5 sm:p-6`}>
-          <h2 className="mb-4 text-sm font-semibold text-ink">{t.home.topCategoriesTitle}</h2>
-          <TopCategories
-            items={topCategories}
-            maxValue={topCategoriesMax}
-            emptyMessage={t.home.noExpensesMonth}
             formatValue={(value) => formatCents(value, locale)}
           />
         </div>
