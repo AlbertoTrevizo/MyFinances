@@ -79,6 +79,50 @@ export async function updateAccount(
   redirect("/accounts");
 }
 
+export type EditableAccountField = "name" | "type" | "cutoffDay" | "paymentDay";
+
+export async function updateAccountField(
+  id: string,
+  field: EditableAccountField,
+  rawValue: string
+): Promise<ActionState> {
+  const { t } = await getTranslations();
+  const value = rawValue.trim();
+
+  switch (field) {
+    case "name": {
+      if (!value) return { error: t.accounts.errors.nameRequired };
+      try {
+        await prisma.account.update({ where: { id }, data: { name: value } });
+      } catch (error) {
+        if (isUniqueConstraintError(error)) return { error: t.accounts.errors.nameTaken };
+        throw error;
+      }
+      break;
+    }
+    case "type": {
+      if (!value) return { error: t.accounts.errors.typeRequired };
+      await prisma.account.update({ where: { id }, data: { type: value } });
+      break;
+    }
+    case "cutoffDay": {
+      const day = parseDayOfMonth(value);
+      if (day === undefined) return { error: t.accounts.errors.invalidCutoffDay };
+      await prisma.account.update({ where: { id }, data: { cutoffDay: day } });
+      break;
+    }
+    case "paymentDay": {
+      const day = parseDayOfMonth(value);
+      if (day === undefined) return { error: t.accounts.errors.invalidPaymentDay };
+      await prisma.account.update({ where: { id }, data: { paymentDay: day } });
+      break;
+    }
+  }
+
+  revalidatePath("/accounts");
+  return {};
+}
+
 export async function deleteAccount(id: string): Promise<void> {
   const { t } = await getTranslations();
   const expenseCount = await prisma.expense.count({ where: { accountId: id } });
