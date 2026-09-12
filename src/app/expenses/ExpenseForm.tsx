@@ -1,14 +1,15 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import type { ActionState } from "./actions";
 import type { Dictionary } from "@/i18n/dictionaries";
 import { EXPENSE_TYPES } from "@/lib/expense-type";
+import { MSI_MAX_MONTHS, MSI_MIN_MONTHS } from "@/lib/msi";
 import { buttonPrimary, inputField } from "@/lib/styles";
 
 const initialState: ActionState = undefined;
 
-type Option = { id: string; label: string };
+type Option = { id: string; label: string; cutoffDay?: number | null };
 
 export function ExpenseForm({
   action,
@@ -19,6 +20,7 @@ export function ExpenseForm({
   form,
   noCategory,
   expenseTypes,
+  allowMsi = false,
   saving,
 }: {
   action: (state: ActionState, formData: FormData) => Promise<ActionState>;
@@ -36,9 +38,15 @@ export function ExpenseForm({
   form: Dictionary["expenses"]["form"];
   noCategory: string;
   expenseTypes: Dictionary["expenseTypes"];
+  allowMsi?: boolean;
   saving: string;
 }) {
   const [state, formAction, isPending] = useActionState(action, initialState);
+  const [accountId, setAccountId] = useState(defaultValues?.accountId ?? "");
+  const [msiEnabled, setMsiEnabled] = useState(false);
+
+  const selectedAccount = accounts.find((account) => account.id === accountId);
+  const canMsi = allowMsi && Boolean(selectedAccount?.cutoffDay);
 
   return (
     <form action={formAction} className="flex max-w-md flex-col gap-4">
@@ -86,6 +94,7 @@ export function ExpenseForm({
           name="accountId"
           required
           defaultValue={defaultValues?.accountId ?? ""}
+          onChange={(e) => setAccountId(e.target.value)}
           className={inputField}
         >
           <option value="" disabled>
@@ -133,6 +142,39 @@ export function ExpenseForm({
           ))}
         </select>
       </label>
+
+      {canMsi && (
+        <div className="flex flex-col gap-3 rounded-lg border border-line bg-canvas p-3">
+          <label className="flex items-center gap-2 text-sm font-medium text-ink">
+            <input
+              type="checkbox"
+              name="msi"
+              checked={msiEnabled}
+              onChange={(e) => setMsiEnabled(e.target.checked)}
+              className="h-4 w-4 rounded border-line text-primary focus:ring-2 focus:ring-primary-soft"
+            />
+            {form.msiLabel}
+          </label>
+
+          {msiEnabled && (
+            <>
+              <label className="flex flex-col gap-1.5">
+                <span className="text-sm font-medium text-ink-muted">{form.msiMonthsLabel}</span>
+                <input
+                  name="msiMonths"
+                  type="number"
+                  min={MSI_MIN_MONTHS}
+                  max={MSI_MAX_MONTHS}
+                  required
+                  defaultValue={3}
+                  className={`${inputField} w-24 font-mono`}
+                />
+              </label>
+              <p className="text-xs text-ink-faint">{form.msiHint}</p>
+            </>
+          )}
+        </div>
+      )}
 
       {state?.error && <p className="text-sm text-danger">{state.error}</p>}
 

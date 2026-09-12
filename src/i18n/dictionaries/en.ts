@@ -57,6 +57,8 @@ const en: Dictionary = {
     emptyMessage: "You don't have any accounts yet.",
     tableName: "Name",
     tableType: "Type",
+    tableCutoffDay: "Cutoff day",
+    tablePaymentDay: "Payment day",
     createSubmit: "Create account",
     editSubmit: "Save changes",
     form: {
@@ -64,6 +66,11 @@ const en: Dictionary = {
       namePlaceholder: "E.g. BBVA Debit",
       typeLabel: "Type",
       typePlaceholder: "E.g. Debit, Cash, Credit, Savings",
+      cutoffDayLabel: "Statement cutoff day",
+      cutoffDayPlaceholder: "E.g. 20",
+      paymentDayLabel: "Payment due day",
+      paymentDayPlaceholder: "E.g. 5",
+      creditOnlyHint: "Cutoff and payment day only apply to credit cards — leave blank otherwise.",
     },
     confirmDelete: (name) => `Delete the account "${name}"?`,
     errors: {
@@ -71,6 +78,8 @@ const en: Dictionary = {
       typeRequired: "Type is required.",
       hasExpenses: "You can't delete an account that has expenses linked to it.",
       nameTaken: "An account with that name already exists.",
+      invalidCutoffDay: "Cutoff day must be a number between 1 and 31.",
+      invalidPaymentDay: "Payment day must be a number between 1 and 31.",
     },
   },
   categories: {
@@ -112,6 +121,7 @@ const en: Dictionary = {
     noCategory: "No category",
     noType: "No type",
     noResults: "No expenses match your filters.",
+    msiBadge: "Installments",
     filters: {
       searchLabel: "Search",
       searchPlaceholder: "Search description, category, or account",
@@ -131,6 +141,10 @@ const en: Dictionary = {
       categoryLabel: "Category",
       typeLabel: "Type",
       typePlaceholder: "Select a type",
+      msiLabel: "Installments (MSI)?",
+      msiMonthsLabel: "Number of months",
+      msiHint:
+        "The total is recorded for reference only (grayed out, not counted). Each month's share is added on the card's cutoff day and counted instead.",
     },
     confirmDelete: (description) => `Delete the expense "${description}"?`,
     errors: {
@@ -139,6 +153,8 @@ const en: Dictionary = {
       invalidAmount: "Amount must be a number greater than zero.",
       invalidDate: "Date is not valid.",
       typeRequired: "Select a type.",
+      invalidMsiMonths: "Number of months must be between 2 and 36.",
+      msiRequiresCutoffDay: "This account has no cutoff day set. Add one in Accounts first.",
     },
   },
 };

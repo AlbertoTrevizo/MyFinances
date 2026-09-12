@@ -8,11 +8,13 @@ datasource db {
 }
 
 model Account {
-  id        String    @id @default(cuid())
-  name      String    @unique
-  type      String
-  createdAt DateTime  @default(now())
-  expenses  Expense[]
+  id         String    @id @default(cuid())
+  name       String    @unique
+  type       String
+  cutoffDay  Int?
+  paymentDay Int?
+  createdAt  DateTime  @default(now())
+  expenses   Expense[]
 }
 
 model Category {
@@ -23,12 +25,14 @@ model Category {
 }
 
 model Expense {
-  id          String   @id @default(cuid())
-  amountCents Int
-  date        DateTime
-  description String
-  type        String?
-  createdAt   DateTime @default(now())
+  id                String   @id @default(cuid())
+  amountCents       Int
+  date              DateTime
+  description       String
+  type              String?
+  excludeFromTotals Boolean  @default(false)
+  msiGroupId        String?
+  createdAt         DateTime @default(now())
 
   accountId  String
   account    Account   @relation(fields: [accountId], references: [id])

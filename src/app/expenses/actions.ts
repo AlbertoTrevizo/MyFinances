@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { pesosToCents } from "@/lib/currency";
 import { inputValueToDate } from "@/lib/date";
 import { isExpenseType } from "@/lib/expense-type";
+import { buildMsiInstallments, isValidMsiMonths } from "@/lib/msi";
 import { getTranslations } from "@/i18n/get-locale";
 import type { Dictionary } from "@/i18n/dictionaries";
 
@@ -19,6 +20,8 @@ function readFields(formData: FormData) {
     accountId: String(formData.get("accountId") ?? "").trim(),
     categoryId: String(formData.get("categoryId") ?? "").trim(),
     type: String(formData.get("type") ?? "").trim(),
+    msi: formData.get("msi") === "on",
+    msiMonths: String(formData.get("msiMonths") ?? "").trim(),
   };
 }
 
@@ -30,6 +33,9 @@ function validate(fields: ReturnType<typeof readFields>, t: Dictionary): string 
   const date = inputValueToDate(fields.date);
   if (!date) return t.expenses.errors.invalidDate;
   if (!isExpenseType(fields.type)) return t.expenses.errors.typeRequired;
+  if (fields.msi && !isValidMsiMonths(Number.parseInt(fields.msiMonths, 10))) {
+    return t.expenses.errors.invalidMsiMonths;
+  }
   return null;
 }
 
@@ -44,6 +50,52 @@ export async function createExpense(
 
   const cents = pesosToCents(fields.amount)!;
   const date = inputValueToDate(fields.date)!;
+  const categoryId = fields.categoryId || null;
+
+  if (fields.msi) {
+    const account = await prisma.account.findUnique({ where: { id: fields.accountId } });
+    if (!account?.cutoffDay) return { error: t.expenses.errors.msiRequiresCutoffDay };
+
+    const months = Number.parseInt(fields.msiMonths, 10);
+    const installments = buildMsiInstallments({
+      totalCents: cents,
+      months,
+      purchaseDate: date,
+      cutoffDay: account.cutoffDay,
+    });
+    const msiGroupId = crypto.randomUUID();
+
+    await prisma.$transaction([
+      prisma.expense.create({
+        data: {
+          description: fields.description,
+          amountCents: cents,
+          date,
+          accountId: fields.accountId,
+          categoryId,
+          type: fields.type,
+          excludeFromTotals: true,
+          msiGroupId,
+        },
+      }),
+      ...installments.map((installment) =>
+        prisma.expense.create({
+          data: {
+            description: `${fields.description} ${installment.index}/${months}`,
+            amountCents: installment.amountCents,
+            date: installment.date,
+            accountId: fields.accountId,
+            categoryId,
+            type: fields.type,
+            excludeFromTotals: false,
+            msiGroupId,
+          },
+        }),
+      ),
+    ]);
+    revalidatePath("/expenses");
+    redirect("/expenses");
+  }
 
   await prisma.expense.create({
     data: {
@@ -51,7 +103,7 @@ export async function createExpense(
       amountCents: cents,
       date,
       accountId: fields.accountId,
-      categoryId: fields.categoryId || null,
+      categoryId,
       type: fields.type,
     },
   });
@@ -88,6 +140,11 @@ export async function updateExpense(
 }
 
 export async function deleteExpense(id: string): Promise<void> {
-  await prisma.expense.delete({ where: { id } });
+  const expense = await prisma.expense.findUnique({ where: { id } });
+  if (expense?.excludeFromTotals && expense.msiGroupId) {
+    await prisma.expense.deleteMany({ where: { msiGroupId: expense.msiGroupId } });
+  } else {
+    await prisma.expense.delete({ where: { id } });
+  }
   revalidatePath("/expenses");
 }

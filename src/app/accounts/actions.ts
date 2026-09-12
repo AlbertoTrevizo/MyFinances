@@ -11,7 +11,16 @@ export type ActionState = { error?: string } | undefined;
 function readFields(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const type = String(formData.get("type") ?? "").trim();
-  return { name, type };
+  const cutoffDay = String(formData.get("cutoffDay") ?? "").trim();
+  const paymentDay = String(formData.get("paymentDay") ?? "").trim();
+  return { name, type, cutoffDay, paymentDay };
+}
+
+function parseDayOfMonth(value: string): number | null | undefined {
+  if (!value) return null;
+  const day = Number.parseInt(value, 10);
+  if (!Number.isInteger(day) || day < 1 || day > 31) return undefined;
+  return day;
 }
 
 function isUniqueConstraintError(error: unknown): boolean {
@@ -23,12 +32,18 @@ export async function createAccount(
   formData: FormData
 ): Promise<ActionState> {
   const { t } = await getTranslations();
-  const { name, type } = readFields(formData);
+  const { name, type, cutoffDay, paymentDay } = readFields(formData);
   if (!name) return { error: t.accounts.errors.nameRequired };
   if (!type) return { error: t.accounts.errors.typeRequired };
+  const cutoffDayValue = parseDayOfMonth(cutoffDay);
+  if (cutoffDayValue === undefined) return { error: t.accounts.errors.invalidCutoffDay };
+  const paymentDayValue = parseDayOfMonth(paymentDay);
+  if (paymentDayValue === undefined) return { error: t.accounts.errors.invalidPaymentDay };
 
   try {
-    await prisma.account.create({ data: { name, type } });
+    await prisma.account.create({
+      data: { name, type, cutoffDay: cutoffDayValue, paymentDay: paymentDayValue },
+    });
   } catch (error) {
     if (isUniqueConstraintError(error)) return { error: t.accounts.errors.nameTaken };
     throw error;
@@ -43,12 +58,19 @@ export async function updateAccount(
   formData: FormData
 ): Promise<ActionState> {
   const { t } = await getTranslations();
-  const { name, type } = readFields(formData);
+  const { name, type, cutoffDay, paymentDay } = readFields(formData);
   if (!name) return { error: t.accounts.errors.nameRequired };
   if (!type) return { error: t.accounts.errors.typeRequired };
+  const cutoffDayValue = parseDayOfMonth(cutoffDay);
+  if (cutoffDayValue === undefined) return { error: t.accounts.errors.invalidCutoffDay };
+  const paymentDayValue = parseDayOfMonth(paymentDay);
+  if (paymentDayValue === undefined) return { error: t.accounts.errors.invalidPaymentDay };
 
   try {
-    await prisma.account.update({ where: { id }, data: { name, type } });
+    await prisma.account.update({
+      where: { id },
+      data: { name, type, cutoffDay: cutoffDayValue, paymentDay: paymentDayValue },
+    });
   } catch (error) {
     if (isUniqueConstraintError(error)) return { error: t.accounts.errors.nameTaken };
     throw error;

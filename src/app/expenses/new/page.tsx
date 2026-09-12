@@ -30,12 +30,13 @@ export default async function NewExpensePage() {
     <PageContainer title={<PageTitle>{t.expenses.newTitle}</PageTitle>}>
       <ExpenseForm
         action={createExpense}
-        accounts={accounts.map((a) => ({ id: a.id, label: `${a.name} (${a.type})` }))}
+        accounts={accounts.map((a) => ({ id: a.id, label: `${a.name} (${a.type})`, cutoffDay: a.cutoffDay }))}
         categories={categories.map((c) => ({ id: c.id, label: c.name }))}
         submitLabel={t.expenses.createSubmit}
         form={t.expenses.form}
         noCategory={t.expenses.noCategory}
         expenseTypes={t.expenseTypes}
+        allowMsi
         saving={t.common.saving}
       />
     </PageContainer>

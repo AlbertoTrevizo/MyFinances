@@ -10,6 +10,7 @@ type Row = {
   description: string;
   amountCents: number;
   type: string | null;
+  excludeFromTotals: boolean;
   account: { name: string };
   category: { name: string } | null;
 };
@@ -41,11 +42,23 @@ export function MonthExpensesTable({
           </thead>
           <tbody>
             {expenses.map((expense) => (
-              <tr key={expense.id} className="border-t border-line transition-colors hover:bg-canvas">
+              <tr
+                key={expense.id}
+                className={`border-t border-line transition-colors hover:bg-canvas ${
+                  expense.excludeFromTotals ? "opacity-50" : ""
+                }`}
+              >
                 <td className="whitespace-nowrap px-4 py-3 font-mono text-ink-muted">
                   {formatDate(expense.date, locale)}
                 </td>
-                <td className="px-4 py-3 text-ink">{expense.description}</td>
+                <td className="px-4 py-3 text-ink">
+                  {expense.description}
+                  {expense.excludeFromTotals && (
+                    <span className="ml-2 rounded-full bg-canvas px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-ink-faint">
+                      {t.msiBadge}
+                    </span>
+                  )}
+                </td>
                 <td className="px-4 py-3 text-ink-muted">{expense.account.name}</td>
                 <td className="px-4 py-3 text-ink-muted">
                   {expense.category?.name ?? <span className="text-ink-faint">{t.noCategory}</span>}

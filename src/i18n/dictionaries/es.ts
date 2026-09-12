@@ -57,6 +57,8 @@ const es: Dictionary = {
     emptyMessage: "Aún no tienes cuentas registradas.",
     tableName: "Nombre",
     tableType: "Tipo",
+    tableCutoffDay: "Día de corte",
+    tablePaymentDay: "Día de pago",
     createSubmit: "Crear cuenta",
     editSubmit: "Guardar cambios",
     form: {
@@ -64,6 +66,12 @@ const es: Dictionary = {
       namePlaceholder: "Ej. BBVA Débito",
       typeLabel: "Tipo",
       typePlaceholder: "Ej. Débito, Efectivo, Crédito, Ahorro",
+      cutoffDayLabel: "Día de corte",
+      cutoffDayPlaceholder: "Ej. 20",
+      paymentDayLabel: "Día de pago",
+      paymentDayPlaceholder: "Ej. 5",
+      creditOnlyHint:
+        "El día de corte y de pago solo aplican a tarjetas de crédito — déjalos vacíos en las demás.",
     },
     confirmDelete: (name) => `¿Eliminar la cuenta "${name}"?`,
     errors: {
@@ -71,6 +79,8 @@ const es: Dictionary = {
       typeRequired: "El tipo es requerido.",
       hasExpenses: "No puedes eliminar una cuenta con gastos asociados.",
       nameTaken: "Ya existe una cuenta con ese nombre.",
+      invalidCutoffDay: "El día de corte debe ser un número entre 1 y 31.",
+      invalidPaymentDay: "El día de pago debe ser un número entre 1 y 31.",
     },
   },
   categories: {
@@ -112,6 +122,7 @@ const es: Dictionary = {
     noCategory: "Sin categoría",
     noType: "Sin tipo",
     noResults: "No hay gastos que coincidan con tu búsqueda.",
+    msiBadge: "MSI",
     filters: {
       searchLabel: "Buscar",
       searchPlaceholder: "Buscar por descripción, categoría o cuenta",
@@ -131,6 +142,10 @@ const es: Dictionary = {
       categoryLabel: "Categoría",
       typeLabel: "Tipo",
       typePlaceholder: "Selecciona un tipo",
+      msiLabel: "¿Meses sin intereses?",
+      msiMonthsLabel: "Número de meses",
+      msiHint:
+        "El total se registra solo como referencia (en gris, no cuenta). El monto de cada mes se agrega en el día de corte de la tarjeta y ese sí cuenta.",
     },
     confirmDelete: (description) => `¿Eliminar el gasto "${description}"?`,
     errors: {
@@ -139,6 +154,8 @@ const es: Dictionary = {
       invalidAmount: "El monto debe ser un número mayor a cero.",
       invalidDate: "La fecha no es válida.",
       typeRequired: "Selecciona un tipo.",
+      invalidMsiMonths: "El número de meses debe ser entre 2 y 36.",
+      msiRequiresCutoffDay: "Esta cuenta no tiene día de corte configurado. Agrégalo en Cuentas.",
     },
   },
 };

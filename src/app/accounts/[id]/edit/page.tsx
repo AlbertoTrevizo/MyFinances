@@ -19,7 +19,12 @@ export default async function EditAccountPage({
     <PageContainer title={<PageTitle>{t.accounts.editTitle}</PageTitle>}>
       <AccountForm
         action={updateAccount.bind(null, id)}
-        defaultValues={{ name: account.name, type: account.type }}
+        defaultValues={{
+          name: account.name,
+          type: account.type,
+          cutoffDay: account.cutoffDay?.toString() ?? "",
+          paymentDay: account.paymentDay?.toString() ?? "",
+        }}
         submitLabel={t.accounts.editSubmit}
         form={t.accounts.form}
         saving={t.common.saving}

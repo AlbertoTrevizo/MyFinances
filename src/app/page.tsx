@@ -58,10 +58,11 @@ export default async function Home({
       prisma.expense.findMany({ select: { date: true } }),
     ]);
 
-  const monthTotal = monthExpenses.reduce((sum, expense) => sum + expense.amountCents, 0);
+  const countedExpenses = monthExpenses.filter((expense) => !expense.excludeFromTotals);
+  const monthTotal = countedExpenses.reduce((sum, expense) => sum + expense.amountCents, 0);
 
   const totalsByCategory = new Map<string, { label: string; value: number }>();
-  for (const expense of monthExpenses) {
+  for (const expense of countedExpenses) {
     const key = expense.category?.id ?? "__none__";
     const label = expense.category?.name ?? t.expenses.noCategory;
     const entry = totalsByCategory.get(key) ?? { label, value: 0 };
@@ -90,7 +91,7 @@ export default async function Home({
   const topCategoriesMax = topCategories[0]?.value ?? 0;
 
   const totalsByType = new Map<string, number>();
-  for (const expense of monthExpenses) {
+  for (const expense of countedExpenses) {
     const key = isExpenseType(expense.type) ? expense.type : "__none__";
     totalsByType.set(key, (totalsByType.get(key) ?? 0) + expense.amountCents);
   }

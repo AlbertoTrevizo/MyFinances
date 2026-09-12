@@ -65,6 +65,8 @@ export default async function AccountsPage({
                       basePath="/accounts"
                     />
                   </th>
+                  <th className="px-4 py-3 font-medium">{t.accounts.tableCutoffDay}</th>
+                  <th className="px-4 py-3 font-medium">{t.accounts.tablePaymentDay}</th>
                   <th className="px-4 py-3 font-medium"></th>
                 </tr>
               </thead>
@@ -76,6 +78,12 @@ export default async function AccountsPage({
                   >
                     <td className="px-4 py-3 text-ink">{account.name}</td>
                     <td className="px-4 py-3 text-ink-muted">{account.type}</td>
+                    <td className="px-4 py-3 font-mono text-ink-muted">
+                      {account.cutoffDay ?? <span className="text-ink-faint">—</span>}
+                    </td>
+                    <td className="px-4 py-3 font-mono text-ink-muted">
+                      {account.paymentDay ?? <span className="text-ink-faint">—</span>}
+                    </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex justify-end gap-1">
                         <Link

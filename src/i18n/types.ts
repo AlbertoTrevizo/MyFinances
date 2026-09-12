@@ -43,6 +43,8 @@ export type Dictionary = {
     emptyMessage: string;
     tableName: string;
     tableType: string;
+    tableCutoffDay: string;
+    tablePaymentDay: string;
     createSubmit: string;
     editSubmit: string;
     form: {
@@ -50,6 +52,11 @@ export type Dictionary = {
       namePlaceholder: string;
       typeLabel: string;
       typePlaceholder: string;
+      cutoffDayLabel: string;
+      cutoffDayPlaceholder: string;
+      paymentDayLabel: string;
+      paymentDayPlaceholder: string;
+      creditOnlyHint: string;
     };
     confirmDelete: (name: string) => string;
     errors: {
@@ -57,6 +64,8 @@ export type Dictionary = {
       typeRequired: string;
       hasExpenses: string;
       nameTaken: string;
+      invalidCutoffDay: string;
+      invalidPaymentDay: string;
     };
   };
   categories: {
@@ -98,6 +107,7 @@ export type Dictionary = {
     noCategory: string;
     noType: string;
     noResults: string;
+    msiBadge: string;
     filters: {
       searchLabel: string;
       searchPlaceholder: string;
@@ -117,6 +127,9 @@ export type Dictionary = {
       categoryLabel: string;
       typeLabel: string;
       typePlaceholder: string;
+      msiLabel: string;
+      msiMonthsLabel: string;
+      msiHint: string;
     };
     confirmDelete: (description: string) => string;
     errors: {
@@ -125,6 +138,8 @@ export type Dictionary = {
       invalidAmount: string;
       invalidDate: string;
       typeRequired: string;
+      invalidMsiMonths: string;
+      msiRequiresCutoffDay: string;
     };
   };
 };
