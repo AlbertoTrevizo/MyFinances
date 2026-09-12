@@ -1,18 +1,13 @@
 import Link from "next/link";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { formatCents } from "@/lib/currency";
-import { formatDate, inputValueToDate } from "@/lib/date";
-import { DeleteButton } from "@/components/DeleteButton";
+import { inputValueToDate } from "@/lib/date";
 import { getTranslations } from "@/i18n/get-locale";
 import { PageContainer, PageTitle } from "@/components/PageContainer";
-import { SortableHeader } from "@/components/SortableHeader";
 import { ExpenseFilters } from "@/components/ExpenseFilters";
-import { PencilIcon } from "@/components/icons";
-import { buttonPrimary, iconButton, card } from "@/lib/styles";
+import { ExpensesTable } from "@/components/ExpensesTable";
+import { buttonPrimary, card } from "@/lib/styles";
 import { resolveSort } from "@/lib/sort";
-import { isExpenseType } from "@/lib/expense-type";
-import { deleteExpense } from "./actions";
 
 const SORT_FIELDS = ["date", "description", "account", "category", "type", "amount"] as const;
 
@@ -60,28 +55,52 @@ export default async function ExpensesPage({
   }
   const where: Prisma.ExpenseWhereInput = conditions.length > 0 ? { AND: conditions } : {};
 
-  const [totalCount, expenses] = await Promise.all([
+  const [totalCount, expenses, accounts, categories] = await Promise.all([
     prisma.expense.count(),
     prisma.expense.findMany({
       where,
       orderBy,
       include: { account: true, category: true },
     }),
+    prisma.account.findMany({ orderBy: { createdAt: "asc" } }),
+    prisma.category.findMany({ orderBy: { createdAt: "asc" } }),
   ]);
 
   const hasFilters = Boolean(q || from || to);
 
-  const header = (label: string, key: (typeof SORT_FIELDS)[number], align?: "right") => (
-    <SortableHeader
-      label={label}
-      field={key}
-      activeField={field}
-      dir={dir}
-      basePath="/expenses"
-      query={{ q, from, to }}
-      align={align}
-    />
-  );
+  const accountOptions = accounts.map((account) => ({
+    id: account.id,
+    label: `${account.name} (${account.type})`,
+  }));
+  const categoryOptions = categories.map((category) => ({
+    id: category.id,
+    label: category.name,
+  }));
+
+  const expenseRows = expenses.map((expense) => ({
+    ...expense,
+    confirmMessage: t.expenses.confirmDelete(expense.description),
+  }));
+
+  const tableCopy = {
+    tableDate: t.expenses.tableDate,
+    tableDescription: t.expenses.tableDescription,
+    tableAccount: t.expenses.tableAccount,
+    tableCategory: t.expenses.tableCategory,
+    tableType: t.expenses.tableType,
+    tableAmount: t.expenses.tableAmount,
+    noCategory: t.expenses.noCategory,
+    noType: t.expenses.noType,
+    msiBadge: t.expenses.msiBadge,
+    editLabel: t.common.edit,
+    deleteLabel: t.common.delete,
+    deletingLabel: t.common.deleting,
+    editTitle: t.expenses.editTitle,
+    editSubmit: t.expenses.editSubmit,
+    savingLabel: t.common.saving,
+    form: t.expenses.form,
+    expenseTypes: t.expenseTypes,
+  };
 
   return (
     <PageContainer
@@ -102,83 +121,16 @@ export default async function ExpensesPage({
         </p>
       ) : (
         <div className={card}>
-          <div className="overflow-x-auto rounded-xl">
-            <table className="w-full min-w-[720px] text-left text-sm">
-              <thead className="bg-canvas text-ink-muted">
-                <tr>
-                  <th className="px-4 py-3 font-medium">{header(t.expenses.tableDate, "date")}</th>
-                  <th className="px-4 py-3 font-medium">
-                    {header(t.expenses.tableDescription, "description")}
-                  </th>
-                  <th className="px-4 py-3 font-medium">{header(t.expenses.tableAccount, "account")}</th>
-                  <th className="px-4 py-3 font-medium">
-                    {header(t.expenses.tableCategory, "category")}
-                  </th>
-                  <th className="px-4 py-3 font-medium">{header(t.expenses.tableType, "type")}</th>
-                  <th className="px-4 py-3 text-right font-medium">
-                    {header(t.expenses.tableAmount, "amount", "right")}
-                  </th>
-                  <th className="px-4 py-3 font-medium"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {expenses.map((expense) => (
-                  <tr
-                    key={expense.id}
-                    className={`border-t border-line transition-colors hover:bg-canvas ${
-                      expense.excludeFromTotals ? "opacity-50" : ""
-                    }`}
-                  >
-                    <td className="whitespace-nowrap px-4 py-3 font-mono text-ink-muted">
-                      {formatDate(expense.date, locale)}
-                    </td>
-                    <td className="px-4 py-3 text-ink">
-                      {expense.description}
-                      {expense.excludeFromTotals && (
-                        <span className="ml-2 rounded-full bg-canvas px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-ink-faint">
-                          {t.expenses.msiBadge}
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-ink-muted">{expense.account.name}</td>
-                    <td className="px-4 py-3 text-ink-muted">
-                      {expense.category?.name ?? (
-                        <span className="text-ink-faint">{t.expenses.noCategory}</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-ink-muted">
-                      {isExpenseType(expense.type) ? (
-                        t.expenseTypes[expense.type]
-                      ) : (
-                        <span className="text-ink-faint">{t.expenses.noType}</span>
-                      )}
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-3 text-right font-mono font-semibold tabular-nums text-ink">
-                      {formatCents(expense.amountCents, locale)}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex justify-end gap-1">
-                        <Link
-                          href={`/expenses/${expense.id}/edit`}
-                          aria-label={t.common.edit}
-                          title={t.common.edit}
-                          className={iconButton}
-                        >
-                          <PencilIcon className="h-4 w-4" />
-                        </Link>
-                        <DeleteButton
-                          action={deleteExpense.bind(null, expense.id)}
-                          confirmMessage={t.expenses.confirmDelete(expense.description)}
-                          label={t.common.delete}
-                          pendingLabel={t.common.deleting}
-                        />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <ExpensesTable
+            expenses={expenseRows}
+            accounts={accountOptions}
+            categories={categoryOptions}
+            locale={locale}
+            copy={tableCopy}
+            sort={field}
+            dir={dir}
+            query={{ q, from, to }}
+          />
         </div>
       )}
     </PageContainer>

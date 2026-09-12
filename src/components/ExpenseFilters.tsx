@@ -1,4 +1,8 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useRef, useState, useTransition } from "react";
 import type { Dictionary } from "@/i18n/dictionaries";
 import { buttonPrimary, card, inputField } from "@/lib/styles";
 import type { SortDir } from "@/lib/sort";
@@ -18,6 +22,43 @@ export function ExpenseFilters({
   dir: SortDir;
   t: Dictionary["expenses"]["filters"];
 }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const fromRef = useRef<HTMLInputElement>(null);
+  const toRef = useRef<HTMLInputElement>(null);
+  const [search, setSearch] = useState(q);
+  const [prevQ, setPrevQ] = useState(q);
+  const [, startTransition] = useTransition();
+  const isFirstRender = useRef(true);
+
+  if (q !== prevQ) {
+    setPrevQ(q);
+    setSearch(q);
+  }
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      const params = new URLSearchParams();
+      if (search.trim()) params.set("q", search.trim());
+      if (fromRef.current?.value) params.set("from", fromRef.current.value);
+      if (toRef.current?.value) params.set("to", toRef.current.value);
+      params.set("sort", sort);
+      params.set("dir", dir);
+
+      startTransition(() => {
+        router.push(`${pathname}?${params.toString()}`);
+      });
+    }, 300);
+
+    return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search]);
+
   const hasFilters = Boolean(q || from || to);
 
   return (
@@ -34,7 +75,8 @@ export function ExpenseFilters({
         <input
           type="search"
           name="q"
-          defaultValue={q}
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
           placeholder={t.searchPlaceholder}
           className={inputField}
         />
@@ -42,12 +84,12 @@ export function ExpenseFilters({
 
       <label className="flex flex-col gap-1.5">
         <span className="text-sm font-medium text-ink-muted">{t.fromLabel}</span>
-        <input type="date" name="from" defaultValue={from} className={inputField} />
+        <input ref={fromRef} type="date" name="from" defaultValue={from} className={inputField} />
       </label>
 
       <label className="flex flex-col gap-1.5">
         <span className="text-sm font-medium text-ink-muted">{t.toLabel}</span>
-        <input type="date" name="to" defaultValue={to} className={inputField} />
+        <input ref={toRef} type="date" name="to" defaultValue={to} className={inputField} />
       </label>
 
       <button type="submit" className={buttonPrimary}>

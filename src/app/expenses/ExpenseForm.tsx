@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import type { ActionState } from "./actions";
 import type { Dictionary } from "@/i18n/dictionaries";
 import { EXPENSE_TYPES } from "@/lib/expense-type";
@@ -22,6 +22,7 @@ export function ExpenseForm({
   expenseTypes,
   allowMsi = false,
   saving,
+  onSuccess,
 }: {
   action: (state: ActionState, formData: FormData) => Promise<ActionState>;
   accounts: Option[];
@@ -40,10 +41,18 @@ export function ExpenseForm({
   expenseTypes: Dictionary["expenseTypes"];
   allowMsi?: boolean;
   saving: string;
+  onSuccess?: () => void;
 }) {
   const [state, formAction, isPending] = useActionState(action, initialState);
   const [accountId, setAccountId] = useState(defaultValues?.accountId ?? "");
   const [msiEnabled, setMsiEnabled] = useState(false);
+
+  useEffect(() => {
+    if (state !== undefined && !state.error) {
+      onSuccess?.();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
 
   const selectedAccount = accounts.find((account) => account.id === accountId);
   const canMsi = allowMsi && Boolean(selectedAccount?.cutoffDay);

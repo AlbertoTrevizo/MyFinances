@@ -111,7 +111,7 @@ export async function createExpense(
   redirect("/expenses");
 }
 
-export async function updateExpense(
+export async function updateExpenseModal(
   id: string,
   _prevState: ActionState,
   formData: FormData
@@ -136,7 +136,61 @@ export async function updateExpense(
     },
   });
   revalidatePath("/expenses");
-  redirect("/expenses");
+  return {};
+}
+
+export type EditableExpenseField =
+  | "date"
+  | "description"
+  | "accountId"
+  | "categoryId"
+  | "type"
+  | "amount";
+
+export async function updateExpenseField(
+  id: string,
+  field: EditableExpenseField,
+  rawValue: string
+): Promise<ActionState> {
+  const { t } = await getTranslations();
+  const value = rawValue.trim();
+
+  switch (field) {
+    case "description": {
+      if (!value) return { error: t.expenses.errors.descriptionRequired };
+      await prisma.expense.update({ where: { id }, data: { description: value } });
+      break;
+    }
+    case "amount": {
+      const cents = pesosToCents(value);
+      if (cents === null) return { error: t.expenses.errors.invalidAmount };
+      await prisma.expense.update({ where: { id }, data: { amountCents: cents } });
+      break;
+    }
+    case "date": {
+      const date = inputValueToDate(value);
+      if (!date) return { error: t.expenses.errors.invalidDate };
+      await prisma.expense.update({ where: { id }, data: { date } });
+      break;
+    }
+    case "accountId": {
+      if (!value) return { error: t.expenses.errors.accountRequired };
+      await prisma.expense.update({ where: { id }, data: { accountId: value } });
+      break;
+    }
+    case "categoryId": {
+      await prisma.expense.update({ where: { id }, data: { categoryId: value || null } });
+      break;
+    }
+    case "type": {
+      if (!isExpenseType(value)) return { error: t.expenses.errors.typeRequired };
+      await prisma.expense.update({ where: { id }, data: { type: value } });
+      break;
+    }
+  }
+
+  revalidatePath("/expenses");
+  return {};
 }
 
 export async function deleteExpense(id: string): Promise<void> {
