@@ -109,6 +109,15 @@ const es: Dictionary = {
     createAccountLink: "Crear cuenta",
     noCategory: "Sin categoría",
     noType: "Sin tipo",
+    noResults: "No hay gastos que coincidan con tu búsqueda.",
+    filters: {
+      searchLabel: "Buscar",
+      searchPlaceholder: "Buscar por descripción, categoría o cuenta",
+      fromLabel: "Desde",
+      toLabel: "Hasta",
+      apply: "Filtrar",
+      clear: "Limpiar filtros",
+    },
     form: {
       descriptionLabel: "Descripción",
       descriptionPlaceholder: "Ej. Súper de la semana",

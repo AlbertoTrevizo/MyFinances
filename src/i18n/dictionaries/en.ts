@@ -109,6 +109,15 @@ const en: Dictionary = {
     createAccountLink: "Create account",
     noCategory: "No category",
     noType: "No type",
+    noResults: "No expenses match your filters.",
+    filters: {
+      searchLabel: "Search",
+      searchPlaceholder: "Search description, category, or account",
+      fromLabel: "From",
+      toLabel: "To",
+      apply: "Filter",
+      clear: "Clear filters",
+    },
     form: {
       descriptionLabel: "Description",
       descriptionPlaceholder: "E.g. Weekly groceries",

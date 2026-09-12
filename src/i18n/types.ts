@@ -95,6 +95,15 @@ export type Dictionary = {
     createAccountLink: string;
     noCategory: string;
     noType: string;
+    noResults: string;
+    filters: {
+      searchLabel: string;
+      searchPlaceholder: string;
+      fromLabel: string;
+      toLabel: string;
+      apply: string;
+      clear: string;
+    };
     form: {
       descriptionLabel: string;
       descriptionPlaceholder: string;

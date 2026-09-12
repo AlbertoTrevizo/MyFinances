@@ -1,11 +1,13 @@
 import Link from "next/link";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { formatCents } from "@/lib/currency";
-import { formatDate } from "@/lib/date";
+import { formatDate, inputValueToDate } from "@/lib/date";
 import { DeleteButton } from "@/components/DeleteButton";
 import { getTranslations } from "@/i18n/get-locale";
 import { PageContainer, PageTitle } from "@/components/PageContainer";
 import { SortableHeader } from "@/components/SortableHeader";
+import { ExpenseFilters } from "@/components/ExpenseFilters";
 import { PencilIcon } from "@/components/icons";
 import { buttonPrimary, iconButton, card } from "@/lib/styles";
 import { resolveSort } from "@/lib/sort";
@@ -17,11 +19,15 @@ const SORT_FIELDS = ["date", "description", "account", "category", "type", "amou
 export default async function ExpensesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ sort?: string; dir?: string }>;
+  searchParams: Promise<{ sort?: string; dir?: string; q?: string; from?: string; to?: string }>;
 }) {
   const { locale, t } = await getTranslations();
   const sp = await searchParams;
   const { field, dir } = resolveSort(sp, SORT_FIELDS, "date", "desc");
+
+  const q = (sp.q ?? "").trim();
+  const from = sp.from ?? "";
+  const to = sp.to ?? "";
 
   const orderBy =
     field === "account"
@@ -36,10 +42,34 @@ export default async function ExpensesPage({
               ? { description: dir }
               : { date: dir };
 
-  const expenses = await prisma.expense.findMany({
-    orderBy,
-    include: { account: true, category: true },
-  });
+  const dateFrom = inputValueToDate(from);
+  const dateTo = inputValueToDate(to);
+  const dateToExclusive = dateTo ? new Date(dateTo.getTime() + 24 * 60 * 60 * 1000) : null;
+
+  const conditions: Prisma.ExpenseWhereInput[] = [];
+  if (dateFrom) conditions.push({ date: { gte: dateFrom } });
+  if (dateToExclusive) conditions.push({ date: { lt: dateToExclusive } });
+  if (q) {
+    conditions.push({
+      OR: [
+        { description: { contains: q } },
+        { category: { name: { contains: q } } },
+        { account: { name: { contains: q } } },
+      ],
+    });
+  }
+  const where: Prisma.ExpenseWhereInput = conditions.length > 0 ? { AND: conditions } : {};
+
+  const [totalCount, expenses] = await Promise.all([
+    prisma.expense.count(),
+    prisma.expense.findMany({
+      where,
+      orderBy,
+      include: { account: true, category: true },
+    }),
+  ]);
+
+  const hasFilters = Boolean(q || from || to);
 
   const header = (label: string, key: (typeof SORT_FIELDS)[number], align?: "right") => (
     <SortableHeader
@@ -48,6 +78,7 @@ export default async function ExpensesPage({
       activeField={field}
       dir={dir}
       basePath="/expenses"
+      query={{ q, from, to }}
       align={align}
     />
   );
@@ -61,8 +92,14 @@ export default async function ExpensesPage({
         </Link>
       }
     >
+      {totalCount > 0 && (
+        <ExpenseFilters q={q} from={from} to={to} sort={field} dir={dir} t={t.expenses.filters} />
+      )}
+
       {expenses.length === 0 ? (
-        <p className="text-sm text-ink-muted">{t.expenses.emptyMessage}</p>
+        <p className="text-sm text-ink-muted">
+          {hasFilters ? t.expenses.noResults : t.expenses.emptyMessage}
+        </p>
       ) : (
         <div className={card}>
           <div className="overflow-x-auto rounded-xl">

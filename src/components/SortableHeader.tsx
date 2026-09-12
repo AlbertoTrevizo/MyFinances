@@ -8,6 +8,7 @@ export function SortableHeader({
   activeField,
   dir,
   basePath,
+  query,
   align = "left",
 }: {
   label: string;
@@ -15,14 +16,22 @@ export function SortableHeader({
   activeField: string;
   dir: SortDir;
   basePath: string;
+  query?: Record<string, string | undefined>;
   align?: "left" | "right";
 }) {
   const active = field === activeField;
   const nextDir: SortDir = active && dir === "asc" ? "desc" : "asc";
 
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(query ?? {})) {
+    if (value) params.set(key, value);
+  }
+  params.set("sort", field);
+  params.set("dir", nextDir);
+
   return (
     <Link
-      href={`${basePath}?sort=${field}&dir=${nextDir}`}
+      href={`${basePath}?${params.toString()}`}
       className={`inline-flex items-center gap-1 transition-colors hover:text-ink ${
         align === "right" ? "flex-row-reverse" : ""
       } ${active ? "text-ink" : ""}`}
