@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { HomeIcon, ExpensesIcon, AccountsIcon, CategoriesIcon, BudgetIcon } from "./icons";
+import { logout } from "@/app/login/actions";
 import type { Dictionary } from "@/i18n/dictionaries";
 import type { Locale } from "@/i18n/config";
 
@@ -11,10 +12,14 @@ export function Sidebar({
   appName,
   nav,
   locale,
+  userEmail,
+  logoutLabel,
 }: {
   appName: string;
   nav: Dictionary["nav"];
   locale: Locale;
+  userEmail: string;
+  logoutLabel: string;
 }) {
   const pathname = usePathname();
 
@@ -67,6 +72,20 @@ export function Sidebar({
 
       <div className="hidden md:block md:px-3 md:py-4">
         <LanguageSwitcher locale={locale} />
+      </div>
+
+      <div className="border-t border-line px-3 py-3 md:px-3 md:py-4">
+        <p className="truncate text-xs text-ink-muted" title={userEmail}>
+          {userEmail}
+        </p>
+        <form action={logout}>
+          <button
+            type="submit"
+            className="mt-1 text-xs font-medium text-primary hover:text-primary-strong"
+          >
+            {logoutLabel}
+          </button>
+        </form>
       </div>
     </header>
   );

@@ -18,6 +18,23 @@ const es: Dictionary = {
     deleting: "Eliminando…",
     saving: "Guardando…",
   },
+  auth: {
+    title: "Bienvenido de nuevo",
+    subtitle: "Inicia sesión para acceder a tus finanzas.",
+    emailLabel: "Correo electrónico",
+    passwordLabel: "Contraseña",
+    signInButton: "Iniciar sesión",
+    signingIn: "Iniciando sesión…",
+    orDivider: "o",
+    googleButton: "Continuar con Google",
+    logout: "Cerrar sesión",
+    errors: {
+      invalidCredentials: "Correo o contraseña incorrectos.",
+      generic: "Algo salió mal. Intenta de nuevo.",
+      google_failed: "El inicio de sesión con Google falló. Intenta de nuevo.",
+      google_not_configured: "El inicio de sesión con Google aún no está configurado.",
+    },
+  },
   expenseTypes: {
     needs: "Necesidades",
     wants: "Deseo",

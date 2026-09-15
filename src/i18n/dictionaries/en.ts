@@ -18,6 +18,23 @@ const en: Dictionary = {
     deleting: "Deleting…",
     saving: "Saving…",
   },
+  auth: {
+    title: "Welcome back",
+    subtitle: "Sign in to access your finances.",
+    emailLabel: "Email",
+    passwordLabel: "Password",
+    signInButton: "Sign in",
+    signingIn: "Signing in…",
+    orDivider: "or",
+    googleButton: "Continue with Google",
+    logout: "Log out",
+    errors: {
+      invalidCredentials: "Invalid email or password.",
+      generic: "Something went wrong. Please try again.",
+      google_failed: "Google sign-in failed. Please try again.",
+      google_not_configured: "Google sign-in isn't configured yet.",
+    },
+  },
   expenseTypes: {
     needs: "Needs",
     wants: "Wants",
