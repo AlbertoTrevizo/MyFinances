@@ -45,8 +45,8 @@ export function ExpenseFilters({
     const timeout = setTimeout(() => {
       const params = new URLSearchParams();
       if (search.trim()) params.set("q", search.trim());
-      if (fromRef.current?.value) params.set("from", fromRef.current.value);
-      if (toRef.current?.value) params.set("to", toRef.current.value);
+      params.set("from", fromRef.current?.value ?? "");
+      params.set("to", toRef.current?.value ?? "");
       params.set("sort", sort);
       params.set("dir", dir);
 
@@ -84,12 +84,12 @@ export function ExpenseFilters({
 
       <label className="flex flex-col gap-1.5">
         <span className="text-sm font-medium text-ink-muted">{t.fromLabel}</span>
-        <input ref={fromRef} type="date" name="from" defaultValue={from} className={inputField} />
+        <input key={`from-${from}`} ref={fromRef} type="date" name="from" defaultValue={from} className={inputField} />
       </label>
 
       <label className="flex flex-col gap-1.5">
         <span className="text-sm font-medium text-ink-muted">{t.toLabel}</span>
-        <input ref={toRef} type="date" name="to" defaultValue={to} className={inputField} />
+        <input key={`to-${to}`} ref={toRef} type="date" name="to" defaultValue={to} className={inputField} />
       </label>
 
       <button type="submit" className={buttonPrimary}>
@@ -98,7 +98,7 @@ export function ExpenseFilters({
 
       {hasFilters && (
         <Link
-          href="/expenses"
+          href="/expenses?from=&to="
           className="text-sm font-medium text-ink-muted underline underline-offset-2 hover:text-ink"
         >
           {t.clear}

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { inputValueToDate } from "@/lib/date";
+import { dateToInputValue, inputValueToDate, monthKey } from "@/lib/date";
 import { getTranslations } from "@/i18n/get-locale";
 import { PageContainer, PageTitle } from "@/components/PageContainer";
 import { ExpenseFilters } from "@/components/ExpenseFilters";
@@ -21,8 +21,13 @@ export default async function ExpensesPage({
   const { field, dir } = resolveSort(sp, SORT_FIELDS, "date", "desc");
 
   const q = (sp.q ?? "").trim();
-  const from = sp.from ?? "";
-  const to = sp.to ?? "";
+  // No date params at all → default to the current month; explicit empty params mean "all dates".
+  const useDefaultRange = sp.from === undefined && sp.to === undefined;
+  const now = new Date();
+  const from = useDefaultRange ? `${monthKey(now)}-01` : (sp.from ?? "");
+  const to = useDefaultRange
+    ? dateToInputValue(new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0)))
+    : (sp.to ?? "");
 
   const orderBy =
     field === "account"
