@@ -130,22 +130,6 @@ export function ExpenseForm({
       </label>
 
       <label className="flex flex-col gap-1.5">
-        <span className="text-sm font-medium text-ink-muted">{form.categoryLabel}</span>
-        <select
-          name="categoryId"
-          defaultValue={defaultValues?.categoryId ?? ""}
-          className={inputField}
-        >
-          <option value="">{noCategory}</option>
-          {categories.map((category) => (
-            <option key={category.id} value={category.id}>
-              {category.label}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      <label className="flex flex-col gap-1.5">
         <span className="text-sm font-medium text-ink-muted">{form.typeLabel}</span>
         <select
           name="type"
@@ -159,6 +143,22 @@ export function ExpenseForm({
           {EXPENSE_TYPES.map((type) => (
             <option key={type} value={type}>
               {expenseTypes[type]}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <label className="flex flex-col gap-1.5">
+        <span className="text-sm font-medium text-ink-muted">{form.categoryLabel}</span>
+        <select
+          name="categoryId"
+          defaultValue={defaultValues?.categoryId ?? ""}
+          className={inputField}
+        >
+          <option value="">{noCategory}</option>
+          {categories.map((category) => (
+            <option key={category.id} value={category.id}>
+              {category.label}
             </option>
           ))}
         </select>
