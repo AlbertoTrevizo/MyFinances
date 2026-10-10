@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { pesosToCents } from "@/lib/currency";
 import { inputValueToDate } from "@/lib/date";
@@ -97,7 +96,7 @@ export async function createExpense(
       ),
     ]);
     revalidatePath("/expenses");
-    redirect("/expenses");
+    return {};
   }
 
   await prisma.expense.create({
@@ -112,7 +111,7 @@ export async function createExpense(
     },
   });
   revalidatePath("/expenses");
-  redirect("/expenses");
+  return {};
 }
 
 export async function updateExpenseModal(

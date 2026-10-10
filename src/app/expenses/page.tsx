@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { dateToInputValue, inputValueToDate, monthKey } from "@/lib/date";
@@ -6,7 +5,8 @@ import { getTranslations } from "@/i18n/get-locale";
 import { PageContainer, PageTitle } from "@/components/PageContainer";
 import { ExpenseFilters } from "@/components/ExpenseFilters";
 import { ExpensesTable } from "@/components/ExpensesTable";
-import { buttonPrimary, card } from "@/lib/styles";
+import { NewExpenseButton } from "@/components/NewExpenseButton";
+import { card } from "@/lib/styles";
 import { resolveSort } from "@/lib/sort";
 
 const SORT_FIELDS = ["date", "description", "account", "category", "type", "amount"] as const;
@@ -76,6 +76,7 @@ export default async function ExpensesPage({
   const accountOptions = accounts.map((account) => ({
     id: account.id,
     label: `${account.name} (${account.type})`,
+    cutoffDay: account.cutoffDay,
   }));
   const categoryOptions = categories.map((category) => ({
     id: category.id,
@@ -111,9 +112,21 @@ export default async function ExpensesPage({
     <PageContainer
       title={<PageTitle>{t.expenses.title}</PageTitle>}
       actions={
-        <Link href="/expenses/new" className={buttonPrimary}>
-          {t.expenses.newButton}
-        </Link>
+        <NewExpenseButton
+          accounts={accountOptions}
+          categories={categoryOptions}
+          copy={{
+            newButton: t.expenses.newButton,
+            newTitle: t.expenses.newTitle,
+            needsAccount: t.expenses.needsAccount,
+            createAccountLink: t.expenses.createAccountLink,
+            createSubmit: t.expenses.createSubmit,
+            noCategory: t.expenses.noCategory,
+            saving: t.common.saving,
+            form: t.expenses.form,
+            expenseTypes: t.expenseTypes,
+          }}
+        />
       }
     >
       {totalCount > 0 && (
