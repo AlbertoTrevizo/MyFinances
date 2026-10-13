@@ -8,6 +8,7 @@ import { PencilIcon } from "@/components/icons";
 import { buttonPrimary, iconButton, card } from "@/lib/styles";
 import { resolveSort } from "@/lib/sort";
 import { deleteCategory } from "./actions";
+import { requireUser } from "@/lib/session";
 
 const SORT_FIELDS = ["name"] as const;
 
@@ -16,6 +17,7 @@ export default async function CategoriesPage({
 }: {
   searchParams: Promise<{ error?: string; sort?: string; dir?: string }>;
 }) {
+  await requireUser();
   const { error, ...sp } = await searchParams;
   const { t } = await getTranslations();
   const { field, dir } = resolveSort(sp, SORT_FIELDS, "name");
@@ -33,9 +35,9 @@ export default async function CategoriesPage({
         </Link>
       }
     >
-      {error && (
+      {error === "hasExpenses" && (
         <p className="rounded-lg border border-danger-soft bg-danger-soft px-4 py-2 text-sm text-danger">
-          {error}
+          {t.categories.errors.hasExpenses}
         </p>
       )}
 

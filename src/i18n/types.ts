@@ -24,13 +24,10 @@ export type Dictionary = {
     signInButton: string;
     signingIn: string;
     orDivider: string;
-    googleButton: string;
     logout: string;
     errors: {
       invalidCredentials: string;
       generic: string;
-      google_failed: string;
-      google_not_configured: string;
     };
   };
   expenseTypes: {

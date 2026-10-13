@@ -4,6 +4,7 @@ import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/session";
 import { getTranslations } from "@/i18n/get-locale";
 
 export type ActionState = { error?: string } | undefined;
@@ -21,6 +22,7 @@ export async function createCategory(
   _prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
+  await requireUser();
   const { t } = await getTranslations();
   const { name } = readFields(formData);
   if (!name) return { error: t.categories.errors.nameRequired };
@@ -40,6 +42,7 @@ export async function updateCategory(
   _prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
+  await requireUser();
   const { t } = await getTranslations();
   const { name } = readFields(formData);
   if (!name) return { error: t.categories.errors.nameRequired };
@@ -55,10 +58,10 @@ export async function updateCategory(
 }
 
 export async function deleteCategory(id: string): Promise<void> {
-  const { t } = await getTranslations();
+  await requireUser();
   const expenseCount = await prisma.expense.count({ where: { categoryId: id } });
   if (expenseCount > 0) {
-    redirect(`/categories?error=${encodeURIComponent(t.categories.errors.hasExpenses)}`);
+    redirect("/categories?error=hasExpenses");
   }
   await prisma.category.delete({ where: { id } });
   revalidatePath("/categories");

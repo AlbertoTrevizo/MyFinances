@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/session";
 import { pesosToCents } from "@/lib/currency";
 import { inputValueToDate } from "@/lib/date";
 import { isExpenseType } from "@/lib/expense-type";
@@ -43,6 +44,7 @@ export async function createExpense(
   _prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
+  await requireUser();
   const { t } = await getTranslations();
   const fields = readFields(formData);
   const error = validate(fields, t);
@@ -119,6 +121,7 @@ export async function updateExpenseModal(
   _prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
+  await requireUser();
   const { t } = await getTranslations();
   const fields = readFields(formData);
   const error = validate(fields, t);
@@ -156,8 +159,9 @@ export async function updateExpenseField(
   field: EditableExpenseField,
   rawValue: string
 ): Promise<ActionState> {
+  await requireUser();
   const { t } = await getTranslations();
-  const value = rawValue.trim();
+  const value = typeof rawValue === "string" ? rawValue.trim() : "";
 
   switch (field) {
     case "description": {
@@ -198,6 +202,7 @@ export async function updateExpenseField(
 }
 
 export async function deleteExpense(id: string): Promise<void> {
+  await requireUser();
   const expense = await prisma.expense.findUnique({ where: { id } });
   if (expense?.excludeFromTotals && expense.msiGroupId) {
     await prisma.expense.deleteMany({ where: { msiGroupId: expense.msiGroupId } });

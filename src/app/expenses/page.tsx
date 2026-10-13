@@ -8,6 +8,7 @@ import { ExpensesTable } from "@/components/ExpensesTable";
 import { NewExpenseButton } from "@/components/NewExpenseButton";
 import { card } from "@/lib/styles";
 import { resolveSort } from "@/lib/sort";
+import { requireUser } from "@/lib/session";
 
 const SORT_FIELDS = ["date", "description", "account", "category", "type", "amount"] as const;
 
@@ -16,18 +17,21 @@ export default async function ExpensesPage({
 }: {
   searchParams: Promise<{ sort?: string; dir?: string; q?: string; from?: string; to?: string }>;
 }) {
+  await requireUser();
   const { locale, t } = await getTranslations();
   const sp = await searchParams;
   const { field, dir } = resolveSort(sp, SORT_FIELDS, "date", "desc");
 
-  const q = (sp.q ?? "").trim();
+  // Repeated params (?q=a&q=b) arrive as arrays; treat anything but a string as empty.
+  const str = (v: unknown) => (typeof v === "string" ? v : "");
+  const q = str(sp.q).trim();
   // No date params at all → default to the current month; explicit empty params mean "all dates".
   const useDefaultRange = sp.from === undefined && sp.to === undefined;
   const now = new Date();
-  const from = useDefaultRange ? `${monthKey(now)}-01` : (sp.from ?? "");
+  const from = useDefaultRange ? `${monthKey(now)}-01` : str(sp.from);
   const to = useDefaultRange
     ? dateToInputValue(new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0)))
-    : (sp.to ?? "");
+    : str(sp.to);
 
   const orderBy =
     field === "account"

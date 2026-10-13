@@ -7,8 +7,10 @@ import { saveBudgets } from "./actions";
 import { getTranslations } from "@/i18n/get-locale";
 import { PageContainer, PageTitle } from "@/components/PageContainer";
 import { card } from "@/lib/styles";
+import { requireUser } from "@/lib/session";
 
 export default async function BudgetPage() {
+  await requireUser();
   const { t } = await getTranslations();
   const [budgets, categories, categoryBudgets] = await Promise.all([
     prisma.budget.findMany(),

@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { randomBytes, createHash } from "crypto";
 import { prisma } from "./prisma";
 
@@ -54,4 +55,11 @@ export async function destroySession(): Promise<void> {
     await prisma.session.deleteMany({ where: { tokenHash: hashToken(token) } });
   }
   cookieStore.delete(COOKIE_NAME);
+}
+
+// Every Server Action and page calls this; the proxy is only a first, optimistic layer.
+export async function requireUser() {
+  const user = await getCurrentUser();
+  if (!user?.isAdmin) redirect("/login");
+  return user;
 }

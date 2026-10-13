@@ -12,6 +12,7 @@ import { MonthExpensesTable } from "@/components/MonthExpensesTable";
 import { BudgetProgress } from "@/components/BudgetProgress";
 import { ExpensesIcon, AccountsIcon, CategoriesIcon } from "@/components/icons";
 import { card } from "@/lib/styles";
+import { requireUser } from "@/lib/session";
 
 const CHART_PALETTE = [
   "#3457FF",
@@ -37,6 +38,7 @@ export default async function Home({
 }: {
   searchParams: Promise<{ month?: string }>;
 }) {
+  await requireUser();
   const { locale, t } = await getTranslations();
 
   const currentMonthKey = monthKey(new Date());

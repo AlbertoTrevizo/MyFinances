@@ -4,6 +4,7 @@ import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/session";
 import { getTranslations } from "@/i18n/get-locale";
 
 export type ActionState = { error?: string } | undefined;
@@ -31,6 +32,7 @@ export async function createAccount(
   _prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
+  await requireUser();
   const { t } = await getTranslations();
   const { name, type, cutoffDay, paymentDay } = readFields(formData);
   if (!name) return { error: t.accounts.errors.nameRequired };
@@ -57,6 +59,7 @@ export async function updateAccount(
   _prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
+  await requireUser();
   const { t } = await getTranslations();
   const { name, type, cutoffDay, paymentDay } = readFields(formData);
   if (!name) return { error: t.accounts.errors.nameRequired };
@@ -86,8 +89,9 @@ export async function updateAccountField(
   field: EditableAccountField,
   rawValue: string
 ): Promise<ActionState> {
+  await requireUser();
   const { t } = await getTranslations();
-  const value = rawValue.trim();
+  const value = typeof rawValue === "string" ? rawValue.trim() : "";
 
   switch (field) {
     case "name": {
@@ -124,10 +128,10 @@ export async function updateAccountField(
 }
 
 export async function deleteAccount(id: string): Promise<void> {
-  const { t } = await getTranslations();
+  await requireUser();
   const expenseCount = await prisma.expense.count({ where: { accountId: id } });
   if (expenseCount > 0) {
-    redirect(`/accounts?error=${encodeURIComponent(t.accounts.errors.hasExpenses)}`);
+    redirect("/accounts?error=hasExpenses");
   }
   await prisma.account.delete({ where: { id } });
   revalidatePath("/accounts");

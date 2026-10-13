@@ -26,13 +26,10 @@ const es: Dictionary = {
     signInButton: "Iniciar sesión",
     signingIn: "Iniciando sesión…",
     orDivider: "o",
-    googleButton: "Continuar con Google",
     logout: "Cerrar sesión",
     errors: {
       invalidCredentials: "Correo o contraseña incorrectos.",
       generic: "Algo salió mal. Intenta de nuevo.",
-      google_failed: "El inicio de sesión con Google falló. Intenta de nuevo.",
-      google_not_configured: "El inicio de sesión con Google aún no está configurado.",
     },
   },
   expenseTypes: {

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/session";
 import { pesosToCentsOrZero } from "@/lib/currency";
 import { EXPENSE_TYPES } from "@/lib/expense-type";
 import { getTranslations } from "@/i18n/get-locale";
@@ -13,6 +14,7 @@ export async function saveBudgets(
   _prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
+  await requireUser();
   const { t } = await getTranslations();
 
   const amounts: Record<(typeof EXPENSE_TYPES)[number], number> = {} as never;
@@ -42,6 +44,7 @@ export async function addCategoryBudget(
   _prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
+  await requireUser();
   const { t } = await getTranslations();
   const categoryId = String(formData.get("categoryId") ?? "").trim();
   const raw = String(formData.get("amount") ?? "").trim();
@@ -66,6 +69,7 @@ export async function updateCategoryBudget(
   _prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
+  await requireUser();
   const { t } = await getTranslations();
   const raw = String(formData.get("amount") ?? "").trim();
   const cents = pesosToCentsOrZero(raw);
@@ -82,6 +86,7 @@ export async function updateCategoryBudget(
 }
 
 export async function deleteCategoryBudget(categoryId: string): Promise<void> {
+  await requireUser();
   await prisma.categoryBudget.delete({ where: { categoryId } });
   revalidatePath("/budget");
   revalidatePath("/");

@@ -2,8 +2,10 @@ import { CategoryForm } from "../CategoryForm";
 import { createCategory } from "../actions";
 import { getTranslations } from "@/i18n/get-locale";
 import { PageContainer, PageTitle } from "@/components/PageContainer";
+import { requireUser } from "@/lib/session";
 
 export default async function NewCategoryPage() {
+  await requireUser();
   const { t } = await getTranslations();
 
   return (

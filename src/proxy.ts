@@ -12,10 +12,7 @@ function hashToken(token: string): string {
 export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (
-    PUBLIC_PATHS.some((path) => pathname === path) ||
-    pathname.startsWith("/api/auth/")
-  ) {
+  if (PUBLIC_PATHS.some((path) => pathname === path)) {
     return NextResponse.next();
   }
 
@@ -24,9 +21,12 @@ export default async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  const session = await prisma.session.findUnique({ where: { tokenHash: hashToken(token) } });
+  const session = await prisma.session.findUnique({
+    where: { tokenHash: hashToken(token) },
+    include: { user: { select: { isAdmin: true } } },
+  });
 
-  if (!session || session.expiresAt < new Date()) {
+  if (!session || session.expiresAt < new Date() || !session.user.isAdmin) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
@@ -34,5 +34,5 @@ export default async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.png$).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon\\.ico$|[^/]+\\.(?:png|svg|ico)$).*)"],
 };

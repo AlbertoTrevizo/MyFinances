@@ -26,13 +26,10 @@ const en: Dictionary = {
     signInButton: "Sign in",
     signingIn: "Signing in…",
     orDivider: "or",
-    googleButton: "Continue with Google",
     logout: "Log out",
     errors: {
       invalidCredentials: "Invalid email or password.",
       generic: "Something went wrong. Please try again.",
-      google_failed: "Google sign-in failed. Please try again.",
-      google_not_configured: "Google sign-in isn't configured yet.",
     },
   },
   expenseTypes: {

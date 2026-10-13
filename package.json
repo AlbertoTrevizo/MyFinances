@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
-    "next": "16.3.5",
+    "next": "16.4.0",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },
@@ -21,7 +21,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.3.5",
+    "eslint-config-next": "16.4.0",
     "prisma": "^6.19.3",
     "tailwindcss": "^4",
     "tsx": "^4.23.13",
@@ -32,5 +32,8 @@
     "prisma@6.19.3": true,
     "@prisma/engines@6.19.3": true,
     "@prisma/client@6.19.3": true
+  },
+  "overrides": {
+    "sharp": "0.35.5"
   }
 }
