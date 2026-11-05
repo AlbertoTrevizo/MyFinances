@@ -5,6 +5,13 @@ export function isValidMsiMonths(value: number): boolean {
   return Number.isInteger(value) && value >= MSI_MIN_MONTHS && value <= MSI_MAX_MONTHS;
 }
 
+export function isMsiInstallment(expense: {
+  msiGroupId: string | null;
+  excludeFromTotals: boolean;
+}): boolean {
+  return expense.msiGroupId !== null && !expense.excludeFromTotals;
+}
+
 function cutoffDateForMonth(year: number, monthIndex0: number, cutoffDay: number): Date {
   const daysInMonth = new Date(Date.UTC(year, monthIndex0 + 1, 0)).getUTCDate();
   const day = Math.min(cutoffDay, daysInMonth);
@@ -48,4 +55,36 @@ export function buildMsiInstallments({
       date: cutoffDateForMonth(y, monthIndex0, cutoffDay),
     };
   });
+}
+
+export function buildMsiInstallmentRows(
+  original: {
+    description: string;
+    notes: string | null;
+    amountCents: number;
+    date: Date;
+    accountId: string;
+    categoryId: string | null;
+    type: string | null;
+    msiGroupId: string;
+  },
+  months: number,
+  cutoffDay: number,
+) {
+  return buildMsiInstallments({
+    totalCents: original.amountCents,
+    months,
+    purchaseDate: original.date,
+    cutoffDay,
+  }).map(({ index, amountCents, date }) => ({
+    description: `${original.description} ${index}/${months}`,
+    notes: original.notes,
+    amountCents,
+    date,
+    accountId: original.accountId,
+    categoryId: original.categoryId,
+    type: original.type,
+    excludeFromTotals: false,
+    msiGroupId: original.msiGroupId,
+  }));
 }

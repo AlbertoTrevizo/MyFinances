@@ -1,7 +1,13 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { formatCents } from "@/lib/currency";
-import { monthKey, parseMonthKey, formatMonth, dateToInputValue } from "@/lib/date";
+import {
+  currentMonthKey as getCurrentMonthKey,
+  monthKey,
+  parseMonthKey,
+  formatMonth,
+  dateToInputValue,
+} from "@/lib/date";
 import { EXPENSE_TYPES, isExpenseType } from "@/lib/expense-type";
 import { getTranslations } from "@/i18n/get-locale";
 import { PageContainer, PageTitle } from "@/components/PageContainer";
@@ -41,7 +47,7 @@ export default async function Home({
   await requireUser();
   const { locale, t } = await getTranslations();
 
-  const currentMonthKey = monthKey(new Date());
+  const currentMonthKey = getCurrentMonthKey();
   const sp = await searchParams;
   const requestedMonth = sp.month && parseMonthKey(sp.month) ? sp.month : currentMonthKey;
   const monthStart = parseMonthKey(requestedMonth)!;

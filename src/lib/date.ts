@@ -24,6 +24,16 @@ export function monthKey(date: Date): string {
   return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
 }
 
+const currentMonthFormatter = new Intl.DateTimeFormat("en-CA", {
+  year: "numeric",
+  month: "2-digit",
+  timeZone: "America/Mexico_City",
+});
+
+export function currentMonthKey(now: Date = new Date()): string {
+  return currentMonthFormatter.format(now).slice(0, 7);
+}
+
 export function parseMonthKey(value: string): Date | null {
   const match = /^(\d{4})-(\d{2})$/.exec(value);
   if (!match) return null;

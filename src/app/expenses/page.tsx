@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { dateToInputValue, inputValueToDate, monthKey } from "@/lib/date";
+import { currentMonthKey, dateToInputValue, inputValueToDate, parseMonthKey } from "@/lib/date";
+import { matchesSearch } from "@/lib/search";
 import { getTranslations } from "@/i18n/get-locale";
 import { PageContainer, PageTitle } from "@/components/PageContainer";
 import { ExpenseFilters } from "@/components/ExpenseFilters";
@@ -27,10 +28,12 @@ export default async function ExpensesPage({
   const q = str(sp.q).trim();
   // No date params at all → default to the current month; explicit empty params mean "all dates".
   const useDefaultRange = sp.from === undefined && sp.to === undefined;
-  const now = new Date();
-  const from = useDefaultRange ? `${monthKey(now)}-01` : str(sp.from);
+  const currentMonth = parseMonthKey(currentMonthKey())!;
+  const from = useDefaultRange ? dateToInputValue(currentMonth) : str(sp.from);
   const to = useDefaultRange
-    ? dateToInputValue(new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0)))
+    ? dateToInputValue(
+        new Date(Date.UTC(currentMonth.getUTCFullYear(), currentMonth.getUTCMonth() + 1, 0)),
+      )
     : str(sp.to);
 
   const orderBy =
@@ -53,18 +56,9 @@ export default async function ExpensesPage({
   const conditions: Prisma.ExpenseWhereInput[] = [];
   if (dateFrom) conditions.push({ date: { gte: dateFrom } });
   if (dateToExclusive) conditions.push({ date: { lt: dateToExclusive } });
-  if (q) {
-    conditions.push({
-      OR: [
-        { description: { contains: q } },
-        { category: { name: { contains: q } } },
-        { account: { name: { contains: q } } },
-      ],
-    });
-  }
   const where: Prisma.ExpenseWhereInput = conditions.length > 0 ? { AND: conditions } : {};
 
-  const [totalCount, expenses, accounts, categories] = await Promise.all([
+  const [totalCount, expensesInRange, accounts, categories] = await Promise.all([
     prisma.expense.count(),
     prisma.expense.findMany({
       where,
@@ -74,6 +68,14 @@ export default async function ExpensesPage({
     prisma.account.findMany({ orderBy: { createdAt: "asc" } }),
     prisma.category.findMany({ orderBy: { createdAt: "asc" } }),
   ]);
+
+  // ponytail: filters in memory because Postgres can't ignore accents without raw SQL; the list
+  // is already unpaginated. Move to a normalized column if a household ever outgrows this.
+  const expenses = q
+    ? expensesInRange.filter((expense) =>
+        matchesSearch(q, [expense.description, expense.category?.name, expense.account.name]),
+      )
+    : expensesInRange;
 
   const hasFilters = Boolean(q || from || to);
 
@@ -102,6 +104,7 @@ export default async function ExpensesPage({
     noCategory: t.expenses.noCategory,
     noType: t.expenses.noType,
     msiBadge: t.expenses.msiBadge,
+    msiInstallmentLocked: t.expenses.errors.msiInstallmentLocked,
     editLabel: t.common.edit,
     deleteLabel: t.common.delete,
     deletingLabel: t.common.deleting,

@@ -203,6 +203,7 @@ const es: Dictionary = {
       typeRequired: "Selecciona un tipo.",
       invalidMsiMonths: "El número de meses debe ser entre 2 y 36.",
       msiRequiresCutoffDay: "Esta cuenta no tiene día de corte configurado. Agrégalo en Cuentas.",
+      msiInstallmentLocked: "Esta mensualidad no se puede cambiar. Edita su compra original.",
     },
   },
 };

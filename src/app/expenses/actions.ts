@@ -6,7 +6,7 @@ import { requireUser } from "@/lib/session";
 import { pesosToCents } from "@/lib/currency";
 import { inputValueToDate } from "@/lib/date";
 import { isExpenseType } from "@/lib/expense-type";
-import { buildMsiInstallments, isValidMsiMonths } from "@/lib/msi";
+import { buildMsiInstallmentRows, isMsiInstallment, isValidMsiMonths } from "@/lib/msi";
 import { getTranslations } from "@/i18n/get-locale";
 import type { Dictionary } from "@/i18n/dictionaries";
 
@@ -59,43 +59,22 @@ export async function createExpense(
     if (!account?.cutoffDay) return { error: t.expenses.errors.msiRequiresCutoffDay };
 
     const months = Number.parseInt(fields.msiMonths, 10);
-    const installments = buildMsiInstallments({
-      totalCents: cents,
-      months,
-      purchaseDate: date,
-      cutoffDay: account.cutoffDay,
-    });
-    const msiGroupId = crypto.randomUUID();
+    const original = {
+      description: fields.description,
+      notes: fields.notes || null,
+      amountCents: cents,
+      date,
+      accountId: fields.accountId,
+      categoryId,
+      type: fields.type,
+      msiGroupId: crypto.randomUUID(),
+    };
 
     await prisma.$transaction([
-      prisma.expense.create({
-        data: {
-          description: fields.description,
-          notes: fields.notes || null,
-          amountCents: cents,
-          date,
-          accountId: fields.accountId,
-          categoryId,
-          type: fields.type,
-          excludeFromTotals: true,
-          msiGroupId,
-        },
+      prisma.expense.create({ data: { ...original, excludeFromTotals: true } }),
+      prisma.expense.createMany({
+        data: buildMsiInstallmentRows(original, months, account.cutoffDay),
       }),
-      ...installments.map((installment) =>
-        prisma.expense.create({
-          data: {
-            description: `${fields.description} ${installment.index}/${months}`,
-            notes: fields.notes || null,
-            amountCents: installment.amountCents,
-            date: installment.date,
-            accountId: fields.accountId,
-            categoryId,
-            type: fields.type,
-            excludeFromTotals: false,
-            msiGroupId,
-          },
-        }),
-      ),
     ]);
     revalidatePath("/expenses");
     return {};
@@ -116,6 +95,47 @@ export async function createExpense(
   return {};
 }
 
+type ExpenseChanges = Partial<{
+  description: string;
+  notes: string | null;
+  amountCents: number;
+  date: Date;
+  accountId: string;
+  categoryId: string | null;
+  type: string;
+}>;
+
+async function applyExpenseChanges(
+  id: string,
+  changes: ExpenseChanges,
+  t: Dictionary,
+): Promise<ActionState> {
+  const expense = await prisma.expense.findUniqueOrThrow({ where: { id } });
+  if (isMsiInstallment(expense)) return { error: t.expenses.errors.msiInstallmentLocked };
+
+  const { msiGroupId } = expense;
+  if (!msiGroupId) {
+    await prisma.expense.update({ where: { id }, data: changes });
+  } else {
+    const updated = { ...expense, ...changes, msiGroupId };
+    const account = await prisma.account.findUnique({ where: { id: updated.accountId } });
+    if (!account?.cutoffDay) return { error: t.expenses.errors.msiRequiresCutoffDay };
+
+    const installments = { msiGroupId, excludeFromTotals: false };
+    const months = await prisma.expense.count({ where: installments });
+    await prisma.$transaction([
+      prisma.expense.update({ where: { id }, data: changes }),
+      prisma.expense.deleteMany({ where: installments }),
+      prisma.expense.createMany({
+        data: buildMsiInstallmentRows(updated, months, account.cutoffDay),
+      }),
+    ]);
+  }
+
+  revalidatePath("/expenses");
+  return {};
+}
+
 export async function updateExpenseModal(
   id: string,
   _prevState: ActionState,
@@ -130,9 +150,9 @@ export async function updateExpenseModal(
   const cents = pesosToCents(fields.amount)!;
   const date = inputValueToDate(fields.date)!;
 
-  await prisma.expense.update({
-    where: { id },
-    data: {
+  return applyExpenseChanges(
+    id,
+    {
       description: fields.description,
       notes: fields.notes || null,
       amountCents: cents,
@@ -141,9 +161,8 @@ export async function updateExpenseModal(
       categoryId: fields.categoryId || null,
       type: fields.type,
     },
-  });
-  revalidatePath("/expenses");
-  return {};
+    t,
+  );
 }
 
 export type EditableExpenseField =
@@ -166,45 +185,37 @@ export async function updateExpenseField(
   switch (field) {
     case "description": {
       if (!value) return { error: t.expenses.errors.descriptionRequired };
-      await prisma.expense.update({ where: { id }, data: { description: value } });
-      break;
+      return applyExpenseChanges(id, { description: value }, t);
     }
     case "amount": {
       const cents = pesosToCents(value);
       if (cents === null) return { error: t.expenses.errors.invalidAmount };
-      await prisma.expense.update({ where: { id }, data: { amountCents: cents } });
-      break;
+      return applyExpenseChanges(id, { amountCents: cents }, t);
     }
     case "date": {
       const date = inputValueToDate(value);
       if (!date) return { error: t.expenses.errors.invalidDate };
-      await prisma.expense.update({ where: { id }, data: { date } });
-      break;
+      return applyExpenseChanges(id, { date }, t);
     }
     case "accountId": {
       if (!value) return { error: t.expenses.errors.accountRequired };
-      await prisma.expense.update({ where: { id }, data: { accountId: value } });
-      break;
+      return applyExpenseChanges(id, { accountId: value }, t);
     }
     case "categoryId": {
-      await prisma.expense.update({ where: { id }, data: { categoryId: value || null } });
-      break;
+      return applyExpenseChanges(id, { categoryId: value || null }, t);
     }
     case "type": {
       if (!isExpenseType(value)) return { error: t.expenses.errors.typeRequired };
-      await prisma.expense.update({ where: { id }, data: { type: value } });
-      break;
+      return applyExpenseChanges(id, { type: value }, t);
     }
   }
-
-  revalidatePath("/expenses");
-  return {};
 }
 
 export async function deleteExpense(id: string): Promise<void> {
   await requireUser();
   const expense = await prisma.expense.findUnique({ where: { id } });
-  if (expense?.excludeFromTotals && expense.msiGroupId) {
+  if (expense && isMsiInstallment(expense)) return;
+  if (expense?.msiGroupId) {
     await prisma.expense.deleteMany({ where: { msiGroupId: expense.msiGroupId } });
   } else {
     await prisma.expense.delete({ where: { id } });

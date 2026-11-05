@@ -202,6 +202,7 @@ const en: Dictionary = {
       typeRequired: "Select a type.",
       invalidMsiMonths: "Number of months must be between 2 and 36.",
       msiRequiresCutoffDay: "This account has no cutoff day set. Add one in Accounts first.",
+      msiInstallmentLocked: "This installment can't be changed. Edit its original purchase instead.",
     },
   },
 };

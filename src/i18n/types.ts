@@ -186,6 +186,7 @@ export type Dictionary = {
       typeRequired: string;
       invalidMsiMonths: string;
       msiRequiresCutoffDay: string;
+      msiInstallmentLocked: string;
     };
   };
 };

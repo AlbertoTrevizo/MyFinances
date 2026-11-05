@@ -24,7 +24,7 @@ export function SortableHeader({
 
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(query ?? {})) {
-    if (value) params.set(key, value);
+    if (value !== undefined) params.set(key, value);
   }
   params.set("sort", field);
   params.set("dir", nextDir);

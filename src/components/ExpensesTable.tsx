@@ -7,6 +7,7 @@ import type { SortDir } from "@/lib/sort";
 import { formatCents, centsToPesosInput } from "@/lib/currency";
 import { formatDate, dateToInputValue } from "@/lib/date";
 import { EXPENSE_TYPES, isExpenseType } from "@/lib/expense-type";
+import { isMsiInstallment } from "@/lib/msi";
 import { inputField, iconButton } from "@/lib/styles";
 import { SortableHeader } from "./SortableHeader";
 import { DeleteButton } from "./DeleteButton";
@@ -28,6 +29,7 @@ type Row = {
   amountCents: number;
   type: string | null;
   excludeFromTotals: boolean;
+  msiGroupId: string | null;
   accountId: string;
   categoryId: string | null;
   account: { name: string };
@@ -45,6 +47,7 @@ export type ExpensesTableCopy = {
   noCategory: string;
   noType: string;
   msiBadge: string;
+  msiInstallmentLocked: string;
   editLabel: string;
   deleteLabel: string;
   deletingLabel: string;
@@ -95,6 +98,10 @@ export function ExpensesTable({
     });
   }
 
+  function startEditing(expense: Row, field: EditableExpenseField) {
+    if (!isMsiInstallment(expense)) setEditingCell({ id: expense.id, field });
+  }
+
   function isEditing(id: string, field: EditableExpenseField) {
     return editingCell?.id === id && editingCell.field === field;
   }
@@ -134,13 +141,14 @@ export function ExpensesTable({
             {expenses.map((expense) => (
               <tr
                 key={expense.id}
+                title={isMsiInstallment(expense) ? copy.msiInstallmentLocked : undefined}
                 className={`border-t border-line transition-colors hover:bg-canvas ${
                   expense.excludeFromTotals ? "opacity-50" : ""
                 }`}
               >
                 <td
                   className="whitespace-nowrap px-4 py-3 font-mono text-ink-muted"
-                  onDoubleClick={() => setEditingCell({ id: expense.id, field: "date" })}
+                  onDoubleClick={() => startEditing(expense, "date")}
                 >
                   {isEditing(expense.id, "date") ? (
                     <input
@@ -162,7 +170,7 @@ export function ExpensesTable({
 
                 <td
                   className="px-4 py-3 text-ink"
-                  onDoubleClick={() => setEditingCell({ id: expense.id, field: "description" })}
+                  onDoubleClick={() => startEditing(expense, "description")}
                 >
                   {isEditing(expense.id, "description") ? (
                     <input
@@ -203,7 +211,7 @@ export function ExpensesTable({
 
                 <td
                   className="px-4 py-3 text-ink-muted"
-                  onDoubleClick={() => setEditingCell({ id: expense.id, field: "accountId" })}
+                  onDoubleClick={() => startEditing(expense, "accountId")}
                 >
                   {isEditing(expense.id, "accountId") ? (
                     <select
@@ -230,7 +238,7 @@ export function ExpensesTable({
 
                 <td
                   className="px-4 py-3 text-ink-muted"
-                  onDoubleClick={() => setEditingCell({ id: expense.id, field: "categoryId" })}
+                  onDoubleClick={() => startEditing(expense, "categoryId")}
                 >
                   {isEditing(expense.id, "categoryId") ? (
                     <select
@@ -260,7 +268,7 @@ export function ExpensesTable({
 
                 <td
                   className="px-4 py-3 text-ink-muted"
-                  onDoubleClick={() => setEditingCell({ id: expense.id, field: "type" })}
+                  onDoubleClick={() => startEditing(expense, "type")}
                 >
                   {isEditing(expense.id, "type") ? (
                     <select
@@ -289,7 +297,7 @@ export function ExpensesTable({
 
                 <td
                   className="whitespace-nowrap px-4 py-3 text-right font-mono font-semibold tabular-nums text-ink"
-                  onDoubleClick={() => setEditingCell({ id: expense.id, field: "amount" })}
+                  onDoubleClick={() => startEditing(expense, "amount")}
                 >
                   {isEditing(expense.id, "amount") ? (
                     <input
@@ -311,23 +319,25 @@ export function ExpensesTable({
                 </td>
 
                 <td className="px-4 py-3 text-right">
-                  <div className="flex justify-end gap-1">
-                    <button
-                      type="button"
-                      aria-label={copy.editLabel}
-                      title={copy.editLabel}
-                      className={iconButton}
-                      onClick={() => setEditingExpenseId(expense.id)}
-                    >
-                      <PencilIcon className="h-4 w-4" />
-                    </button>
-                    <DeleteButton
-                      action={deleteExpense.bind(null, expense.id)}
-                      confirmMessage={expense.confirmMessage}
-                      label={copy.deleteLabel}
-                      pendingLabel={copy.deletingLabel}
-                    />
-                  </div>
+                  {!isMsiInstallment(expense) && (
+                    <div className="flex justify-end gap-1">
+                      <button
+                        type="button"
+                        aria-label={copy.editLabel}
+                        title={copy.editLabel}
+                        className={iconButton}
+                        onClick={() => setEditingExpenseId(expense.id)}
+                      >
+                        <PencilIcon className="h-4 w-4" />
+                      </button>
+                      <DeleteButton
+                        action={deleteExpense.bind(null, expense.id)}
+                        confirmMessage={expense.confirmMessage}
+                        label={copy.deleteLabel}
+                        pendingLabel={copy.deletingLabel}
+                      />
+                    </div>
+                  )}
                 </td>
               </tr>
             ))}
