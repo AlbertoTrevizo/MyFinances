@@ -6,7 +6,7 @@ import { prisma } from "./prisma";
 const COOKIE_NAME = "session";
 const SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000;
 
-function hashToken(token: string): string {
+export function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
 }
 
@@ -60,6 +60,14 @@ export async function destroySession(): Promise<void> {
 // Every Server Action and page calls this; the proxy is only a first, optimistic layer.
 export async function requireUser() {
   const user = await getCurrentUser();
-  if (!user?.isAdmin) redirect("/login");
+  if (!user?.emailVerifiedAt) redirect("/login");
+  if (user.profileIncomplete) redirect("/complete-profile");
+  return user;
+}
+
+// Managing users: confirmed users may look, only administrators may change.
+export async function requireAdmin() {
+  const user = await requireUser();
+  if (!user.isAdmin) redirect("/users");
   return user;
 }

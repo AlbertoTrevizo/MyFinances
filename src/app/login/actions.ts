@@ -6,8 +6,10 @@ import { randomBytes } from "crypto";
 import { hashPassword, verifyPassword } from "@/lib/password";
 import { createSession, destroySession } from "@/lib/session";
 import { getTranslations } from "@/i18n/get-locale";
+import { normalizeEmail } from "@/lib/user-validation";
+import { logEvent } from "@/lib/log";
 
-export type ActionState = { error?: string } | undefined;
+export type ActionState = { error?: string; pendingEmail?: string } | undefined;
 
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_MS = 15 * 60 * 1000;
@@ -19,9 +21,7 @@ export async function loginWithPassword(
   formData: FormData
 ): Promise<ActionState> {
   const { t } = await getTranslations();
-  const email = String(formData.get("email") ?? "")
-    .trim()
-    .toLowerCase();
+  const email = normalizeEmail(String(formData.get("email") ?? ""));
   const password = String(formData.get("password") ?? "");
 
   if (!email || !password) return { error: t.auth.errors.invalidCredentials };
@@ -57,6 +57,11 @@ export async function loginWithPassword(
     where: { id: user!.id },
     data: { failedLoginAttempts: 0, lockedUntil: null },
   });
+  // Right password but unconfirmed email: no session, offer to resend the link.
+  if (!user!.emailVerifiedAt) {
+    return { error: t.auth.errors.emailNotConfirmed, pendingEmail: user!.email };
+  }
+  logEvent("login", { userId: user!.id });
   await prisma.session.deleteMany({ where: { expiresAt: { lt: new Date() } } });
   await createSession(user!.id);
   redirect("/");

@@ -19,8 +19,8 @@ async function main() {
 
   const user = await prisma.user.upsert({
     where: { email },
-    update: { passwordHash: hash, passwordSalt: salt, isAdmin: true, failedLoginAttempts: 0, lockedUntil: null },
-    create: { email, passwordHash: hash, passwordSalt: salt, isAdmin: true },
+    update: { passwordHash: hash, passwordSalt: salt, isAdmin: true, emailVerifiedAt: new Date(), failedLoginAttempts: 0, lockedUntil: null },
+    create: { email, passwordHash: hash, passwordSalt: salt, isAdmin: true, emailVerifiedAt: new Date() },
   });
   // A password reset must also log out every existing session (e.g. a stolen cookie).
   const { count } = await prisma.session.deleteMany({ where: { userId: user.id } });

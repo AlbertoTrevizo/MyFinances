@@ -18,7 +18,7 @@ Definir cuánto se quiere gastar al mes, por tipo de gasto o por categoría, y c
 ## Reglas
 
 ### Acceso
-- **PRE-1.** La página y todas las acciones requieren una sesión de administrador. Sin ella, se redirige a `/login`.
+- **PRE-1.** La página y todas las acciones requieren una sesión de usuario confirmado. Sin ella, se redirige a `/login`.
 
 ### Montos
 - **PRE-2.** Se aplican las reglas de formato de GAS-2 a GAS-4, con dos diferencias: `0` es válido y un campo vacío se guarda como 0.

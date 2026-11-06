@@ -23,7 +23,7 @@ Registrar, consultar y corregir los gastos del hogar en pesos mexicanos, incluid
 ## Reglas
 
 ### Acceso
-- **GAS-1.** La página y todas las acciones requieren una sesión de administrador. Sin ella, se redirige a `/login`.
+- **GAS-1.** La página y todas las acciones requieren una sesión de usuario confirmado. Sin ella, se redirige a `/login`.
 
 ### Montos
 - **GAS-2.** Un monto válido tiene dígitos y hasta 2 decimales, y es mayor que 0.

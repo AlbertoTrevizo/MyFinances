@@ -25,7 +25,9 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const { locale, t } = await getTranslations();
-  const user = await getCurrentUser();
+  const current = await getCurrentUser();
+  // No sidebar for a stale session or while the profile is incomplete.
+  const user = current?.emailVerifiedAt && !current.profileIncomplete ? current : null;
 
   return (
     <html

@@ -18,7 +18,7 @@ Administrar los medios de pago a los que se asigna cada gasto: bancos, tarjetas 
 ## Reglas
 
 ### Acceso
-- **CUE-1.** Las páginas y todas las acciones requieren una sesión de administrador. Sin ella, se redirige a `/login`.
+- **CUE-1.** Las páginas y todas las acciones requieren una sesión de usuario confirmado. Sin ella, se redirige a `/login`.
 
 ### Listado
 - **CUE-2.** La tabla muestra nombre, tipo, día de corte y día de pago. Un día vacío se muestra como `—`.

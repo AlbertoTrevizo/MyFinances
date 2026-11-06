@@ -9,6 +9,7 @@ export type Dictionary = {
     accounts: string;
     categories: string;
     budget: string;
+    users: string;
   };
   common: {
     edit: string;
@@ -25,10 +26,122 @@ export type Dictionary = {
     signingIn: string;
     orDivider: string;
     logout: string;
+    googleButton: string;
+    registerLink: string;
+    forgotPasswordLink: string;
+    signInLink: string;
+    notices: {
+      emailConfirmed: string;
+      emailChanged: string;
+      passwordReset: string;
+    };
     errors: {
       invalidCredentials: string;
       generic: string;
+      emailNotConfirmed: string;
+      googleUnverified: string;
+      googleFailed: string;
+      googleNotConfigured: string;
     };
+  };
+  validation: {
+    required: string;
+    tooLong: string;
+    invalidEmail: string;
+    passwordLength: string;
+    passwordMismatch: string;
+  };
+  register: {
+    title: string;
+    subtitle: string;
+    nameLabel: string;
+    lastNameLabel: string;
+    confirmPasswordLabel: string;
+    passwordHint: string;
+    submit: string;
+    submitting: string;
+    checkEmailTitle: string;
+    checkEmailBody: string;
+    emailNotSent: string;
+  };
+  resend: {
+    emailLabel: string;
+    button: string;
+    sending: string;
+    sent: string;
+    emailNotSent: string;
+  };
+  confirmEmail: {
+    confirmTitle: string;
+    confirmBody: string;
+    changeTitle: string;
+    changeBody: string;
+    button: string;
+    confirming: string;
+    invalidTitle: string;
+    invalidBody: string;
+    emailTaken: string;
+  };
+  forgotPassword: {
+    title: string;
+    subtitle: string;
+    submit: string;
+    submitting: string;
+    sent: string;
+    failed: string;
+  };
+  resetPassword: {
+    title: string;
+    subtitle: string;
+    passwordLabel: string;
+    confirmLabel: string;
+    submit: string;
+    submitting: string;
+    invalidTitle: string;
+    invalidBody: string;
+    requestNew: string;
+  };
+  completeProfile: {
+    title: string;
+    subtitle: string;
+    submit: string;
+  };
+  users: {
+    title: string;
+    searchPlaceholder: string;
+    searchButton: string;
+    tableName: string;
+    tableLastName: string;
+    tableEmail: string;
+    tableMethod: string;
+    tableStatus: string;
+    tableCreatedAt: string;
+    method: { email: string; google: string; both: string };
+    status: { pending: string; confirmed: string };
+    emptyMessage: string;
+    noResults: string;
+    editTitle: string;
+    save: string;
+    cancel: string;
+    close: string;
+    emailChangePending: string;
+    confirmDelete: (email: string) => string;
+    errors: {
+      notFound: string;
+      emailTaken: string;
+      lastAdmin: string;
+      conflict: string;
+      emailNotSent: string;
+    };
+  };
+  emails: {
+    linkFallback: string;
+    ignore: string;
+    confirm: { subject: string; intro: string; button: string };
+    emailChange: { subject: string; intro: string; button: string };
+    reset: { subject: string; intro: string; button: string };
+    accountExists: { subject: string; intro: string; button: string };
+    emailChangeNotice: { subject: string; intro: string };
   };
   expenseTypes: {
     needs: string;

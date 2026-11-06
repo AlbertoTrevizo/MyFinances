@@ -15,7 +15,7 @@ Administrar las etiquetas opcionales que agrupan los gastos y que pueden tener p
 ## Reglas
 
 ### Acceso
-- **CAT-1.** Las páginas y todas las acciones requieren una sesión de administrador. Sin ella, se redirige a `/login`.
+- **CAT-1.** Las páginas y todas las acciones requieren una sesión de usuario confirmado. Sin ella, se redirige a `/login`.
 
 ### Listado
 - **CAT-2.** La tabla muestra el nombre, con orden inicial ascendente. Es la única columna ordenable.

@@ -42,16 +42,42 @@ model CategoryBudget {
 }
 
 model User {
-  id                  String    @id @default(cuid())
-  email               String    @unique
+  id                  String      @id @default(cuid())
+  email               String      @unique
   name                String?
+  lastName            String?
   passwordHash        String?
   passwordSalt        String?
-  isAdmin             Boolean   @default(false)
-  failedLoginAttempts Int       @default(0)
+  emailVerifiedAt     DateTime?
+  googleId            String?     @unique
+  profileIncomplete   Boolean     @default(false)
+  isAdmin             Boolean     @default(false)
+  failedLoginAttempts Int         @default(0)
   lockedUntil         DateTime?
-  createdAt           DateTime  @default(now())
+  createdAt           DateTime    @default(now())
   sessions            Session[]
+  tokens              UserToken[]
+}
+
+model UserToken {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  purpose   String
+  newEmail  String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId, purpose])
+}
+
+model EmailSend {
+  id        String   @id @default(cuid())
+  recipient String
+  createdAt DateTime @default(now())
+
+  @@index([recipient, createdAt])
 }
 
 model Session {

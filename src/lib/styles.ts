@@ -12,3 +12,6 @@ export const iconButton =
 
 export const iconButtonDanger =
   "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-danger transition-colors hover:bg-danger-soft hover:text-danger-strong disabled:pointer-events-none disabled:opacity-50";
+
+export const buttonSecondary =
+  "inline-flex w-full items-center justify-center rounded-lg border border-line bg-surface px-4 py-2 text-sm font-medium text-ink transition-colors hover:bg-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-soft";
