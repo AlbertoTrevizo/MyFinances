@@ -24,7 +24,7 @@ export type UserRow = {
 };
 
 type Copy = {
-  users: Dictionary["users"];
+  users: Omit<Dictionary["users"], "confirmDelete">;
   validation: Dictionary["validation"];
   register: Dictionary["register"];
   emailLabel: string;

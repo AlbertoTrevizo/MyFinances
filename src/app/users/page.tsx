@@ -59,8 +59,11 @@ export default async function UsersPage({
     confirmMessage: t.users.confirmDelete(user.email),
   }));
 
+  // Las funciones no pueden pasar a un Client Component; confirmDelete ya se usó arriba.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { confirmDelete: _confirmDelete, ...usersCopy } = t.users;
   const copy = {
-    users: t.users,
+    users: usersCopy,
     validation: t.validation,
     register: t.register,
     emailLabel: t.auth.emailLabel,
