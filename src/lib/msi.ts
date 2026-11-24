@@ -5,6 +5,12 @@ export function isValidMsiMonths(value: number): boolean {
   return Number.isInteger(value) && value >= MSI_MIN_MONTHS && value <= MSI_MAX_MONTHS;
 }
 
+export function parseMsiMonths(value: string): number | null {
+  if (!value || /\D/.test(value)) return null;
+  const months = Number(value);
+  return isValidMsiMonths(months) ? months : null;
+}
+
 export function isMsiInstallment(expense: {
   msiGroupId: string | null;
   excludeFromTotals: boolean;

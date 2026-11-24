@@ -1,5 +1,5 @@
 // Run: npx tsx src/lib/msi.check.ts
-import { buildMsiInstallments, buildMsiInstallmentRows, isMsiInstallment, isValidMsiMonths } from "./msi";
+import { buildMsiInstallments, buildMsiInstallmentRows, isMsiInstallment, isValidMsiMonths, parseMsiMonths } from "./msi";
 
 const assert = (c: boolean, m: string) => {
   if (!c) throw new Error(m);
@@ -7,6 +7,12 @@ const assert = (c: boolean, m: string) => {
 for (const months of [2, 36]) assert(isValidMsiMonths(months), `GAS-11: accepts ${months} months`);
 for (const months of [1, 37, 2.5, 35.5, NaN, Infinity]) {
   assert(!isValidMsiMonths(months), `GAS-11: rejects ${months} months`);
+}
+for (const [input, months] of [["2", 2], ["36", 36], ["3", 3], ["03", 3]] as const) {
+  assert(parseMsiMonths(input) === months, `GAS-11: parses base-10 integer ${JSON.stringify(input)} as ${months}`);
+}
+for (const input of ["1", "37", "2.5", "2abc", "", " ", "+3", "-3", "1e1", "0x3", " 3", "3 ", "3\n"]) {
+  assert(parseMsiMonths(input) === null, `GAS-11: rejects invalid MSI months ${JSON.stringify(input)}`);
 }
 assert(isMsiInstallment({ msiGroupId: "g", excludeFromTotals: false }), "GAS-29: recognizes installment");
 assert(!isMsiInstallment({ msiGroupId: "g", excludeFromTotals: true }), "GAS-12: original is not an installment");

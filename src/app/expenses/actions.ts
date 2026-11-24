@@ -6,7 +6,7 @@ import { requireUser } from "@/lib/session";
 import { pesosToCents } from "@/lib/currency";
 import { inputValueToDate } from "@/lib/date";
 import { isExpenseType } from "@/lib/expense-type";
-import { buildMsiInstallmentRows, isMsiInstallment, isValidMsiMonths } from "@/lib/msi";
+import { buildMsiInstallmentRows, isMsiInstallment, parseMsiMonths } from "@/lib/msi";
 import { getTranslations } from "@/i18n/get-locale";
 import type { Dictionary } from "@/i18n/dictionaries";
 
@@ -34,7 +34,7 @@ function validate(fields: ReturnType<typeof readFields>, t: Dictionary): string 
   const date = inputValueToDate(fields.date);
   if (!date) return t.expenses.errors.invalidDate;
   if (!isExpenseType(fields.type)) return t.expenses.errors.typeRequired;
-  if (fields.msi && !isValidMsiMonths(Number.parseInt(fields.msiMonths, 10))) {
+  if (fields.msi && parseMsiMonths(fields.msiMonths) === null) {
     return t.expenses.errors.invalidMsiMonths;
   }
   return null;
@@ -58,7 +58,7 @@ export async function createExpense(
     const account = await prisma.account.findUnique({ where: { id: fields.accountId } });
     if (!account?.cutoffDay) return { error: t.expenses.errors.msiRequiresCutoffDay };
 
-    const months = Number.parseInt(fields.msiMonths, 10);
+    const months = parseMsiMonths(fields.msiMonths)!;
     const original = {
       description: fields.description,
       notes: fields.notes || null,
