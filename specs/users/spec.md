@@ -7,12 +7,12 @@ Hoy solo entra quien ya es administrador, y su cuenta se crea a mano fuera de la
 
 El objetivo es que cualquier persona pueda crear su cuenta con un formulario o con Google, demostrar que el correo es suyo y recuperar su acceso sin ayuda, y que los administradores puedan consultar y corregir las cuentas desde una tabla.
 
-Los roles y permisos detallados quedan para la siguiente spec.
+Los roles y su asignación se definen en `specs/roles/spec.md`.
 
 ## Usuarios
 - **Visitante:** no tiene sesión. Puede registrarse, confirmar su correo, iniciar sesión y recuperar su contraseña.
-- **Usuario confirmado:** tiene una cuenta con correo confirmado. Usa toda la app y consulta la tabla de usuarios.
-- **Administrador:** usuario confirmado que además edita y elimina usuarios. Es quien hoy ya tiene esa marca; esta spec no permite otorgarla.
+- **Usuario confirmado:** tiene una cuenta con correo confirmado. Usa gastos, cuentas, categorías y presupuesto; no consulta la tabla de usuarios salvo que sea administrador.
+- **Administrador:** usuario confirmado con el rol `admin` que además consulta, edita y elimina usuarios y cambia roles, según `specs/roles/spec.md`.
 
 **Estados de una cuenta:** "Pendiente" hasta que confirma su correo y "Confirmada" después.
 
@@ -21,7 +21,7 @@ Los roles y permisos detallados quedan para la siguiente spec.
 - **HU-2.** Como visitante, quiero registrarme con Google para no crear otra contraseña.
 - **HU-3.** Como visitante, quiero confirmar mi correo para activar mi cuenta y demostrar que es mío.
 - **HU-4.** Como usuario, quiero recuperar mi contraseña por correo para no perder el acceso si la olvido.
-- **HU-5.** Como usuario confirmado, quiero ver a los usuarios registrados para saber quién tiene cuenta.
+- **HU-5.** Como administrador, quiero ver a los usuarios registrados para saber quién tiene cuenta.
 - **HU-6.** Como administrador, quiero corregir los datos de un usuario para mantenerlos al día.
 - **HU-7.** Como administrador, quiero eliminar usuarios para quitar cuentas que ya no deben existir.
 
@@ -98,11 +98,11 @@ Los roles y permisos detallados quedan para la siguiente spec.
 
 ### Tabla de usuarios
 **RF-14. Consultar.**
-- MIENTRAS un usuario esté confirmado, el sistema DEBERÁ permitirle ver la tabla con nombre, apellido, correo, método de registro (Correo, Google o ambos), estado y fecha de registro, sin mostrar nunca contraseñas.
+- MIENTRAS un usuario confirmado tenga el rol `admin`, el sistema DEBERÁ permitirle ver la tabla con nombre, apellido, correo, método de registro (Correo, Google o ambos), estado, rol y fecha de registro, sin mostrar nunca contraseñas. El acceso se rige por ROL-2 y la columna Rol por ROL-3 de `specs/roles/spec.md`.
 - El sistema DEBERÁ incluir a todas las cuentas, también las Pendientes, y mostrar un guion en los datos vacíos.
 - El sistema DEBERÁ ordenar inicialmente de la más reciente a la más antigua y permitir ordenar por cualquier columna.
 - CUANDO alguien busque, el sistema DEBERÁ filtrar por nombre, apellido o correo sin distinguir mayúsculas ni acentos.
-- MIENTRAS el usuario no sea administrador, el sistema NO DEBERÁ ofrecerle editar ni eliminar, y DEBERÁ rechazar esos intentos.
+- MIENTRAS el usuario no tenga el rol `admin`, el sistema NO DEBERÁ mostrarle Usuarios ni sus datos y DEBERÁ rechazar sus intentos de editar, eliminar o cambiar roles, según ROL-2 de `specs/roles/spec.md`.
 
 **RF-15. Editar.**
 - MIENTRAS el usuario sea administrador, el sistema DEBERÁ permitirle cambiar nombre, apellido y correo de cualquier cuenta, con las validaciones de RF-3.
@@ -117,7 +117,7 @@ Los roles y permisos detallados quedan para la siguiente spec.
 
 **RF-17. Eliminar.**
 - MIENTRAS el usuario sea administrador, el sistema DEBERÁ permitirle eliminar cualquier cuenta, incluso la suya, tras pedir confirmación.
-- SI la cuenta es del último administrador, ENTONCES el sistema DEBERÁ rechazar la eliminación e indicar el motivo, también si se intenta a la vez que otra eliminación.
+- SI la cuenta es del último administrador, contado por el rol `admin`, ENTONCES el sistema DEBERÁ rechazar la eliminación e indicar el motivo, también si se intenta a la vez que otra eliminación o cambio de rol, según ROL-5 de `specs/roles/spec.md`.
 - CUANDO se elimine una cuenta, el sistema DEBERÁ cerrar sus sesiones al instante, anular sus enlaces y conservar intactos gastos, cuentas, categorías y presupuesto.
 - CUANDO un administrador se elimine a sí mismo, el sistema DEBERÁ llevarlo a iniciar sesión.
 
@@ -157,7 +157,6 @@ La constitución pide justificar aquí lo nuevo que la app necesita para funcion
 | Usuario sin permiso abierto en otra pestaña tras perder la sesión | Va a iniciar sesión en su siguiente acción (RF-1). |
 
 ## Fuera de alcance
-- Roles y permisos: crear administradores, asignar roles y limitar lo que ve un usuario. Van en la siguiente spec.
 - Datos por usuario: gastos, cuentas y presupuesto siguen siendo únicos y compartidos.
 - Perfil propio: que un usuario cambie su propio nombre, correo o contraseña estando dentro de la app.
 - Desactivar cuentas sin eliminarlas, y restaurar cuentas eliminadas.
@@ -170,6 +169,6 @@ La constitución pide justificar aquí lo nuevo que la app necesita para funcion
 - Se recorrió de punta a punta, en un entorno que no toca datos reales: registro, confirmación, inicio de sesión, recuperación, entrada con Google, unión de cuentas, edición y eliminación.
 - Tus cuentas de administrador existentes siguen entrando con su contraseña actual.
 - GAS-1, CUE-1, CAT-1 y PRE-1 se actualizaron en el mismo commit que el código.
-- Un no administrador no puede editar ni eliminar, ni siquiera llamando directamente a esas acciones.
+- Un no administrador no puede consultar, editar ni eliminar usuarios ni cambiar roles, ni siquiera llamando directamente a esas acciones (ROL-2).
 - Todo texto y correo existe en español e inglés.
 - Lint, tipos y checks pasan.

@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getTranslations } from "@/i18n/get-locale";
-import { requireUser } from "@/lib/session";
+import { requireAdmin } from "@/lib/session";
 import { PageContainer, PageTitle } from "@/components/PageContainer";
 import { UsersTable, type UserRow } from "@/components/UsersTable";
 import { buttonPrimary, card, inputField } from "@/lib/styles";
@@ -9,14 +9,14 @@ import { matchesSearch } from "@/lib/search";
 import { formatDate } from "@/lib/date";
 import { accountStatus, signInMethod, sortUsers } from "@/lib/user-status";
 
-const SORT_FIELDS = ["name", "lastName", "email", "method", "status", "createdAt"] as const;
+const SORT_FIELDS = ["name", "lastName", "email", "method", "status", "role", "createdAt"] as const;
 
 export default async function UsersPage({
   searchParams,
 }: {
   searchParams: Promise<{ q?: string; sort?: string; dir?: string }>;
 }) {
-  const current = await requireUser();
+  await requireAdmin();
   const { q = "", ...sp } = await searchParams;
   const { locale, t } = await getTranslations();
   const { field, dir } = resolveSort(sp, SORT_FIELDS, "createdAt", "desc");
@@ -31,6 +31,7 @@ export default async function UsersPage({
       passwordHash: true,
       googleId: true,
       emailVerifiedAt: true,
+      role: true,
       createdAt: true,
     },
   });
@@ -43,6 +44,7 @@ export default async function UsersPage({
     email: user.email,
     method: signInMethod(user),
     status: accountStatus(user),
+    role: user.role,
     createdAt: user.createdAt,
   }));
   const filtered = query
@@ -55,11 +57,12 @@ export default async function UsersPage({
     email: user.email,
     method: user.method,
     status: user.status,
+    role: user.role,
     createdLabel: formatDate(user.createdAt, locale),
     confirmMessage: t.users.confirmDelete(user.email),
   }));
 
-  // Las funciones no pueden pasar a un Client Component; confirmDelete ya se usó arriba.
+  // Functions cannot pass to a Client Component; confirmDelete was used above.
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { confirmDelete: _confirmDelete, ...usersCopy } = t.users;
   const copy = {
@@ -95,7 +98,7 @@ export default async function UsersPage({
         <p className="text-sm text-ink-muted">{query ? t.users.noResults : t.users.emptyMessage}</p>
       ) : (
         <div className={card}>
-          <UsersTable rows={rows} copy={copy} sort={field} dir={dir} q={query} canManage={current.isAdmin} />
+          <UsersTable rows={rows} copy={copy} sort={field} dir={dir} q={query} />
         </div>
       )}
     </PageContainer>

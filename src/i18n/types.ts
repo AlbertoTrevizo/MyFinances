@@ -115,9 +115,14 @@ export type Dictionary = {
     tableEmail: string;
     tableMethod: string;
     tableStatus: string;
+    tableRole: string;
     tableCreatedAt: string;
     method: { email: string; google: string; both: string };
     status: { pending: string; confirmed: string };
+    roles: { user: string; admin: string };
+    changeRole: string;
+    changeRoleTitle: string;
+    roleLabel: string;
     emptyMessage: string;
     noResults: string;
     editTitle: string;
@@ -130,6 +135,8 @@ export type Dictionary = {
       notFound: string;
       emailTaken: string;
       lastAdmin: string;
+      lastAdminRole: string;
+      pendingAdmin: string;
       conflict: string;
       emailNotSent: string;
     };

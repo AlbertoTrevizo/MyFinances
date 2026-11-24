@@ -10,6 +10,7 @@ import { createToken } from "@/lib/user-tokens";
 import { sendAccountEmail } from "@/lib/account-emails";
 import { validateProfile } from "@/lib/user-validation";
 import { logEvent } from "@/lib/log";
+import { parseRole, removesLastAdmin, roleChangeError, type Role } from "@/lib/roles";
 
 type Field = "name" | "lastName" | "email";
 export type UpdateUserState =
@@ -23,6 +24,7 @@ export type UpdateUserState =
     }
   | undefined;
 export type DeleteUserState = { error?: string } | undefined;
+export type SetUserRoleState = { ok?: boolean; error?: string } | undefined;
 
 function prismaCode(error: unknown): string | null {
   return error instanceof Prisma.PrismaClientKnownRequestError ? error.code : null;
@@ -105,9 +107,10 @@ export async function deleteUser(id: string): Promise<DeleteUserState> {
   try {
     outcome = await prisma.$transaction(
       async (tx) => {
-        const target = await tx.user.findUnique({ where: { id }, select: { id: true, isAdmin: true } });
+        const target = await tx.user.findUnique({ where: { id }, select: { role: true } });
         if (!target) return "gone" as const;
-        if (target.isAdmin && (await tx.user.count({ where: { isAdmin: true } })) <= 1) {
+        const adminCount = await tx.user.count({ where: { role: "admin" } });
+        if (removesLastAdmin(target.role, adminCount)) {
           return "lastAdmin" as const;
         }
         // Sessions and links go with the user (cascade); expenses, accounts and budget don't reference users.
@@ -131,4 +134,55 @@ export async function deleteUser(id: string): Promise<DeleteUserState> {
   if (id === admin.id) redirect("/login");
   revalidatePath("/users");
   return undefined;
+}
+
+export async function setUserRole(
+  id: string,
+  _prev: SetUserRoleState,
+  formData: FormData
+): Promise<SetUserRoleState> {
+  const admin = await requireAdmin();
+  const { t } = await getTranslations();
+  const role = parseRole(formData.get("role"));
+  if (!role) return { error: t.auth.errors.generic };
+
+  let outcome: { error: "notFound" | "lastAdmin" | "pendingAdmin" } | { from: Role; changed: boolean };
+  try {
+    outcome = await prisma.$transaction(
+      async (tx) => {
+        const target = await tx.user.findUnique({
+          where: { id },
+          select: { role: true, emailVerifiedAt: true },
+        });
+        if (!target) return { error: "notFound" as const };
+        const adminCount = await tx.user.count({ where: { role: "admin" } });
+        const error = roleChangeError({
+          targetConfirmed: target.emailVerifiedAt !== null,
+          from: target.role,
+          to: role,
+          adminCount,
+        });
+        if (error) return { error };
+        const changed = target.role !== role;
+        if (changed) await tx.user.update({ where: { id }, data: { role } });
+        return { from: target.role, changed };
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
+    );
+  } catch (error) {
+    const code = prismaCode(error);
+    if (code === "P2034") return { error: t.users.errors.conflict };
+    if (code === "P2025") return { error: t.users.errors.notFound };
+    throw error;
+  }
+
+  if ("error" in outcome) {
+    return { error: t.users.errors[outcome.error === "lastAdmin" ? "lastAdminRole" : outcome.error] };
+  }
+  if (outcome.changed) {
+    logEvent("user_role_changed", { userId: id, by: admin.id, from: outcome.from, to: role });
+  }
+  if (id === admin.id && role === "user") redirect("/");
+  revalidatePath("/users");
+  return { ok: true };
 }

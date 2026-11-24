@@ -14,12 +14,14 @@ export function Sidebar({
   locale,
   userEmail,
   logoutLabel,
+  isAdmin,
 }: {
   appName: string;
   nav: Dictionary["nav"];
   locale: Locale;
   userEmail: string;
   logoutLabel: string;
+  isAdmin: boolean;
 }) {
   const pathname = usePathname();
 
@@ -29,7 +31,7 @@ export function Sidebar({
     { href: "/accounts", label: nav.accounts, icon: AccountsIcon },
     { href: "/categories", label: nav.categories, icon: CategoriesIcon },
     { href: "/budget", label: nav.budget, icon: BudgetIcon },
-    { href: "/users", label: nav.users, icon: UsersIcon },
+    ...(isAdmin ? [{ href: "/users", label: nav.users, icon: UsersIcon }] : []),
   ];
 
   const isActive = (href: string) =>

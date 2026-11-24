@@ -4,6 +4,7 @@ import "./globals.css";
 import { Sidebar } from "@/components/Sidebar";
 import { getTranslations } from "@/i18n/get-locale";
 import { getCurrentUser } from "@/lib/session";
+import { isAdmin } from "@/lib/roles";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,6 +42,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
             nav={t.nav}
             locale={locale}
             userEmail={user.email}
+            isAdmin={isAdmin(user)}
             logoutLabel={t.auth.logout}
           />
         )}

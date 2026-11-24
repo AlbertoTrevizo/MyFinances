@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { randomBytes, createHash } from "crypto";
 import { prisma } from "./prisma";
+import { isAdmin } from "./roles";
 
 const COOKIE_NAME = "session";
 const SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000;
@@ -65,9 +66,9 @@ export async function requireUser() {
   return user;
 }
 
-// Managing users: confirmed users may look, only administrators may change.
+// Only administrators may view or manage users and roles.
 export async function requireAdmin() {
   const user = await requireUser();
-  if (!user.isAdmin) redirect("/users");
+  if (!isAdmin(user)) redirect("/");
   return user;
 }
