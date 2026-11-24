@@ -15,6 +15,10 @@ for (const params of [{}, { sort: undefined, dir: undefined }, { sort: "bogus" }
   const result = resolveSort(params, fields, "date", "desc");
   assert(result.field === "date" && result.dir === "desc", `GAS-18: defaults for ${JSON.stringify(params)}`);
 }
+const invalidField = resolveSort({ sort: "bogus", dir: "asc" }, fields, "date", "desc");
+assert(invalidField.field === "date" && invalidField.dir === "asc", "GAS-18: invalid field defaults independently while preserving a valid direction");
+const invalidDir = resolveSort({ sort: "description", dir: "bogus" }, fields, "date", "desc");
+assert(invalidDir.field === "description" && invalidDir.dir === "desc", "GAS-18: invalid direction defaults independently while preserving a valid field");
 // Repeated URL parameters can reach this helper despite its narrower signature.
 const repeated = { sort: ["description"], dir: ["asc"] } as unknown as Parameters<typeof resolveSort>[0];
 const result = resolveSort(repeated, fields, "date", "desc");

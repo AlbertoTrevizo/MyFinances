@@ -1,6 +1,6 @@
 # Spec: Gastos
 
-**Estado:** Aprobada el 2026-11-04. Filtro por mes (GAS-18 a GAS-23, GAS-33, GAS-34, D-5 y D-10) aprobado el 2026-11-24.
+**Estado:** Aprobada el 2026-11-04. Filtro por mes (GAS-18 a GAS-23, GAS-33, GAS-34, D-5 y D-10) aprobado el 2026-11-24. GAS-18 precisado el 2026-11-24 (orden inválido por partes).
 **Ruta:** `/expenses`
 
 ## Propósito
@@ -60,7 +60,7 @@ Registrar, consultar y corregir los gastos del hogar en pesos mexicanos, incluid
 ### Listado
 - **GAS-16.** La tabla muestra fecha, descripción, cuenta, categoría, tipo y monto. Muestra todos los resultados, sin paginación.
 - **GAS-17.** Un gasto con notas muestra un icono; al pasar el cursor aparece el texto.
-- **GAS-18.** El orden inicial es por fecha descendente. Se puede ordenar por cualquier columna: la primera vez ascendente y, al repetir el clic, se invierte. Un orden inválido en la URL usa el inicial. Ordenar conserva la búsqueda y el mes.
+- **GAS-18.** El orden inicial es por fecha descendente. Se puede ordenar por cualquier columna: la primera vez ascendente y, al repetir el clic, se invierte. En la URL, una columna inválida usa la columna inicial y una dirección inválida usa la dirección inicial, cada una por separado: `?sort=x&dir=asc` ordena por fecha ascendente. Ordenar conserva la búsqueda y el mes.
 
 ### Filtros
 - **GAS-19.** La lista muestra siempre un solo mes, que va en la URL como `month=AAAA-MM`, igual que en el inicio. Sin `month`, o con un valor inválido, se muestra el mes actual según la hora de México (`America/Mexico_City`). Ya no hay rango libre ni "todas las fechas", y los parámetros antiguos `from` y `to` se ignoran.
