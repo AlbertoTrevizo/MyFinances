@@ -1,14 +1,33 @@
 // Run: npx tsx src/lib/date.check.ts
-import { currentMonthKey, monthBounds, parseMonthKey, yearRange } from "./date";
+import { currentMonthKey, dateToInputValue, formatDate, formatMonth, inputValueToDate, monthBounds, monthKey, parseMonthKey, yearRange } from "./date";
 
 const assert = (c: boolean, m: string) => {
   if (!c) throw new Error(m);
 };
+const utcDate = new Date("2026-11-24T00:00:00Z");
+assert(formatDate(utcDate) === "24 nov 2026", "GAS-16: default Spanish date uses UTC rather than the previous Mexican day");
+assert(formatDate(utcDate, "es") === "24 nov 2026", "GAS-16: Spanish date uses UTC");
+assert(formatDate(utcDate, "en") === "Nov 24, 2026", "GAS-16: English date uses UTC");
+assert(dateToInputValue(utcDate) === "2026-11-24", "GAS-25/GAS-6: editing uses the UTC calendar date");
+assert(dateToInputValue(new Date("2026-12-01T01:00:00+02:00")) === "2026-11-30", "GAS-25/GAS-6: editing converts an offset to UTC");
+assert(inputValueToDate("2026-11-24")?.toISOString() === "2026-11-24T00:00:00.000Z", "GAS-6: date input is stored at UTC midnight");
+for (const invalid of ["", "2026-1-01", "2026-01-1", "24/11/2026", " 2026-11-24 ", "2026-11-24T00:00:00Z", "2026-00-10", "2026-13-01"]) {
+  assert(inputValueToDate(invalid) === null, `GAS-6: rejects invalid date input ${JSON.stringify(invalid)}`);
+}
+assert(monthKey(new Date("2026-01-01T00:00:00Z")) === "2026-01", "GAS-19: month keys pad January and use UTC");
+assert(monthKey(new Date("2026-12-01T01:00:00+02:00")) === "2026-11", "GAS-19: month keys use the UTC month of an offset date");
+assert(formatMonth(new Date("2026-11-01T00:00:00Z")) === "Noviembre de 2026", "GAS-20: default month is capitalized Spanish in UTC");
+assert(formatMonth(new Date("2026-11-01T00:00:00Z"), "es") === "Noviembre de 2026", "GAS-20: Spanish month starts with a capital");
+assert(formatMonth(new Date("2026-11-01T00:00:00Z"), "en") === "November 2026", "GAS-20: English month starts with a capital and uses UTC");
 const at = (iso: string) => currentMonthKey(new Date(iso));
-assert(at("2026-12-01T00:30:00Z") === "2026-11", "18:30 in Mexico on Nov 30 is still November");
-assert(at("2026-12-01T05:59:00Z") === "2026-11", "23:59 in Mexico on Nov 30 is still November");
-assert(at("2026-12-01T06:00:00Z") === "2026-12", "midnight in Mexico starts December");
-assert(at("2027-01-01T05:59:00Z") === "2026-12", "year boundary");
+const before = currentMonthKey(new Date());
+const current = currentMonthKey();
+const after = currentMonthKey(new Date());
+assert(current === before || current === after, "GAS-19: omitted current time defaults to now, including across a month boundary");
+assert(at("2026-12-01T00:30:00Z") === "2026-11", "GAS-19: 18:30 in Mexico on Nov 30 is still November");
+assert(at("2026-12-01T05:59:00Z") === "2026-11", "GAS-19: 23:59 in Mexico on Nov 30 is still November");
+assert(at("2026-12-01T06:00:00Z") === "2026-12", "GAS-19: midnight in Mexico starts December");
+assert(at("2027-01-01T05:59:00Z") === "2026-12", "GAS-19: year boundary");
 
 assert(parseMonthKey("0001-01")?.toISOString() === "0001-01-01T00:00:00.000Z", "GAS-19: early year is preserved exactly");
 assert(parseMonthKey("0000-01")?.toISOString() === "0000-01-01T00:00:00.000Z", "GAS-19: year zero is preserved exactly");
