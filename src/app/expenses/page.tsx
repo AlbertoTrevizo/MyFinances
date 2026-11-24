@@ -1,6 +1,5 @@
-import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { currentMonthKey, dateToInputValue, inputValueToDate, parseMonthKey } from "@/lib/date";
+import { currentMonthKey, formatMonth, monthBounds, parseMonthKey, yearRange } from "@/lib/date";
 import { matchesSearch } from "@/lib/search";
 import { getTranslations } from "@/i18n/get-locale";
 import { PageContainer, PageTitle } from "@/components/PageContainer";
@@ -16,7 +15,7 @@ const SORT_FIELDS = ["date", "description", "account", "category", "type", "amou
 export default async function ExpensesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ sort?: string; dir?: string; q?: string; from?: string; to?: string }>;
+  searchParams: Promise<{ sort?: string; dir?: string; q?: string; month?: string }>;
 }) {
   await requireUser();
   const { locale, t } = await getTranslations();
@@ -26,15 +25,11 @@ export default async function ExpensesPage({
   // Repeated params (?q=a&q=b) arrive as arrays; treat anything but a string as empty.
   const str = (v: unknown) => (typeof v === "string" ? v : "");
   const q = str(sp.q).trim();
-  // No date params at all → default to the current month; explicit empty params mean "all dates".
-  const useDefaultRange = sp.from === undefined && sp.to === undefined;
-  const currentMonth = parseMonthKey(currentMonthKey())!;
-  const from = useDefaultRange ? dateToInputValue(currentMonth) : str(sp.from);
-  const to = useDefaultRange
-    ? dateToInputValue(
-        new Date(Date.UTC(currentMonth.getUTCFullYear(), currentMonth.getUTCMonth() + 1, 0)),
-      )
-    : str(sp.to);
+  const currentMonth = currentMonthKey();
+  const requestedMonth = str(sp.month);
+  const month = parseMonthKey(requestedMonth) ? requestedMonth : currentMonth;
+  const { start, endExclusive } = monthBounds(month);
+  const monthLabel = formatMonth(start, locale);
 
   const orderBy =
     field === "account"
@@ -49,19 +44,10 @@ export default async function ExpensesPage({
               ? { description: dir }
               : { date: dir };
 
-  const dateFrom = inputValueToDate(from);
-  const dateTo = inputValueToDate(to);
-  const dateToExclusive = dateTo ? new Date(dateTo.getTime() + 24 * 60 * 60 * 1000) : null;
-
-  const conditions: Prisma.ExpenseWhereInput[] = [];
-  if (dateFrom) conditions.push({ date: { gte: dateFrom } });
-  if (dateToExclusive) conditions.push({ date: { lt: dateToExclusive } });
-  const where: Prisma.ExpenseWhereInput = conditions.length > 0 ? { AND: conditions } : {};
-
-  const [totalCount, expensesInRange, accounts, categories] = await Promise.all([
-    prisma.expense.count(),
+  const [expenseDates, expensesInMonth, accounts, categories] = await Promise.all([
+    prisma.expense.aggregate({ _min: { date: true }, _max: { date: true } }),
     prisma.expense.findMany({
-      where,
+      where: { date: { gte: start, lt: endExclusive } },
       orderBy,
       include: { account: true, category: true },
     }),
@@ -69,15 +55,27 @@ export default async function ExpensesPage({
     prisma.category.findMany({ orderBy: { createdAt: "asc" } }),
   ]);
 
+  const hasExpenses = expenseDates._min.date !== null;
+  const years = [...new Set([
+    ...yearRange(expenseDates._min.date, expenseDates._max.date, Number(currentMonth.slice(0, 4))),
+    start.getUTCFullYear(),
+  ])].sort((a, b) => a - b);
+  const monthFormatter = new Intl.DateTimeFormat(locale, { month: "long", timeZone: "UTC" });
+  const months = Array.from({ length: 12 }, (_, index) => {
+    const label = monthFormatter.format(new Date(Date.UTC(2000, index, 1)));
+    return {
+      value: String(index + 1).padStart(2, "0"),
+      label: label.charAt(0).toUpperCase() + label.slice(1),
+    };
+  });
+
   // ponytail: filters in memory because Postgres can't ignore accents without raw SQL; the list
   // is already unpaginated. Move to a normalized column if a household ever outgrows this.
   const expenses = q
-    ? expensesInRange.filter((expense) =>
+    ? expensesInMonth.filter((expense) =>
         matchesSearch(q, [expense.description, expense.category?.name, expense.account.name]),
       )
-    : expensesInRange;
-
-  const hasFilters = Boolean(q || from || to);
+    : expensesInMonth;
 
   const accountOptions = accounts.map((account) => ({
     id: account.id,
@@ -136,13 +134,23 @@ export default async function ExpensesPage({
         />
       }
     >
-      {totalCount > 0 && (
-        <ExpenseFilters q={q} from={from} to={to} sort={field} dir={dir} t={t.expenses.filters} />
+      {hasExpenses && (
+        <ExpenseFilters
+          q={q}
+          month={month}
+          currentMonth={currentMonth}
+          monthLabel={monthLabel}
+          months={months}
+          years={years}
+          sort={field}
+          dir={dir}
+          t={t.expenses.filters}
+        />
       )}
 
       {expenses.length === 0 ? (
         <p className="text-sm text-ink-muted">
-          {hasFilters ? t.expenses.noResults : t.expenses.emptyMessage}
+          {q || !hasExpenses ? t.expenses.noResults : t.expenses.noExpensesMonth(monthLabel)}
         </p>
       ) : (
         <div className={card}>
@@ -154,7 +162,7 @@ export default async function ExpensesPage({
             copy={tableCopy}
             sort={field}
             dir={dir}
-            query={{ q, from, to }}
+            query={{ q, month }}
           />
         </div>
       )}

@@ -1,5 +1,5 @@
 // Run: npx tsx src/lib/date.check.ts
-import { currentMonthKey } from "./date";
+import { currentMonthKey, monthBounds, parseMonthKey, yearRange } from "./date";
 
 const assert = (c: boolean, m: string) => {
   if (!c) throw new Error(m);
@@ -9,4 +9,40 @@ assert(at("2026-12-01T00:30:00Z") === "2026-11", "18:30 in Mexico on Nov 30 is s
 assert(at("2026-12-01T05:59:00Z") === "2026-11", "23:59 in Mexico on Nov 30 is still November");
 assert(at("2026-12-01T06:00:00Z") === "2026-12", "midnight in Mexico starts December");
 assert(at("2027-01-01T05:59:00Z") === "2026-12", "year boundary");
+
+assert(parseMonthKey("0001-01")?.toISOString() === "0001-01-01T00:00:00.000Z", "GAS-19: early year is preserved exactly");
+assert(parseMonthKey("0000-01")?.toISOString() === "0000-01-01T00:00:00.000Z", "GAS-19: year zero is preserved exactly");
+assert(parseMonthKey("0099-12")?.toISOString() === "0099-12-01T00:00:00.000Z", "GAS-19: year 99 is preserved exactly");
+assert(parseMonthKey("2026-01")?.toISOString() === "2026-01-01T00:00:00.000Z", "GAS-19: normal January is unchanged");
+assert(parseMonthKey("2026-12")?.toISOString() === "2026-12-01T00:00:00.000Z", "GAS-19: normal December is unchanged");
+assert(parseMonthKey("2026-00") === null, "GAS-19: month zero is invalid");
+assert(parseMonthKey("2026-13") === null, "GAS-19: month thirteen is invalid");
+assert(parseMonthKey("2026-1") === null, "GAS-19: month needs two digits");
+assert(parseMonthKey("abcd-01") === null, "GAS-19: year must be numeric");
+
+const earlyJanuary = monthBounds("0001-01");
+assert(earlyJanuary.start.toISOString() === "0001-01-01T00:00:00.000Z", "GAS-19: early month start");
+assert(earlyJanuary.endExclusive.toISOString() === "0001-02-01T00:00:00.000Z", "GAS-19: early month end keeps exact year");
+assert(monthBounds("0099-12").endExclusive.toISOString() === "0100-01-01T00:00:00.000Z", "GAS-19: year 99 rolls into year 100");
+
+const november = monthBounds("2026-11");
+assert(november.start.toISOString() === "2026-11-01T00:00:00.000Z", "GAS-19: month starts at UTC midnight");
+assert(november.endExclusive.toISOString() === "2026-12-01T00:00:00.000Z", "GAS-19: exclusive next month");
+const december = monthBounds("2026-12");
+assert(december.start.toISOString() === "2026-12-01T00:00:00.000Z", "GAS-19: December start");
+assert(december.endExclusive.toISOString() === "2027-01-01T00:00:00.000Z", "GAS-19: December rolls into next year");
+const february = monthBounds("2028-02");
+assert(february.start.toISOString() === "2028-02-01T00:00:00.000Z", "GAS-19: leap February start");
+assert(february.endExclusive.toISOString() === "2028-03-01T00:00:00.000Z", "GAS-19: leap February end");
+
+const date = (year: number) => new Date(`${year}-06-01T00:00:00Z`);
+const years = (min: Date | null, max: Date | null) => yearRange(min, max, 2026).join(",");
+assert(years(null, null) === "2026", "GAS-21: no expenses offers just current year");
+assert(years(date(2026), date(2026)) === "2026", "GAS-21: same year has no duplicates");
+assert(years(date(2024), date(2028)) === "2024,2025,2026,2027,2028", "GAS-21: inclusive ascending range with future installments");
+assert(years(date(2023), date(2024)) === "2023,2024,2025,2026", "GAS-21: past expenses include current year");
+assert(years(date(2027), date(2028)) === "2026,2027,2028", "GAS-21: future expenses include current year");
+assert(years(null, date(2028)) === "2026", "GAS-21: null minimum offers just current year");
+assert(years(date(2024), null) === "2026", "GAS-21: null maximum offers just current year");
+assert(years(new Date("2025-12-31T23:59:59Z"), new Date("2027-01-01T00:00:00Z")) === "2025,2026,2027", "GAS-21: years use UTC boundaries");
 console.log("date ok");

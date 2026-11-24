@@ -271,13 +271,13 @@ export type Dictionary = {
     noCategory: string;
     noType: string;
     noResults: string;
+    noExpensesMonth: (month: string) => string;
     msiBadge: string;
     filters: {
       searchLabel: string;
       searchPlaceholder: string;
-      fromLabel: string;
-      toLabel: string;
-      apply: string;
+      monthLabel: string;
+      yearLabel: string;
       clear: string;
     };
     form: {

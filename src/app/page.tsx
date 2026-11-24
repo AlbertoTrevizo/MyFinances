@@ -6,7 +6,6 @@ import {
   monthKey,
   parseMonthKey,
   formatMonth,
-  dateToInputValue,
 } from "@/lib/date";
 import { EXPENSE_TYPES, isExpenseType } from "@/lib/expense-type";
 import { getTranslations } from "@/i18n/get-locale";
@@ -141,8 +140,7 @@ export default async function Home({
     }))
     .filter((item) => item.budgetCents > 0);
 
-  const monthEndInclusive = new Date(monthEnd.getTime() - 24 * 60 * 60 * 1000);
-  const expensesHref = `/expenses?from=${dateToInputValue(monthStart)}&to=${dateToInputValue(monthEndInclusive)}`;
+  const expensesHref = `/expenses?month=${requestedMonth}`;
 
   const monthKeys = new Set(allExpenseDates.map((row) => monthKey(row.date)));
   monthKeys.add(currentMonthKey);
@@ -152,7 +150,7 @@ export default async function Home({
 
   const cards = [
     {
-      href: "/expenses",
+      href: expensesHref,
       label: t.home.expensesCard.label,
       description: t.home.expensesCard.description,
       stat: t.home.expensesCard.stat(expenseCount),

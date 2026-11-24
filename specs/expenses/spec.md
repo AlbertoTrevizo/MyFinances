@@ -1,6 +1,6 @@
 # Spec: Gastos
 
-**Estado:** Aprobada el 2026-11-04.
+**Estado:** Aprobada el 2026-11-04. Filtro por mes (GAS-18 a GAS-23, GAS-33, GAS-34, D-5 y D-10) aprobado el 2026-11-24.
 **Ruta:** `/expenses`
 
 ## Propósito
@@ -60,14 +60,19 @@ Registrar, consultar y corregir los gastos del hogar en pesos mexicanos, incluid
 ### Listado
 - **GAS-16.** La tabla muestra fecha, descripción, cuenta, categoría, tipo y monto. Muestra todos los resultados, sin paginación.
 - **GAS-17.** Un gasto con notas muestra un icono; al pasar el cursor aparece el texto.
-- **GAS-18.** El orden inicial es por fecha descendente. Se puede ordenar por cualquier columna: la primera vez ascendente y, al repetir el clic, se invierte. Un orden inválido en la URL usa el inicial. Ordenar conserva la búsqueda y el rango de fechas, incluido "todas las fechas".
+- **GAS-18.** El orden inicial es por fecha descendente. Se puede ordenar por cualquier columna: la primera vez ascendente y, al repetir el clic, se invierte. Un orden inválido en la URL usa el inicial. Ordenar conserva la búsqueda y el mes.
 
 ### Filtros
-- **GAS-19.** Sin `from` ni `to` en la URL, se muestra el mes actual según la hora de México (`America/Mexico_City`). El inicio usa el mismo mes actual.
-- **GAS-20.** El rango incluye ambos extremos. Un extremo vacío no limita y una fecha inválida se ignora.
-- **GAS-21.** La búsqueda encuentra texto dentro de la descripción, la categoría o la cuenta, sin distinguir mayúsculas ni acentos: `cafe` encuentra `Café`. La `ñ` cuenta como `n`. Se aplica sola a los 300 ms de dejar de escribir.
-- **GAS-22.** Las fechas se aplican con "Filtrar" o cuando la búsqueda se actualiza.
-- **GAS-23.** "Limpiar filtros" muestra todas las fechas, sin búsqueda y con el orden inicial.
+- **GAS-19.** La lista muestra siempre un solo mes, que va en la URL como `month=AAAA-MM`, igual que en el inicio. Sin `month`, o con un valor inválido, se muestra el mes actual según la hora de México (`America/Mexico_City`). Ya no hay rango libre ni "todas las fechas", y los parámetros antiguos `from` y `to` se ignoran.
+- **GAS-20.** El selector de mes es un desplegable que muestra el mes elegido, por ejemplo "Noviembre 2026".
+  - **Al abrirlo:** ofrece dos listas, una de mes (enero a diciembre) y otra de año.
+  - **Al cambiar cualquiera de las dos:** el filtro se aplica al instante, sin botón. Cambiar el año conserva el mes, y cambiar el mes conserva el año.
+  - **Para cerrarlo:** Escape o un clic fuera. Se puede usar con teclado.
+- **GAS-21.** La lista de años va del año del gasto más antiguo al del más reciente, incluidas las mensualidades futuras, y siempre incluye el año actual.
+- **GAS-22.** La búsqueda encuentra texto dentro de la descripción, la categoría o la cuenta del mes elegido, sin distinguir mayúsculas ni acentos: `cafe` encuentra `Café`. La `ñ` cuenta como `n`. Se aplica sola a los 300 ms de dejar de escribir. Cambiar de mes conserva la búsqueda.
+- **GAS-23.** "Limpiar filtros" quita la búsqueda y vuelve al mes actual con el orden inicial. Solo aparece si hay búsqueda o si el mes elegido no es el actual.
+- **GAS-33.** Un mes sin gastos muestra "No hay gastos en <mes>". Una búsqueda sin resultados muestra el mensaje de búsqueda actual.
+- **GAS-34.** El enlace del inicio a Gastos abre el mismo mes que se ve en el inicio.
 - **GAS-24.** La barra de filtros se oculta si no existe ningún gasto.
 
 ### Editar
@@ -92,9 +97,9 @@ Registrar, consultar y corregir los gastos del hogar en pesos mexicanos, incluid
 ## Por decidir
 Así funciona hoy, pero podría no ser lo que quieres. Cada punto queda igual hasta que decidas; al cambiarlo, se actualiza la regla y el código.
 
-- **D-5. Mensaje inicial confuso (baja).** Sin ningún gasto, se muestra "No hay gastos que coincidan con tu búsqueda" en vez de "Aún no tienes gastos registrados". "Limpiar filtros" también aparece sin que hayas filtrado, porque el rango inicial cuenta como filtro.
+- **D-5. Mensaje inicial confuso (baja).** Sin ningún gasto, se muestra "No hay gastos que coincidan con tu búsqueda" en vez de "Aún no tienes gastos registrados".
 - **D-6. Conteo de registros (baja).** El contador del inicio suma filas: una compra a 3 meses cuenta como 4 registros.
 - **D-7. Fechas imposibles fuera del navegador (baja).** El selector de fecha no las permite, pero el servidor convierte `2026-02-31` en 3 de marzo en vez de rechazarla.
 - **D-8. Errores sin mensaje propio (baja).** Editar o borrar un registro que ya no existe, o usar una cuenta borrada desde otra pestaña, muestra un error genérico.
 - **D-9. Mensualidades de $0.00 (baja).** Si el total tiene menos centavos que meses, como $0.02 a 3 meses, alguna mensualidad vale $0.00 aunque GAS-2 pide montos mayores que 0. Recomiendo rechazar esa compra.
-- **D-10. El original puede quedar fuera del mes que ves (baja).** Si una mensualidad cae en un mes distinto al de la compra, el original no aparece en ese mes y hay que ampliar el rango para editarlo. Recomiendo un enlace de la mensualidad a su original.
+- **D-10. El original puede quedar fuera del mes que ves (baja).** Si una mensualidad cae en un mes distinto al de la compra, el original no aparece en ese mes y hay que ir al mes de la compra para editarlo. Recomiendo un enlace de la mensualidad a su original.

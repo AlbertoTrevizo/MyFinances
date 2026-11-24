@@ -312,13 +312,13 @@ const en: Dictionary = {
     noCategory: "No category",
     noType: "No type",
     noResults: "No expenses match your filters.",
+    noExpensesMonth: (month) => `No expenses in ${month}`,
     msiBadge: "Installments",
     filters: {
       searchLabel: "Search",
       searchPlaceholder: "Search description, category, or account",
-      fromLabel: "From",
-      toLabel: "To",
-      apply: "Filter",
+      monthLabel: "Month",
+      yearLabel: "Year",
       clear: "Clear filters",
     },
     form: {

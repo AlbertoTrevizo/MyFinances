@@ -313,13 +313,13 @@ const es: Dictionary = {
     noCategory: "Sin categoría",
     noType: "Sin tipo",
     noResults: "No hay gastos que coincidan con tu búsqueda.",
+    noExpensesMonth: (month) => `No hay gastos en ${month.toLocaleLowerCase("es-MX")}`,
     msiBadge: "MSI",
     filters: {
       searchLabel: "Buscar",
       searchPlaceholder: "Buscar por descripción, categoría o cuenta",
-      fromLabel: "Desde",
-      toLabel: "Hasta",
-      apply: "Filtrar",
+      monthLabel: "Mes",
+      yearLabel: "Año",
       clear: "Limpiar filtros",
     },
     form: {

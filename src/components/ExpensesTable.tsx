@@ -75,7 +75,7 @@ export function ExpensesTable({
   copy: ExpensesTableCopy;
   sort: string;
   dir: SortDir;
-  query: { q: string; from: string; to: string };
+  query: { q: string; month: string };
 }) {
   const [editingCell, setEditingCell] = useState<{
     id: string;

@@ -40,7 +40,23 @@ export function parseMonthKey(value: string): Date | null {
   const year = Number(match[1]);
   const month = Number(match[2]);
   if (month < 1 || month > 12) return null;
-  return new Date(Date.UTC(year, month - 1, 1));
+  const date = new Date(0);
+  date.setUTCFullYear(year, month - 1, 1);
+  return date;
+}
+
+export function monthBounds(key: string): { start: Date; endExclusive: Date } {
+  const start = parseMonthKey(key)!;
+  const endExclusive = new Date(start.getTime());
+  endExclusive.setUTCMonth(start.getUTCMonth() + 1);
+  return { start, endExclusive };
+}
+
+export function yearRange(min: Date | null, max: Date | null, currentYear: number): number[] {
+  if (!min || !max) return [currentYear];
+  const first = Math.min(min.getUTCFullYear(), currentYear);
+  const last = Math.max(max.getUTCFullYear(), currentYear);
+  return Array.from({ length: last - first + 1 }, (_, index) => first + index);
 }
 
 const monthFormatters: Record<Locale, Intl.DateTimeFormat> = {
