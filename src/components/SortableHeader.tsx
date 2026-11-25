@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { SortIcon } from "./icons";
-import type { SortDir } from "@/lib/sort";
+import { sortHeader, type SortDir } from "@/lib/sort";
 
 export function SortableHeader({
   label,
@@ -19,19 +19,11 @@ export function SortableHeader({
   query?: Record<string, string | undefined>;
   align?: "left" | "right";
 }) {
-  const active = field === activeField;
-  const nextDir: SortDir = active && dir === "asc" ? "desc" : "asc";
-
-  const params = new URLSearchParams();
-  for (const [key, value] of Object.entries(query ?? {})) {
-    if (value !== undefined) params.set(key, value);
-  }
-  params.set("sort", field);
-  params.set("dir", nextDir);
+  const { active, href } = sortHeader(field, activeField, dir, basePath, query);
 
   return (
     <Link
-      href={`${basePath}?${params.toString()}`}
+      href={href}
       className={`inline-flex items-center gap-1 transition-colors hover:text-ink ${
         align === "right" ? "flex-row-reverse" : ""
       } ${active ? "text-ink" : ""}`}

@@ -3,6 +3,11 @@ import type { SortDir } from "./sort";
 export type AccountStatus = "pending" | "confirmed";
 export type SignInMethod = "email" | "google" | "both";
 
+export function recoveryEmailKind(user: { emailVerifiedAt: Date | null } | null): "confirm" | "reset" | null {
+  if (!user) return null;
+  return user.emailVerifiedAt ? "reset" : "confirm";
+}
+
 export function accountStatus(user: { emailVerifiedAt: Date | null }): AccountStatus {
   return user.emailVerifiedAt ? "confirmed" : "pending";
 }

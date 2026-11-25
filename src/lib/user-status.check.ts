@@ -1,9 +1,16 @@
 // Run: npx tsx src/lib/user-status.check.ts
-import { accountStatus, signInMethod, sortUsers } from "./user-status";
+import { accountStatus, signInMethod, sortUsers, recoveryEmailKind } from "./user-status";
 
 const assert = (c: boolean, m: string) => {
   if (!c) throw new Error(m);
 };
+assert(recoveryEmailKind(null) === null, "RF-9: unknown email sends no mail");
+assert(recoveryEmailKind({ emailVerifiedAt: null }) === "confirm", "RF-9: pending account receives confirmation instead of recovery");
+for (const passwordHash of [null, "hash"]) {
+  const user = { emailVerifiedAt: new Date("2026-11-24T00:00:00Z"), passwordHash };
+  assert(recoveryEmailKind(user) === "reset", "RF-9: confirmed account receives recovery with or without a password");
+}
+
 assert(accountStatus({ emailVerifiedAt: null }) === "pending", "pending");
 assert(accountStatus({ emailVerifiedAt: new Date() }) === "confirmed", "confirmed");
 assert(signInMethod({ passwordHash: "h", googleId: null }) === "email", "email");

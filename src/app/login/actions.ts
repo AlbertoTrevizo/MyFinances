@@ -8,11 +8,10 @@ import { createSession, destroySession } from "@/lib/session";
 import { getTranslations } from "@/i18n/get-locale";
 import { normalizeEmail } from "@/lib/user-validation";
 import { logEvent } from "@/lib/log";
+import { isLoginLocked, shouldLockLogin, loginLockoutUntil } from "@/lib/login-attempts";
 
 export type ActionState = { error?: string; pendingEmail?: string } | undefined;
 
-const MAX_FAILED_ATTEMPTS = 5;
-const LOCKOUT_MS = 15 * 60 * 1000;
 // Unknown emails and locked accounts still pay for one scrypt run, so response time doesn't reveal which emails exist.
 const dummyCredential = hashPassword(randomBytes(16).toString("hex"));
 
@@ -27,7 +26,7 @@ export async function loginWithPassword(
   if (!email || !password) return { error: t.auth.errors.invalidCredentials };
 
   const user = await prisma.user.findUnique({ where: { email } });
-  const locked = Boolean(user?.lockedUntil && user.lockedUntil > new Date());
+  const locked = isLoginLocked(user, new Date());
   let valid = false;
   if (user?.passwordHash && user.passwordSalt && !locked) {
     valid = await verifyPassword(password, user.passwordHash, user.passwordSalt);
@@ -44,10 +43,10 @@ export async function loginWithPassword(
       where: { email, OR: [{ lockedUntil: null }, { lockedUntil: { lt: now } }] },
       data: { failedLoginAttempts: { increment: 1 } },
     });
-    if (user && !locked && user.failedLoginAttempts + 1 >= MAX_FAILED_ATTEMPTS) {
+    if (user && shouldLockLogin(user, locked)) {
       await prisma.user.update({
         where: { id: user.id },
-        data: { failedLoginAttempts: 0, lockedUntil: new Date(now.getTime() + LOCKOUT_MS) },
+        data: { failedLoginAttempts: 0, lockedUntil: loginLockoutUntil(now) },
       });
     }
     return { error: t.auth.errors.invalidCredentials };

@@ -1,6 +1,12 @@
 export const MSI_MIN_MONTHS = 2;
 export const MSI_MAX_MONTHS = 36;
 
+export function canUseMsi(
+  account: { cutoffDay: number | null } | null,
+): account is { cutoffDay: number } {
+  return Boolean(account?.cutoffDay);
+}
+
 export function isValidMsiMonths(value: number): boolean {
   return Number.isInteger(value) && value >= MSI_MIN_MONTHS && value <= MSI_MAX_MONTHS;
 }

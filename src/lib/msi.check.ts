@@ -1,9 +1,17 @@
 // Run: npx tsx src/lib/msi.check.ts
-import { buildMsiInstallments, buildMsiInstallmentRows, isMsiInstallment, isValidMsiMonths, parseMsiMonths } from "./msi";
+import { buildMsiInstallments, buildMsiInstallmentRows, isMsiInstallment, isValidMsiMonths, parseMsiMonths, canUseMsi } from "./msi";
 
 const assert = (c: boolean, m: string) => {
   if (!c) throw new Error(m);
 };
+assert(!canUseMsi(null), "GAS-10/GAS-32: missing account cannot use MSI");
+for (const cutoffDay of [null, 0]) {
+  assert(!canUseMsi({ cutoffDay }), "GAS-10/GAS-32: absent cutoff rejects MSI creation and regeneration");
+}
+for (const cutoffDay of [1, 15, 31]) {
+  assert(canUseMsi({ cutoffDay }), `GAS-10/CUE-11: cutoff ${cutoffDay} enables MSI regardless of account type`);
+}
+
 for (const months of [2, 36]) assert(isValidMsiMonths(months), `GAS-11: accepts ${months} months`);
 for (const months of [1, 37, 2.5, 35.5, NaN, Infinity]) {
   assert(!isValidMsiMonths(months), `GAS-11: rejects ${months} months`);

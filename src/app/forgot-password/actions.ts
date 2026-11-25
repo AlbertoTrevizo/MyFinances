@@ -8,6 +8,7 @@ import { sendConfirmation } from "@/lib/account-flows";
 import { normalizeEmail } from "@/lib/user-validation";
 import { withMinimumDuration } from "@/lib/timing";
 import { logEvent } from "@/lib/log";
+import { recoveryEmailKind } from "@/lib/user-status";
 
 export type ForgotState = { sent?: boolean; error?: string } | undefined;
 
@@ -21,7 +22,7 @@ export async function requestPasswordReset(
   const result = await withMinimumDuration(1500, async () => {
     const user = email ? await prisma.user.findUnique({ where: { email } }) : null;
     if (!user) return "sent" as const;
-    if (!user.emailVerifiedAt) return sendConfirmation(user, t);
+    if (recoveryEmailKind(user) === "confirm") return sendConfirmation(user, t);
     const token = await createToken(prisma, user.id, "reset");
     logEvent("reset_requested", { userId: user.id });
     return sendAccountEmail("reset", user.email, t, token);

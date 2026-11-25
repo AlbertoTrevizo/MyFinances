@@ -1,4 +1,5 @@
 import type { Dictionary } from "@/i18n/dictionaries";
+import { budgetProgress } from "@/lib/budget";
 
 type BudgetItem = {
   label: string;
@@ -23,9 +24,7 @@ export function BudgetProgress({
   return (
     <div className="flex flex-col gap-4">
       {items.map((item) => {
-        const percent = item.budgetCents > 0 ? (item.spentCents / item.budgetCents) * 100 : 0;
-        const over = item.spentCents > item.budgetCents;
-        const remaining = Math.abs(item.budgetCents - item.spentCents);
+        const { percent, width, over, remaining } = budgetProgress(item.spentCents, item.budgetCents);
 
         return (
           <div key={item.label} className="flex flex-col gap-1.5">
@@ -40,14 +39,14 @@ export function BudgetProgress({
               <span
                 className={`font-mono text-xs font-medium ${over ? "text-danger" : "text-ink-muted"}`}
               >
-                {Math.round(percent)}%
+                {percent}%
               </span>
             </div>
             <div className="h-2 w-full overflow-hidden rounded-full bg-canvas">
               <div
                 className="h-full rounded-full"
                 style={{
-                  width: `${Math.min(percent, 100)}%`,
+                  width: `${width}%`,
                   backgroundColor: over ? "var(--danger)" : item.color,
                 }}
               />
