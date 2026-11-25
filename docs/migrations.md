@@ -4,7 +4,7 @@
 
 ## Situación actual
 - **Hay una sola base.** `.env` apunta a Supabase y el commit `9c739ca` indica que desarrollo usa la misma base que producción. Trátala como producción: `npm run dev` lee y escribe esos mismos datos.
-- **Nada aplica migraciones solo.** `npm run build` no las ejecuta y el repo no tiene CI. Se aplican a mano.
+- **Nada aplica migraciones solo.** Ni `npm run build` ni el CI las ejecutan. Se aplican a mano.
 
 ## Comandos prohibidos
 Mientras exista una sola base, no se usan:

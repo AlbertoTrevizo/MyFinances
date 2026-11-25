@@ -16,6 +16,7 @@ Lee `docs/constitution.md` antes de cambiar código. Si una petición la contrad
 - Lint: `npm run lint`
 - Tipos: `npx tsc --noEmit`
 - Checks: `npm test`
+- CI (`.github/workflows/ci.yml`): ejecuta lint, tipos y checks en cada push a `dev`/`main` y en pull requests.
 
 Antes de dar un cambio por terminado, corre lint, tipos y checks.
 
