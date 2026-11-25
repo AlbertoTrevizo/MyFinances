@@ -72,7 +72,6 @@ Ninguna.
 ## Fuera de alcance
 - Más roles, permisos configurables o una pantalla para crear roles.
 - Restringir las finanzas por rol y tener datos por usuario.
-- Borrar la columna `isAdmin`: va en una segunda entrega (ver el plan).
 - Avisar por correo de un cambio de rol.
 - Configurar el pipeline de CI: esta spec solo deja los checks listos para él.
 

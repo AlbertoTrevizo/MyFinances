@@ -56,7 +56,6 @@ model User {
   emailVerifiedAt     DateTime?
   googleId            String?     @unique
   profileIncomplete   Boolean     @default(false)
-  isAdmin             Boolean     @default(false)
   role                Role        @default(user)
   failedLoginAttempts Int         @default(0)
   lockedUntil         DateTime?

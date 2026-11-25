@@ -76,6 +76,31 @@ Según `docs/migrations.md`, por ser un cambio que agrega:
 3. Desplegar el código.
 4. **Segunda entrega, más adelante:** cuando el código desplegado ya no use `isAdmin`, otra migración la borra.
 
+## Segunda entrega: borrar `isAdmin`
+**Estado:** Aprobada el 2026-11-24.
+
+Es un cambio que quita una columna, así que va en dos pasos según `docs/migrations.md`: primero el código que ya no la conoce y después la migración.
+
+**Código, un solo commit:**
+- `prisma/schema.prisma`: se quita `isAdmin`. El cliente de Prisma deja de leerla; la columna sigue en la base con su `DEFAULT false`, así que crear cuentas sigue funcionando.
+- `scripts/create-admin.ts`: deja de escribir `isAdmin` y se quita el comentario.
+- `prisma/migrations/<fecha>_drop_user_is_admin/migration.sql`, escrita a mano:
+  ```sql
+  ALTER TABLE "User" DROP COLUMN "isAdmin";
+  ```
+- `specs/roles/spec.md`: se quita "Borrar la columna `isAdmin`" de "Fuera de alcance".
+
+**Orden en producción:**
+1. Consulta de solo lectura: `SELECT count(*) FROM "User" WHERE "isAdmin" AND "role" <> 'admin'` debe dar 0. Si no, hay un administrador que perdería el acceso y se detiene todo.
+2. Desplegar el código (`dev` → `main`) y comprobar que producción funciona.
+3. Respaldo con `pg_dump` en `~/Backups/MyFinances/`, porque la migración borra datos.
+4. `npx prisma migrate deploy`, con tu confirmación explícita.
+5. `migrate status` sin pendientes y `migrate diff` sin diferencias.
+
+**Riesgo:** los despliegues viejos de Vercel, de producción o de vista previa, sí leen `isAdmin` y fallarán al entrar después del paso 4. Solo se abren con su URL propia, detrás del SSO de Vercel.
+
+**Verificación:** lint, tipos, `npm test` y que `git grep isAdmin` solo encuentre migraciones aplicadas, specs y la función `isAdmin()` de `roles.ts`, que lee `role`.
+
 ## Riesgos y límites conocidos
 - **Ventana entre migración y despliegue:** el código viejo todavía decide con `isAdmin`. Hasta la segunda entrega, `scripts/create-admin.ts` sigue escribiendo `isAdmin: true` además de `role: "admin"`, tanto al crear como al actualizar, para que un administrador creado en esa ventana también funcione con el código viejo. Ningún otro código de esta entrega lee ni escribe la columna antigua.
 - **`Serializable` a través del pooler de Supabase:** ya se usa en `deleteUser`. Se vuelve a probar con dos cambios de rol simultáneos.
