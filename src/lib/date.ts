@@ -58,22 +58,18 @@ export function expenseYears(dates: Date[], currentYear: number, selectedYear: n
 }
 
 const monthFormatters: Record<Locale, Intl.DateTimeFormat> = {
-  es: new Intl.DateTimeFormat("es-MX", { month: "long", year: "numeric", timeZone: "UTC" }),
-  en: new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric", timeZone: "UTC" }),
+  es: new Intl.DateTimeFormat("es-MX", { month: "long", timeZone: "UTC" }),
+  en: new Intl.DateTimeFormat("en-US", { month: "long", timeZone: "UTC" }),
 };
 
 export function formatMonth(date: Date, locale: Locale = "es"): string {
   const label = monthFormatters[locale].format(date);
-  return label.charAt(0).toUpperCase() + label.slice(1);
+  return `${label.charAt(0).toUpperCase() + label.slice(1)} ${date.getUTCFullYear()}`;
 }
 
 export function monthNames(locale: Locale): { value: string; label: string }[] {
-  const formatter = new Intl.DateTimeFormat(locale === "es" ? "es-MX" : "en-US", {
-    month: "long",
-    timeZone: "UTC",
-  });
   return Array.from({ length: 12 }, (_, index) => {
-    const label = formatter.format(new Date(Date.UTC(2000, index, 1)));
+    const label = monthFormatters[locale].format(new Date(Date.UTC(2000, index, 1)));
     return {
       value: String(index + 1).padStart(2, "0"),
       label: label.charAt(0).toUpperCase() + label.slice(1),

@@ -186,7 +186,7 @@ const es: Dictionary = {
   home: {
     greeting: "Hola 👋",
     monthSelectLabel: "Seleccionar mes",
-    spentInMonth: (month) => `Gastado en ${month}:`,
+    spentInMonth: (month) => `Gastado en ${month.toLocaleLowerCase("es-MX")}:`,
     byCategoryTitle: "Gastos por categoría",
     byTypeTitle: "Gastos por tipo",
     topCategoriesTitle: "Categorías principales",

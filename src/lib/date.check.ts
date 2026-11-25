@@ -18,9 +18,22 @@ assert(monthKey(new Date("2026-01-01T00:00:00Z")) === "2026-01", "GAS-19: month 
 assert(monthKey(new Date("2026-12-01T01:00:00+02:00")) === "2026-11", "GAS-19: month keys use the UTC month of an offset date");
 assert(monthKey(new Date("0050-01-01T00:00:00Z")) === "0050-01", "GAS-19: month keys pad year 50 to four digits");
 assert(monthKey(new Date("0000-12-01T00:00:00Z")) === "0000-12", "GAS-19: month keys pad year zero to four digits");
-assert(formatMonth(new Date("2026-11-01T00:00:00Z")) === "Noviembre de 2026", "GAS-20: default month is capitalized Spanish in UTC");
-assert(formatMonth(new Date("2026-11-01T00:00:00Z"), "es") === "Noviembre de 2026", "GAS-20: Spanish month starts with a capital");
-assert(formatMonth(new Date("2026-11-01T00:00:00Z"), "en") === "November 2026", "GAS-20: English month starts with a capital and uses UTC");
+for (const [key, es, en] of [
+  ["2026-11", "Noviembre 2026", "November 2026"],
+  ["2026-01", "Enero 2026", "January 2026"],
+  ["2026-12", "Diciembre 2026", "December 2026"],
+] as const) {
+  const month = parseMonthKey(key)!;
+  assert(formatMonth(month) === es, `INI-2/GAS-20: ${key} defaults to capitalized Spanish without de`);
+  assert(formatMonth(month, "es") === es, `INI-2/GAS-20: ${key} Spanish month and year have one space without de`);
+  assert(formatMonth(month, "en") === en, `INI-2/GAS-20: ${key} English month starts with a capital`);
+}
+assert(formatMonth(new Date("2026-12-01T01:00:00+02:00"), "es") === "Noviembre 2026", "INI-2/GAS-20: Spanish month uses UTC across a month boundary");
+assert(formatMonth(new Date("2026-12-01T01:00:00+02:00"), "en") === "November 2026", "INI-2/GAS-20: English month uses UTC across a month boundary");
+assert(formatMonth(new Date("2026-01-01T01:00:00+02:00"), "en") === "December 2025", "INI-2/GAS-20: year uses UTC across a year boundary");
+assert(formatMonth(parseMonthKey("0050-01")!, "es") === "Enero 50", "INI-2/GAS-20: Spanish early year is a plain number");
+assert(formatMonth(parseMonthKey("0050-01")!, "en") === "January 50", "INI-2/GAS-20: English early year is a plain number");
+assert(formatMonth(parseMonthKey("0000-01")!) === "Enero 0", "INI-2/GAS-20: year zero stays a plain number");
 for (const locale of ["es", "en"] as const) {
   const months = monthNames(locale);
   assert(months.length === 12, `GAS-20: ${locale} has twelve month names`);

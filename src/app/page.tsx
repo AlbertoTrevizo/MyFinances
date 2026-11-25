@@ -180,7 +180,7 @@ export default async function Home({
       }
     >
       <div className={`${card} p-5 sm:p-6`}>
-        <p className="text-sm text-ink-muted capitalize">{t.home.spentInMonth(monthLabel)}</p>
+        <p className="text-sm text-ink-muted">{t.home.spentInMonth(monthLabel)}</p>
         <p className="mt-2 font-mono text-3xl font-semibold tabular-nums text-ink sm:text-4xl">
           {formatCents(monthTotal, locale)}
         </p>
