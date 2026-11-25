@@ -4,6 +4,7 @@ import { formatCents } from "@/lib/currency";
 import {
   currentMonthKey as getCurrentMonthKey,
   monthKey,
+  monthBounds,
   parseMonthKey,
   formatMonth,
 } from "@/lib/date";
@@ -49,8 +50,7 @@ export default async function Home({
   const currentMonthKey = getCurrentMonthKey();
   const sp = await searchParams;
   const requestedMonth = sp.month && parseMonthKey(sp.month) ? sp.month : currentMonthKey;
-  const monthStart = parseMonthKey(requestedMonth)!;
-  const monthEnd = new Date(Date.UTC(monthStart.getUTCFullYear(), monthStart.getUTCMonth() + 1, 1));
+  const { start: monthStart, endExclusive: monthEnd } = monthBounds(requestedMonth);
   const monthLabel = formatMonth(monthStart, locale);
 
   const [

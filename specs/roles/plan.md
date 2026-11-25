@@ -7,7 +7,7 @@
 | Tema | Decisión | Motivo |
 |---|---|---|
 | Rol en la base | Enum de Prisma `Role { user admin }` y columna `User.role Role @default(user)` | La base rechaza cualquier otro valor, y agregar un rol después es un `ALTER TYPE`. Una tabla de roles sobra mientras los permisos no se configuren. |
-| `isAdmin` | Esta entrega deja de leerlo y escribirlo; una segunda lo borra | `docs/migrations.md` pide hacer en dos entregas los cambios que quitan columnas. |
+| `isAdmin` | Solo `scripts/create-admin.ts` sigue escribiéndolo hasta la segunda entrega, que borra la columna; ningún otro código lo lee ni lo escribe | Un administrador creado entre migración y despliegue también funciona con el código viejo. `docs/migrations.md` pide hacer en dos entregas los cambios que quitan columnas. |
 | Autorización | `requireAdmin()` decide con `role` y redirige a `/` | Hoy redirige a `/users`, que ahora sería un ciclo. |
 | Cambiar rol | Server Action nueva `setUserRole` con una transacción `Serializable`, igual que `deleteUser` | Da la misma garantía del último administrador ante cambios simultáneos (RNF-3). |
 | Proxy | Sin cambios | Es solo una primera capa; la protección real es `requireAdmin()` (RNF-1). |
@@ -39,9 +39,9 @@ No crea tablas, así que no necesita RLS nueva. Tampoco borra ni transforma dato
 - `roles.check.ts`: cubre cada rama, incluidos los valores inválidos de `parseRole`, quitar el rol al único administrador, quitarlo cuando hay dos y promover una cuenta Pendiente.
 
 **Nuevo check de acceso, sin base de datos:** `src/app/access.check.ts`
-- Cada `page.tsx` y cada función exportada de un archivo `"use server"` debe llamar a `requireUser()` o `requireAdmin()`. Bajo `src/app/users/` debe ser `requireAdmin()`.
+- Cada `page.tsx`, cada función exportada de un archivo `"use server"` y cada función con una directiva `"use server"` propia dentro de cualquier archivo de `src/app` debe llamar con `await` a `requireUser()` o `requireAdmin()`. Bajo `src/app/users/` debe ser `requireAdmin()`.
 - Exentas: las rutas públicas de `AGENTS.md` (`login`, `register`, `confirm-email`, `forgot-password`, `reset-password`, `api/auth/google`) y `complete-profile`, que verifica la sesión a mano porque `requireUser()` la redirigiría a sí misma.
-- Cualquier `route.ts` fuera de `api/auth/google` hace fallar el check, para obligar a decidir su acceso.
+- Cualquier `route.ts`, `route.tsx`, `route.js` o `route.jsx` fuera de `api/auth/google` hace fallar el check, para obligar a decidir su acceso.
 - Al fallar, imprime archivo y función y sale con código distinto de 0.
 
 **Cambios:**
@@ -53,7 +53,7 @@ No crea tablas, así que no necesita RLS nueva. Tampoco borra ni transforma dato
   - Nueva `setUserRole(id, _prev, formData)`. Hace `requireAdmin()` y `parseRole`, y luego una transacción `Serializable`: busca la cuenta, cuenta administradores, aplica `roleChangeError` y actualiza. Responde a `P2034` con `conflict` y a `P2025` con `notFound`. Registra `logEvent("user_role_changed", { userId, by, from, to })` solo si hubo cambio. Si el administrador se quitó el rol a sí mismo, hace `redirect("/")`; si no, `revalidatePath("/users")`.
 - `src/components/UsersTable.tsx`: columna Rol ordenable. Acción por fila "Cambiar rol": abre un `Modal` con un `<select>` de roles y un botón de confirmar, y muestra el error del servidor. Sin `canManage`, porque la página ya es solo para administradores.
 - `src/components/Sidebar.tsx` y `src/app/layout.tsx`: una prop `isAdmin`; el enlace a Usuarios solo aparece si es verdadera.
-- `scripts/create-admin.ts`: escribe `role: "admin"` en lugar de `isAdmin`.
+- `scripts/create-admin.ts`: escribe `role: "admin"` e `isAdmin: true` al crear y actualizar hasta la segunda entrega; ningún otro código lee ni escribe la columna antigua.
 - `src/i18n/dictionaries/es.ts`, `en.ts` y `src/i18n/types.ts`: `users.tableRole`, `users.roles.{user,admin}`, `users.changeRole`, `users.changeRoleTitle`, `users.roleLabel` y `users.errors.{lastAdminRole,pendingAdmin}`.
 - `package.json`: `"test": "find src -name '*.check.ts' -print0 | xargs -0 -n1 tsx"`.
 - `AGENTS.md`: los checks se corren con `npm test`. La regla de acceso dice que ver y administrar usuarios y roles llama a `requireAdmin()`.
@@ -77,7 +77,7 @@ Según `docs/migrations.md`, por ser un cambio que agrega:
 4. **Segunda entrega, más adelante:** cuando el código desplegado ya no use `isAdmin`, otra migración la borra.
 
 ## Riesgos y límites conocidos
-- **Ventana entre migración y despliegue:** el código viejo todavía decide con `isAdmin`. Nada en la app cambia esa marca, así que `role` e `isAdmin` no se desincronizan en esa ventana.
+- **Ventana entre migración y despliegue:** el código viejo todavía decide con `isAdmin`. Hasta la segunda entrega, `scripts/create-admin.ts` sigue escribiendo `isAdmin: true` además de `role: "admin"`, tanto al crear como al actualizar, para que un administrador creado en esa ventana también funcione con el código viejo. Ningún otro código de esta entrega lee ni escribe la columna antigua.
 - **`Serializable` a través del pooler de Supabase:** ya se usa en `deleteUser`. Se vuelve a probar con dos cambios de rol simultáneos.
 - **El check de acceso es estático:** confirma que la llamada existe, no que esté antes de leer datos. La revisión de código cubre el orden.
 

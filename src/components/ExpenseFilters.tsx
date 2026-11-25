@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Dictionary } from "@/i18n/dictionaries";
 import { card, inputField } from "@/lib/styles";
 import type { SortDir } from "@/lib/sort";
@@ -36,27 +36,23 @@ export function ExpenseFilters({
   const [selectedMonth, setSelectedMonth] = useState(month);
   const [prevMonth, setPrevMonth] = useState(month);
 
-  if (q !== prevQ) {
+  if (q !== prevQ || month !== prevMonth) {
     setPrevQ(q);
-    setSearch(q);
-  }
-
-  if (month !== prevMonth) {
     setPrevMonth(month);
+    setSearch(q);
     setSelectedMonth(month);
   }
 
-  const navigate = useCallback((nextSearch: string, nextMonth: string) => {
+  function navigate(nextSearch: string, nextMonth: string) {
     const params = new URLSearchParams({ month: nextMonth, sort, dir });
     if (nextSearch.trim()) params.set("q", nextSearch.trim());
     router.push(`/expenses?${params.toString()}`);
-  }, [router, sort, dir]);
+  }
 
   useEffect(() => {
-    if (search.trim() === q) return;
-    searchTimeout.current = setTimeout(() => navigate(search, selectedMonth), 300);
+    clearTimeout(searchTimeout.current);
     return () => clearTimeout(searchTimeout.current);
-  }, [search, q, selectedMonth, navigate]);
+  }, [q, month]);
 
   useEffect(() => {
     function closeOnOutsideClick(event: MouseEvent) {
@@ -85,18 +81,38 @@ export function ExpenseFilters({
     navigate(search, nextMonth);
   }
 
+  function changeSearch(nextSearch: string) {
+    clearTimeout(searchTimeout.current);
+    setSearch(nextSearch);
+    if (nextSearch.trim() !== q) {
+      searchTimeout.current = setTimeout(() => navigate(nextSearch, selectedMonth), 300);
+    }
+  }
+
   const [selectedYear, selectedMonthNumber] = selectedMonth.split("-");
   const hasFilters = Boolean(q || month !== currentMonth);
 
   return (
-    <div className={`flex flex-wrap items-end gap-3 ${card} p-4`}>
+    <form
+      method="get"
+      action="/expenses"
+      onSubmit={(event) => {
+        event.preventDefault();
+        clearTimeout(searchTimeout.current);
+        navigate(search, selectedMonth);
+      }}
+      className={`flex flex-wrap items-end gap-3 ${card} p-4`}
+    >
+      <input type="hidden" name="month" value={selectedMonth} />
+      <input type="hidden" name="sort" value={sort} />
+      <input type="hidden" name="dir" value={dir} />
       <label className="flex min-w-0 basis-full flex-col gap-1.5 sm:flex-1">
         <span className="text-sm font-medium text-ink-muted">{t.searchLabel}</span>
         <input
           type="search"
           name="q"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => changeSearch(e.target.value)}
           placeholder={t.searchPlaceholder}
           className={inputField}
         />
@@ -133,11 +149,15 @@ export function ExpenseFilters({
       {hasFilters && (
         <Link
           href="/expenses"
+          onClick={() => {
+            clearTimeout(searchTimeout.current);
+            setSearch(q);
+          }}
           className="text-sm font-medium text-ink-muted underline underline-offset-2 hover:text-ink"
         >
           {t.clear}
         </Link>
       )}
-    </div>
+    </form>
   );
 }

@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { currentMonthKey, formatMonth, monthBounds, parseMonthKey, yearRange } from "@/lib/date";
+import { currentMonthKey, formatMonth, monthBounds, monthNames, parseMonthKey, yearRange } from "@/lib/date";
 import { matchesSearch } from "@/lib/search";
 import { getTranslations } from "@/i18n/get-locale";
 import { PageContainer, PageTitle } from "@/components/PageContainer";
@@ -60,14 +60,7 @@ export default async function ExpensesPage({
     ...yearRange(expenseDates._min.date, expenseDates._max.date, Number(currentMonth.slice(0, 4))),
     start.getUTCFullYear(),
   ])].sort((a, b) => a - b);
-  const monthFormatter = new Intl.DateTimeFormat(locale, { month: "long", timeZone: "UTC" });
-  const months = Array.from({ length: 12 }, (_, index) => {
-    const label = monthFormatter.format(new Date(Date.UTC(2000, index, 1)));
-    return {
-      value: String(index + 1).padStart(2, "0"),
-      label: label.charAt(0).toUpperCase() + label.slice(1),
-    };
-  });
+  const months = monthNames(locale);
 
   // ponytail: filters in memory because Postgres can't ignore accents without raw SQL; the list
   // is already unpaginated. Move to a normalized column if a household ever outgrows this.

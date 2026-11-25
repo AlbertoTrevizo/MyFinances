@@ -1,5 +1,5 @@
 // Run: npx tsx src/lib/date.check.ts
-import { currentMonthKey, dateToInputValue, formatDate, formatMonth, inputValueToDate, monthBounds, monthKey, parseMonthKey, yearRange } from "./date";
+import { currentMonthKey, dateToInputValue, formatDate, formatMonth, inputValueToDate, monthBounds, monthKey, monthNames, parseMonthKey, yearRange } from "./date";
 
 const assert = (c: boolean, m: string) => {
   if (!c) throw new Error(m);
@@ -19,6 +19,13 @@ assert(monthKey(new Date("2026-12-01T01:00:00+02:00")) === "2026-11", "GAS-19: m
 assert(formatMonth(new Date("2026-11-01T00:00:00Z")) === "Noviembre de 2026", "GAS-20: default month is capitalized Spanish in UTC");
 assert(formatMonth(new Date("2026-11-01T00:00:00Z"), "es") === "Noviembre de 2026", "GAS-20: Spanish month starts with a capital");
 assert(formatMonth(new Date("2026-11-01T00:00:00Z"), "en") === "November 2026", "GAS-20: English month starts with a capital and uses UTC");
+for (const locale of ["es", "en"] as const) {
+  const months = monthNames(locale);
+  assert(months.length === 12, `GAS-20: ${locale} has twelve month names`);
+  assert(months.every((month, index) => month.value === String(index + 1).padStart(2, "0")), `GAS-20: ${locale} month values run from 01 to 12`);
+  assert(months[0].label === (locale === "es" ? "Enero" : "January"), `GAS-20: ${locale} first month is capitalized`);
+  assert(months[11].label === (locale === "es" ? "Diciembre" : "December"), `GAS-20: ${locale} last month is capitalized`);
+}
 const at = (iso: string) => currentMonthKey(new Date(iso));
 const before = currentMonthKey(new Date());
 const current = currentMonthKey();
@@ -43,6 +50,9 @@ const earlyJanuary = monthBounds("0001-01");
 assert(earlyJanuary.start.toISOString() === "0001-01-01T00:00:00.000Z", "GAS-19: early month start");
 assert(earlyJanuary.endExclusive.toISOString() === "0001-02-01T00:00:00.000Z", "GAS-19: early month end keeps exact year");
 assert(monthBounds("0099-12").endExclusive.toISOString() === "0100-01-01T00:00:00.000Z", "GAS-19: year 99 rolls into year 100");
+const yearFifty = monthBounds("0050-01");
+assert(yearFifty.start.toISOString() === "0050-01-01T00:00:00.000Z", "GAS-19: dashboard month starts in year 50");
+assert(yearFifty.endExclusive.toISOString() === "0050-02-01T00:00:00.000Z", "GAS-19: dashboard month ends in year 50");
 
 const november = monthBounds("2026-11");
 assert(november.start.toISOString() === "2026-11-01T00:00:00.000Z", "GAS-19: month starts at UTC midnight");

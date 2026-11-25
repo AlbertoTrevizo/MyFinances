@@ -1,6 +1,6 @@
 # Spec: Gastos
 
-**Estado:** Aprobada el 2026-11-04. Filtro por mes (GAS-18 a GAS-23, GAS-33, GAS-34, D-5 y D-10) aprobado el 2026-11-24. GAS-18 precisado el 2026-11-24 (orden inválido por partes).
+**Estado:** Aprobada el 2026-11-04. Filtro por mes (GAS-18 a GAS-23, GAS-33, GAS-34, D-5 y D-10) aprobado el 2026-11-24. GAS-18 precisado el 2026-11-24 (orden inválido por partes). GAS-22 y GAS-23 ajustados el 2026-11-24 tras la revisión de código.
 **Ruta:** `/expenses`
 
 ## Propósito
@@ -69,8 +69,8 @@ Registrar, consultar y corregir los gastos del hogar en pesos mexicanos, incluid
   - **Al cambiar cualquiera de las dos:** el filtro se aplica al instante, sin botón. Cambiar el año conserva el mes, y cambiar el mes conserva el año.
   - **Para cerrarlo:** Escape o un clic fuera. Se puede usar con teclado.
 - **GAS-21.** La lista de años va del año del gasto más antiguo al del más reciente, incluidas las mensualidades futuras, y siempre incluye el año actual.
-- **GAS-22.** La búsqueda encuentra texto dentro de la descripción, la categoría o la cuenta del mes elegido, sin distinguir mayúsculas ni acentos: `cafe` encuentra `Café`. La `ñ` cuenta como `n`. Se aplica sola a los 300 ms de dejar de escribir. Cambiar de mes conserva la búsqueda.
-- **GAS-23.** "Limpiar filtros" quita la búsqueda y vuelve al mes actual con el orden inicial. Solo aparece si hay búsqueda o si el mes elegido no es el actual.
+- **GAS-22.** La búsqueda encuentra texto dentro de la descripción, la categoría o la cuenta del mes elegido, sin distinguir mayúsculas ni acentos: `cafe` encuentra `Café`. La `ñ` cuenta como `n`. Se aplica sola a los 300 ms de dejar de escribir, o al instante con Enter, y funciona aunque la página no haya terminado de cargar. Cambiar de mes conserva la búsqueda.
+- **GAS-23.** "Limpiar filtros" quita la búsqueda y vuelve al mes actual con el orden inicial; lo que se estaba escribiendo no se vuelve a aplicar. Solo aparece si hay búsqueda o si el mes elegido no es el actual.
 - **GAS-33.** Un mes sin gastos muestra "No hay gastos en <mes>". Una búsqueda sin resultados muestra el mensaje de búsqueda actual.
 - **GAS-34.** El enlace del inicio a Gastos abre el mismo mes que se ve en el inicio.
 - **GAS-24.** La barra de filtros se oculta si no existe ningún gasto.

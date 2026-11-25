@@ -68,3 +68,17 @@ export function formatMonth(date: Date, locale: Locale = "es"): string {
   const label = monthFormatters[locale].format(date);
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
+
+export function monthNames(locale: Locale): { value: string; label: string }[] {
+  const formatter = new Intl.DateTimeFormat(locale === "es" ? "es-MX" : "en-US", {
+    month: "long",
+    timeZone: "UTC",
+  });
+  return Array.from({ length: 12 }, (_, index) => {
+    const label = formatter.format(new Date(Date.UTC(2000, index, 1)));
+    return {
+      value: String(index + 1).padStart(2, "0"),
+      label: label.charAt(0).toUpperCase() + label.slice(1),
+    };
+  });
+}
