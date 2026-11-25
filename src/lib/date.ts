@@ -21,7 +21,7 @@ export function inputValueToDate(value: string): Date | null {
 }
 
 export function monthKey(date: Date): string {
-  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
+  return `${String(date.getUTCFullYear()).padStart(4, "0")}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
 }
 
 const currentMonthFormatter = new Intl.DateTimeFormat("en-CA", {
@@ -52,11 +52,9 @@ export function monthBounds(key: string): { start: Date; endExclusive: Date } {
   return { start, endExclusive };
 }
 
-export function yearRange(min: Date | null, max: Date | null, currentYear: number): number[] {
-  if (!min || !max) return [currentYear];
-  const first = Math.min(min.getUTCFullYear(), currentYear);
-  const last = Math.max(max.getUTCFullYear(), currentYear);
-  return Array.from({ length: last - first + 1 }, (_, index) => first + index);
+export function expenseYears(dates: Date[], currentYear: number, selectedYear: number): number[] {
+  return [...new Set([...dates.map((date) => date.getUTCFullYear()), currentYear, selectedYear])]
+    .sort((a, b) => a - b);
 }
 
 const monthFormatters: Record<Locale, Intl.DateTimeFormat> = {

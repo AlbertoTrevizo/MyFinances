@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { currentMonthKey, formatMonth, monthBounds, monthNames, parseMonthKey, yearRange } from "@/lib/date";
+import { currentMonthKey, expenseYears, formatMonth, monthBounds, monthNames, parseMonthKey } from "@/lib/date";
 import { matchesSearch } from "@/lib/search";
 import { getTranslations } from "@/i18n/get-locale";
 import { PageContainer, PageTitle } from "@/components/PageContainer";
@@ -45,7 +45,7 @@ export default async function ExpensesPage({
               : { date: dir };
 
   const [expenseDates, expensesInMonth, accounts, categories] = await Promise.all([
-    prisma.expense.aggregate({ _min: { date: true }, _max: { date: true } }),
+    prisma.expense.findMany({ select: { date: true } }),
     prisma.expense.findMany({
       where: { date: { gte: start, lt: endExclusive } },
       orderBy,
@@ -55,11 +55,12 @@ export default async function ExpensesPage({
     prisma.category.findMany({ orderBy: { createdAt: "asc" } }),
   ]);
 
-  const hasExpenses = expenseDates._min.date !== null;
-  const years = [...new Set([
-    ...yearRange(expenseDates._min.date, expenseDates._max.date, Number(currentMonth.slice(0, 4))),
+  const hasExpenses = expenseDates.length > 0;
+  const years = expenseYears(
+    expenseDates.map((expense) => expense.date),
+    Number(currentMonth.slice(0, 4)),
     start.getUTCFullYear(),
-  ])].sort((a, b) => a - b);
+  );
   const months = monthNames(locale);
 
   // ponytail: filters in memory because Postgres can't ignore accents without raw SQL; the list

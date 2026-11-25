@@ -1,5 +1,5 @@
 // Run: npx tsx src/lib/date.check.ts
-import { currentMonthKey, dateToInputValue, formatDate, formatMonth, inputValueToDate, monthBounds, monthKey, monthNames, parseMonthKey, yearRange } from "./date";
+import { currentMonthKey, dateToInputValue, expenseYears, formatDate, formatMonth, inputValueToDate, monthBounds, monthKey, monthNames, parseMonthKey } from "./date";
 
 const assert = (c: boolean, m: string) => {
   if (!c) throw new Error(m);
@@ -16,6 +16,8 @@ for (const invalid of ["", "2026-1-01", "2026-01-1", "24/11/2026", " 2026-11-24 
 }
 assert(monthKey(new Date("2026-01-01T00:00:00Z")) === "2026-01", "GAS-19: month keys pad January and use UTC");
 assert(monthKey(new Date("2026-12-01T01:00:00+02:00")) === "2026-11", "GAS-19: month keys use the UTC month of an offset date");
+assert(monthKey(new Date("0050-01-01T00:00:00Z")) === "0050-01", "GAS-19: month keys pad year 50 to four digits");
+assert(monthKey(new Date("0000-12-01T00:00:00Z")) === "0000-12", "GAS-19: month keys pad year zero to four digits");
 assert(formatMonth(new Date("2026-11-01T00:00:00Z")) === "Noviembre de 2026", "GAS-20: default month is capitalized Spanish in UTC");
 assert(formatMonth(new Date("2026-11-01T00:00:00Z"), "es") === "Noviembre de 2026", "GAS-20: Spanish month starts with a capital");
 assert(formatMonth(new Date("2026-11-01T00:00:00Z"), "en") === "November 2026", "GAS-20: English month starts with a capital and uses UTC");
@@ -64,14 +66,15 @@ const february = monthBounds("2028-02");
 assert(february.start.toISOString() === "2028-02-01T00:00:00.000Z", "GAS-19: leap February start");
 assert(february.endExclusive.toISOString() === "2028-03-01T00:00:00.000Z", "GAS-19: leap February end");
 
-const date = (year: number) => new Date(`${year}-06-01T00:00:00Z`);
-const years = (min: Date | null, max: Date | null) => yearRange(min, max, 2026).join(",");
-assert(years(null, null) === "2026", "GAS-21: no expenses offers just current year");
-assert(years(date(2026), date(2026)) === "2026", "GAS-21: same year has no duplicates");
-assert(years(date(2024), date(2028)) === "2024,2025,2026,2027,2028", "GAS-21: inclusive ascending range with future installments");
-assert(years(date(2023), date(2024)) === "2023,2024,2025,2026", "GAS-21: past expenses include current year");
-assert(years(date(2027), date(2028)) === "2026,2027,2028", "GAS-21: future expenses include current year");
-assert(years(null, date(2028)) === "2026", "GAS-21: null minimum offers just current year");
-assert(years(date(2024), null) === "2026", "GAS-21: null maximum offers just current year");
-assert(years(new Date("2025-12-31T23:59:59Z"), new Date("2027-01-01T00:00:00Z")) === "2025,2026,2027", "GAS-21: years use UTC boundaries");
+const date = (year: number) => new Date(`${String(year).padStart(4, "0")}-06-01T00:00:00Z`);
+const years = (dates: Date[], selectedYear = 2026) => expenseYears(dates, 2026, selectedYear).join(",");
+assert(years([], 2024) === "2024,2026", "GAS-21: no expenses includes current and selected years in ascending order");
+assert(years([]) === "2026", "GAS-21: no expenses deduplicates current and selected years");
+assert(years([date(2026), date(202)]) === "202,2026", "GAS-21: typo year 0202 adds exactly one option without filling gaps");
+assert(years([date(2026), date(2024), date(2024), date(2026)]) === "2024,2026", "GAS-21: duplicate expense years collapse");
+assert(years([date(2030), date(2028)]) === "2026,2028,2030", "GAS-21: future installment years are included without filling gaps");
+assert(years([date(2024)], 2035) === "2024,2026,2035", "GAS-21: selected year outside expense data is included");
+assert(years([new Date("2025-12-31T23:59:59Z")]) === "2025,2026", "GAS-21: last UTC second of 2025 belongs to 2025");
+assert(years([new Date("2026-01-01T01:00:00+02:00")]) === "2025,2026", "GAS-21: offset dates use their UTC year");
+assert(years([new Date("2025-01-01T00:00:00Z")]) === "2025,2026", "GAS-21: UTC midnight starts the new year");
 console.log("date ok");
