@@ -1,6 +1,6 @@
 # Spec: Inicio
 
-**Estado:** Aprobada el 2026-11-24, solo para INI-1 e INI-2. El resto del inicio (totales, gráficas, presupuesto y tabla del mes) todavía no tiene reglas escritas. Se documentará la próxima vez que se cambie.
+**Estado:** Aprobada el 2026-11-24, solo para INI-1 e INI-2. Los paneles de presupuesto están en `specs/budget/spec.md`. El resto del inicio (totales, gráficas y tabla del mes) todavía no tiene reglas escritas. Se documentará la próxima vez que se cambie.
 **Ruta:** `/`
 
 ## Propósito
