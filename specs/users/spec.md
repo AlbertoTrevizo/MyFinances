@@ -1,6 +1,6 @@
 # Spec: Usuarios
 
-**Estado:** Aprobada el 2026-11-04.
+**Estado:** Aprobada el 2026-11-04. Cambios de la auditoría de seguridad (S1–S12) aprobados el 2026-11-25.
 
 ## Contexto y objetivo
 Hoy solo entra quien ya es administrador, y su cuenta se crea a mano fuera de la app. Eso impide que otra persona use la app por su cuenta y obliga a intervenir manualmente para recuperar una contraseña.
@@ -48,12 +48,15 @@ Los roles y su asignación se definen en `specs/roles/spec.md`.
 **RF-4. Correo ya registrado.**
 - SI el correo ya pertenece a una cuenta Confirmada, ENTONCES el sistema DEBERÁ mostrar el mismo mensaje que en un registro normal, no cambiar la cuenta y enviar al correo un aviso de que ya tiene cuenta, con un enlace para recuperar la contraseña.
 - SI el correo pertenece a una cuenta Pendiente, ENTONCES el sistema DEBERÁ mostrar el mismo mensaje, reemplazar nombre, apellido y contraseña por los nuevos, anular los enlaces anteriores y enviar un nuevo enlace de confirmación.
+- *(S1)* El reemplazo DEBERÁ aplicarse solo si la cuenta sigue Pendiente en el momento de guardar. SI se confirmó entretanto, con el enlace o con Google, ENTONCES el sistema NO DEBERÁ cambiarla y DEBERÁ tratarla como Confirmada: mismo mensaje y aviso de cuenta existente.
+- *(S7)* El sistema DEBERÁ recordar que la contraseña de la cuenta viene de un registro que reemplazó a otro, para aplicar RF-5.
 
 ### Confirmación de correo
 **RF-5. Confirmar la cuenta.**
 - El enlace de confirmación DEBERÁ servir una sola vez y vencer a las 24 horas.
 - CUANDO alguien abra un enlace vigente, el sistema DEBERÁ mostrar una pantalla con el botón "Confirmar mi correo", sin confirmar todavía.
 - CUANDO pulse ese botón, el sistema DEBERÁ marcar la cuenta como Confirmada y llevarlo a iniciar sesión con un aviso de éxito, sin abrir sesión.
+- *(S7)* SI la contraseña de la cuenta viene de un registro que reemplazó a otro (RF-4), ENTONCES la pantalla de confirmación DEBERÁ pedir además una contraseña nueva, con las reglas de RF-3, y guardarla en lugar de la del registro. Así quien registró el correo sin ser su dueño no conoce la contraseña de la cuenta confirmada.
 - SI el enlace venció, ya se usó o fue anulado, ENTONCES el sistema DEBERÁ indicar que no es válido y ofrecer pedir otro.
 
 **RF-6. Inicio de sesión con cuenta Pendiente.**
@@ -71,6 +74,7 @@ Los roles y su asignación se definen en `specs/roles/spec.md`.
 **RF-8. Correo que ya tiene cuenta.**
 - CUANDO Google entregue un correo verificado de una cuenta Confirmada, el sistema DEBERÁ unir Google a esa cuenta y abrir sesión; desde entonces funcionan ambos métodos.
 - CUANDO Google entregue un correo verificado de una cuenta Pendiente, el sistema DEBERÁ marcarla como Confirmada, invalidar su contraseña, anular sus enlaces pendientes, unir Google y abrir sesión.
+- *(S6)* Google solo garantiza que la persona controla hoy el correo cuando es la autoridad de ese correo: direcciones `@gmail.com` o `@googlemail.com`, o cuentas de Google Workspace cuyo dominio es el del correo. SI Google no es la autoridad, ENTONCES el sistema NO DEBERÁ crear, unir ni confirmar ninguna cuenta con ese correo y DEBERÁ indicar que entre o se registre con correo y contraseña. Esto aplica también a RF-7.
 
 ### Recuperación de contraseña
 **RF-9. Pedir la recuperación.**
@@ -81,7 +85,12 @@ Los roles y su asignación se definen en `specs/roles/spec.md`.
 
 **RF-10. Usar el enlace.**
 - El enlace DEBERÁ servir una sola vez y vencer a la hora; pedir otro DEBERÁ anular el anterior.
+- *(S4)* Pedir otro DEBERÁ anular el anterior solo si el nuevo sale. SI el límite de RF-12 impide enviarlo, ENTONCES el enlace anterior DEBERÁ seguir vigente. Lo mismo aplica al reenvío de confirmación de RF-5 y al reemplazo de RF-4.
+- *(S9)* Aun con pedidos simultáneos, DEBERÁ quedar vigente un solo enlace de cada tipo por cuenta.
+- *(S12)* El sistema DEBERÁ revisar que el enlace esté vigente antes de procesar la contraseña nueva.
 - CUANDO alguien envíe una contraseña nueva válida desde un enlace vigente, el sistema DEBERÁ guardarla, quitar cualquier bloqueo por intentos fallidos, cerrar todas las sesiones del usuario y llevarlo a iniciar sesión.
+- *(S2)* Cerrar todas las sesiones incluye las que se estén abriendo en ese momento: una sesión validada con la contraseña anterior NO DEBERÁ servir después del cambio.
+- *(S5)* El sistema DEBERÁ anular también los demás enlaces pendientes de la cuenta: confirmación y cambio de correo.
 - CUANDO la cuenta solo use Google, el sistema DEBERÁ crear la contraseña y mantener también la entrada con Google.
 - SI el enlace venció, ya se usó o fue anulado, ENTONCES el sistema DEBERÁ indicar que no es válido y ofrecer pedir otro.
 
@@ -89,6 +98,8 @@ Los roles y su asignación se definen en `specs/roles/spec.md`.
 **RF-11. Mensajes en el idioma de la interfaz.** El sistema DEBERÁ enviar cada correo en el idioma que la persona usaba al pedirlo.
 
 **RF-12. Límite de envíos.** El sistema DEBERÁ enviar como máximo 3 correos por hora a cada dirección, sumando confirmación, recuperación y aviso de cuenta existente. SI se supera, ENTONCES el sistema NO DEBERÁ enviar más y DEBERÁ mostrar el mismo mensaje que si se hubiera enviado.
+- *(S4)* El límite se revisa antes de crear el enlace nuevo, para no anular el anterior en vano (RF-10).
+- *(S11)* Además, el sistema DEBERÁ enviar como máximo 50 correos por hora en total, sumando todas las direcciones, para que nadie agote la cuota del servicio de correo registrando direcciones al azar. Al superarlo se comporta igual que el límite por dirección, y se registra para que el administrador lo note.
 
 **RF-13. Fallo de envío.**
 - SI falla el correo de confirmación de un registro nuevo o de un reenvío, ENTONCES el sistema DEBERÁ conservar la cuenta como Pendiente, avisar que el correo no salió y ofrecer pedir otro enlace.
@@ -111,6 +122,7 @@ Los roles y su asignación se definen en `specs/roles/spec.md`.
 **RF-16. Cambio de correo.**
 - CUANDO un administrador cambie el correo de una cuenta Confirmada, el sistema DEBERÁ conservar el correo anterior como vigente, enviar un enlace de confirmación al nuevo y un aviso al anterior.
 - CUANDO se confirme el enlace, con las condiciones de RF-5, el sistema DEBERÁ reemplazar el correo.
+- *(S5)* Al reemplazar el correo, el sistema DEBERÁ anular los enlaces de recuperación y confirmación pendientes de la cuenta, que se enviaron al correo anterior.
 - SI el enlace vence, ENTONCES el sistema DEBERÁ conservar el correo anterior sin cambios.
 - CUANDO un administrador cambie el correo de una cuenta Pendiente, el sistema DEBERÁ reemplazarlo, anular los enlaces anteriores y enviar uno nuevo al correo corregido.
 - CUANDO una cuenta unida a Google cambie de correo, el sistema DEBERÁ seguir aceptando la misma cuenta de Google.
@@ -128,6 +140,7 @@ Los roles y su asignación se definen en `specs/roles/spec.md`.
 - **RNF-1. Privacidad de cuentas.** Un visitante no debe poder averiguar si un correo está registrado por los mensajes ni por el tiempo de respuesta de registro, inicio de sesión o recuperación, salvo el caso de RF-13.
 - **RNF-2. Credenciales.** Las contraseñas y los enlaces vigentes no se guardan de forma legible, y nunca aparecen en pantallas, registros ni correos, salvo el enlace en su propio correo.
 - **RNF-3. Bloqueo actual.** Se conserva el bloqueo por intentos fallidos de contraseña, sin afectar la entrada con Google.
+  - *(S3)* El bloqueo se cumple aun con intentos simultáneos: no se revisan más de 5 contraseñas incorrectas de una cuenta antes de bloquearla.
 - **RNF-4. Atomicidad.** Una operación que falla a medias no deja datos a medias: no hay cuenta con su correo cambiado sin confirmar ni enlaces vigentes de una cuenta eliminada.
 - **RNF-5. Trazabilidad.** Se registran registro, confirmación, recuperación, edición, eliminación y fallos de envío, indicando quién lo hizo cuando aplique, sin contraseñas ni enlaces.
 - **RNF-6. Idiomas.** Todo texto visible y todo correo existe en español e inglés.
@@ -147,7 +160,12 @@ La constitución pide justificar aquí lo nuevo que la app necesita para funcion
 | Se abre un enlace de confirmación ya usado | Se indica que no es válido, aunque la cuenta ya esté confirmada (RF-5). |
 | Enlace de una cuenta eliminada, o de una cuenta eliminada y vuelta a registrar | No es válido (RF-17). |
 | Otra persona registró tu correo y sigue Pendiente | Al registrarte tú, sus datos se reemplazan y su enlace se anula (RF-4). |
-| Otra persona registró tu correo y tú abres su enlace | Tu cuenta queda con su contraseña. El correo debe decir que lo ignores si no fuiste tú. Riesgo aceptado: el registro abierto ya da acceso a los mismos datos. |
+| Otra persona registró tu correo y tú abres su enlace | Tu cuenta queda con su contraseña. El correo debe decir que lo ignores si no fuiste tú. Riesgo aceptado: el registro abierto ya da acceso a los mismos datos. *(S7):* al confirmar creas tu propia contraseña y la suya deja de servir; así tampoco hereda un rol de administrador que te den después. |
+| *(S1)* Alguien vuelve a registrar tu correo Pendiente justo cuando lo confirmas | Tu confirmación gana: su registro no cambia la cuenta (RF-4). |
+| *(S2)* Alguien inicia sesión con la contraseña anterior mientras la restableces | Esa sesión no sirve (RF-10). |
+| *(S4)* Alguien pide muchos enlaces de recuperación con tu correo | El último enlace que te llegó sigue sirviendo (RF-10, RF-12). |
+| *(S9)* Se piden dos enlaces de recuperación a la vez | Solo uno queda vigente (RF-10). |
+| *(S6)* Alguien entra con una cuenta de Google cuyo correo no es de Gmail ni de Workspace | No se une ni se crea cuenta; se le pide usar correo y contraseña (RF-8). |
 | Dos personas registran en secuencia un correo Pendiente | El último registro reemplaza al anterior, y solo funciona el enlace más reciente (RF-4). |
 | Se pide reenviar o recuperar más de 3 veces en una hora | No sale más correo y el mensaje no cambia (RF-12). |
 | El servicio de correo cae durante una recuperación | El error aparece solo si la cuenta existe y revela eso mientras dure la caída. Riesgo aceptado (RF-13). |
@@ -162,7 +180,7 @@ La constitución pide justificar aquí lo nuevo que la app necesita para funcion
 - Desactivar cuentas sin eliminarlas, y restaurar cuentas eliminadas.
 - Otros proveedores de identidad, verificación en dos pasos e invitaciones.
 - Reintentos automáticos de correos y borrado automático de cuentas Pendientes.
-- Límite de intentos por conexión o IP.
+- Límite de intentos por conexión o IP en el código de la app. *(S12):* se cubre fuera del código, con una regla de Vercel Firewall que limite por IP las peticiones a `/login`, `/register`, `/forgot-password` y `/reset-password`. La configura el dueño en el panel de Vercel.
 
 ## Criterios de finalización
 - Todos los RF se cumplen con sus criterios, y cada caso límite se probó o se justificó.

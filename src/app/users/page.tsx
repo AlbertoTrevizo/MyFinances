@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { getTranslations } from "@/i18n/get-locale";
 import { requireAdmin } from "@/lib/session";
@@ -10,6 +11,11 @@ import { formatDate } from "@/lib/date";
 import { accountStatus, signInMethod, sortUsers } from "@/lib/user-status";
 
 const SORT_FIELDS = ["name", "lastName", "email", "method", "status", "role", "createdAt"] as const;
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getTranslations();
+  return { title: t.users.title };
+}
 
 export default async function UsersPage({
   searchParams,
@@ -66,6 +72,7 @@ export default async function UsersPage({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { confirmDelete: _confirmDelete, ...usersCopy } = t.users;
   const copy = {
+    actionsLabel: t.common.actions,
     users: usersCopy,
     validation: t.validation,
     register: t.register,
@@ -73,26 +80,29 @@ export default async function UsersPage({
     editLabel: t.common.edit,
     deleteLabel: t.common.delete,
     deletingLabel: t.common.deleting,
+    cancelLabel: t.common.cancel,
     savingLabel: t.common.saving,
   };
 
   return (
     <PageContainer title={<PageTitle>{t.users.title}</PageTitle>}>
-      <form method="get" action="/users" className="flex gap-2">
-        <input type="hidden" name="sort" value={field} />
-        <input type="hidden" name="dir" value={dir} />
-        <input
-          type="search"
-          name="q"
-          defaultValue={query}
-          placeholder={t.users.searchPlaceholder}
-          aria-label={t.users.searchPlaceholder}
-          className={`${inputField} min-w-0 flex-1`}
-        />
-        <button type="submit" className={buttonPrimary}>
-          {t.users.searchButton}
-        </button>
-      </form>
+      <search>
+        <form method="get" action="/users" className="flex gap-2">
+          <input type="hidden" name="sort" value={field} />
+          <input type="hidden" name="dir" value={dir} />
+          <input
+            type="search"
+            name="q"
+            defaultValue={query}
+            placeholder={t.users.searchPlaceholder}
+            aria-label={t.users.searchPlaceholder}
+            className={`${inputField} min-w-0 flex-1`}
+          />
+          <button type="submit" className={buttonPrimary}>
+            {t.users.searchButton}
+          </button>
+        </form>
+      </search>
 
       {rows.length === 0 ? (
         <p className="text-sm text-ink-muted">{query ? t.users.noResults : t.users.emptyMessage}</p>

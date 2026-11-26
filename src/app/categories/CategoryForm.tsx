@@ -21,6 +21,7 @@ export function CategoryForm({
   saving: string;
 }) {
   const [state, formAction, isPending] = useActionState(action, initialState);
+  const values = state?.values ?? defaultValues;
 
   return (
     <form action={formAction} className="flex max-w-md flex-col gap-4">
@@ -30,13 +31,15 @@ export function CategoryForm({
           name="name"
           type="text"
           required
-          defaultValue={defaultValues?.name}
+          defaultValue={values?.name}
           placeholder={form.namePlaceholder}
           className={inputField}
         />
       </label>
 
-      {state?.error && <p className="text-sm text-danger">{state.error}</p>}
+      <div aria-live="polite">
+        {state?.error && <p className="text-sm text-danger">{state.error}</p>}
+      </div>
 
       <button type="submit" disabled={isPending} className={buttonPrimary}>
         {isPending ? saving : submitLabel}

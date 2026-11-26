@@ -1,8 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations } from "@/i18n/get-locale";
 import { findToken } from "@/lib/user-tokens";
 import { AuthCard } from "@/components/AuthCard";
 import { ResetForm } from "./ResetForm";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getTranslations();
+  return { title: t.resetPassword.title };
+}
 
 export default async function ResetPasswordPage({
   searchParams,
@@ -16,8 +22,8 @@ export default async function ResetPasswordPage({
 
   if (!token || !row) {
     return (
-      <AuthCard title={t.resetPassword.invalidTitle} subtitle={t.resetPassword.invalidBody}>
-        <Link href="/forgot-password" className="text-sm text-primary hover:text-primary-strong">
+      <AuthCard appName={t.appName} title={t.resetPassword.invalidTitle} subtitle={t.resetPassword.invalidBody}>
+        <Link href="/forgot-password" className="block text-center text-sm text-primary hover:text-primary-strong">
           {t.resetPassword.requestNew}
         </Link>
       </AuthCard>
@@ -25,8 +31,8 @@ export default async function ResetPasswordPage({
   }
 
   return (
-    <AuthCard title={t.resetPassword.title} subtitle={t.resetPassword.subtitle}>
-      <ResetForm token={token} t={t.resetPassword} />
+    <AuthCard appName={t.appName} title={t.resetPassword.title} subtitle={t.resetPassword.subtitle}>
+      <ResetForm token={token} t={t.resetPassword} passwordHint={t.register.passwordHint} />
     </AuthCard>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useTransition } from "react";
 import { inputField } from "@/lib/styles";
 
 export function MonthSelect({
@@ -13,13 +14,19 @@ export function MonthSelect({
   label: string;
 }) {
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
 
   return (
     <select
       aria-label={label}
+      aria-busy={isPending}
+      data-pending={isPending ? "" : undefined}
       value={value}
-      onChange={(e) => router.push(`/?month=${e.target.value}`)}
-      className={`${inputField} capitalize`}
+      onChange={(e) => {
+        const month = e.target.value;
+        startTransition(() => router.push(`/?month=${month}`));
+      }}
+      className={`${inputField} month-select capitalize`}
     >
       {options.map((option) => (
         <option key={option.value} value={option.value} className="capitalize">

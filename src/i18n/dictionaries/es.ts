@@ -1,11 +1,12 @@
 import type { Dictionary } from "../types";
 
 const es: Dictionary = {
-  appName: "Nuestras Finanzas",
+  appName: "Mis Finanzas",
   meta: {
     description: "Control de gastos personales",
   },
   nav: {
+    label: "Navegación principal",
     home: "Inicio",
     expenses: "Gastos",
     accounts: "Cuentas",
@@ -14,10 +15,17 @@ const es: Dictionary = {
     users: "Usuarios",
   },
   common: {
+    actions: "Acciones",
+    close: "Cerrar",
+    cancel: "Cancelar",
+    skipToContent: "Saltar al contenido",
+    language: "Idioma",
+    languages: { es: "ES", en: "EN" },
     edit: "Editar",
     delete: "Eliminar",
     deleting: "Eliminando…",
     saving: "Guardando…",
+    loading: "Cargando…",
   },
   auth: {
     title: "Bienvenido de nuevo",
@@ -26,7 +34,11 @@ const es: Dictionary = {
     passwordLabel: "Contraseña",
     signInButton: "Iniciar sesión",
     signingIn: "Iniciando sesión…",
-    orDivider: "o",
+    emailDivider: "o usa tu correo",
+    newHereTitle: "¿Nuevo por aquí?",
+    newHereText: "Crea tu cuenta y empieza a ordenar las finanzas de tu hogar.",
+    welcomeBackTitle: "¡Bienvenido de nuevo!",
+    welcomeBackText: "Inicia sesión para ver en qué se va tu dinero este mes.",
     logout: "Cerrar sesión",
     googleButton: "Continuar con Google",
     registerLink: "Crear una cuenta",
@@ -38,6 +50,7 @@ const es: Dictionary = {
       passwordReset: "Tu contraseña se actualizó. Inicia sesión con la nueva.",
     },
     errors: {
+      googleNotAuthoritative: "Para este correo, entra o regístrate con correo y contraseña.",
       invalidCredentials: "Correo o contraseña incorrectos.",
       generic: "Algo salió mal. Intenta de nuevo.",
       emailNotConfirmed: "Falta confirmar tu correo. Revisa tu bandeja o pide otro enlace.",
@@ -76,6 +89,7 @@ const es: Dictionary = {
     emailNotSent: "El correo no salió. Intenta de nuevo en unos minutos.",
   },
   confirmEmail: {
+    passwordBody: "Elige una contraseña nueva para proteger tu cuenta y confirmar tu correo.",
     confirmTitle: "Confirma tu correo",
     confirmBody: "Pulsa el botón para activar tu cuenta.",
     changeTitle: "Confirma tu nuevo correo",
@@ -187,6 +201,11 @@ const es: Dictionary = {
     greeting: "Hola 👋",
     monthSelectLabel: "Seleccionar mes",
     spentInMonth: (month) => `Gastado en ${month.toLocaleLowerCase("es-MX")}:`,
+    spentMoreThan: (percent, month) => `${percent} % más que ${month.toLocaleLowerCase("es-MX")}`,
+    spentLessThan: (percent, month) => `${percent} % menos que ${month.toLocaleLowerCase("es-MX")}`,
+    spentSameAs: (month) => `Igual que ${month.toLocaleLowerCase("es-MX")}`,
+    budgetAmount: (amount) => `Presupuesto: ${amount}`,
+    noBudget: "Sin presupuesto",
     byCategoryTitle: "Gastos por categoría",
     byTypeTitle: "Gastos por tipo",
     topCategoriesTitle: "Categorías principales",
@@ -211,6 +230,7 @@ const es: Dictionary = {
     },
   },
   budget: {
+    percentLabel: (percent) => `${percent} %`,
     title: "Presupuesto",
     description: "Asigna un presupuesto mensual para cada tipo de gasto.",
     saveSubmit: "Guardar presupuesto",
@@ -314,12 +334,17 @@ const es: Dictionary = {
     noType: "Sin tipo",
     noResults: "No hay gastos que coincidan con tu búsqueda.",
     noExpensesMonth: (month) => `No hay gastos en ${month.toLocaleLowerCase("es-MX")}`,
+    noExpensesAll: "No hay gastos",
+    periodYear: (year) => `Todo ${year}`,
+    periodAll: "Todas las fechas",
     msiBadge: "MSI",
     filters: {
       searchLabel: "Buscar",
       searchPlaceholder: "Buscar por descripción, categoría o cuenta",
       monthLabel: "Mes",
       yearLabel: "Año",
+      monthAll: "Todos los meses",
+      yearAll: "Todos los años",
       clear: "Limpiar filtros",
     },
     form: {
@@ -342,6 +367,7 @@ const es: Dictionary = {
     },
     confirmDelete: (description) => `¿Eliminar el gasto "${description}"?`,
     errors: {
+      conflict: "Este gasto se editó a la vez desde otro lugar. Intenta de nuevo.",
       descriptionRequired: "La descripción es requerida.",
       accountRequired: "Selecciona una cuenta.",
       invalidAmount: "El monto debe ser un número mayor a cero.",

@@ -1,5 +1,5 @@
 import { randomBytes } from "crypto";
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { prisma } from "./prisma";
 import { hashToken } from "./session";
 
@@ -13,27 +13,35 @@ const TTL_MS: Record<TokenPurpose, number> = {
   reset: HOUR_MS,
 };
 
-// Returns the raw token (for the link). Only its hash is stored, and any earlier token of the same purpose is annulled.
+// Prepare the account and rotate its link atomically; retry the entire operation on a concurrent rotation.
 export async function createToken(
-  db: Db,
-  userId: string,
   purpose: TokenPurpose,
+  prepareUser: (db: Db) => Promise<string | null>,
   newEmail?: string
-): Promise<string> {
-  const token = randomBytes(32).toString("hex");
-  await db.userToken.deleteMany({
-    where: { OR: [{ userId, purpose }, { expiresAt: { lt: new Date() } }] },
-  });
-  await db.userToken.create({
-    data: {
-      tokenHash: hashToken(token),
-      purpose,
-      newEmail: newEmail ?? null,
-      userId,
-      expiresAt: new Date(Date.now() + TTL_MS[purpose]),
-    },
-  });
-  return token;
+): Promise<string | null> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await prisma.$transaction(async (db) => {
+        const userId = await prepareUser(db);
+        if (!userId) return null;
+        const token = randomBytes(32).toString("hex");
+        await db.userToken.deleteMany({
+          where: { OR: [{ userId, purpose }, { expiresAt: { lt: new Date() } }] },
+        });
+        await db.userToken.create({
+          data: {
+            tokenHash: hashToken(token), purpose, newEmail: newEmail ?? null, userId,
+            expiresAt: new Date(Date.now() + TTL_MS[purpose]),
+          },
+        });
+        return token;
+      }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+    } catch (error) {
+      if (attempt >= 2 || !(error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2034")) {
+        throw error;
+      }
+    }
+  }
 }
 
 // Read-only: opening a link must not spend it.

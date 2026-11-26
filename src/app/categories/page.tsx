@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { DeleteButton } from "@/components/DeleteButton";
@@ -11,6 +12,11 @@ import { deleteCategory } from "./actions";
 import { requireUser } from "@/lib/session";
 
 const SORT_FIELDS = ["name"] as const;
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getTranslations();
+  return { title: t.categories.title };
+}
 
 export default async function CategoriesPage({
   searchParams,
@@ -45,44 +51,46 @@ export default async function CategoriesPage({
         <p className="text-sm text-ink-muted">{t.categories.emptyMessage}</p>
       ) : (
         <div className={card}>
-          <div className="overflow-x-auto rounded-xl">
+          <div role="region" tabIndex={0} aria-labelledby="categories-caption" className="relative max-w-full overflow-x-auto rounded-2xl">
             <table className="w-full min-w-[320px] text-left text-sm">
-              <thead className="bg-canvas text-ink-muted">
+              <caption id="categories-caption" className="sr-only">{t.categories.title}</caption>
+              <thead className="border-b border-line bg-surface text-xs font-medium text-ink-muted">
                 <tr>
-                  <th className="px-4 py-3 font-medium">
-                    <SortableHeader
-                      label={t.categories.tableName}
-                      field="name"
-                      activeField={field}
-                      dir={dir}
-                      basePath="/categories"
-                    />
-                  </th>
-                  <th className="px-4 py-3 font-medium"></th>
+                  <SortableHeader
+                    label={t.categories.tableName}
+                    field="name"
+                    activeField={field}
+                    dir={dir}
+                    basePath="/categories"
+                  />
+                  <th scope="col" className="px-4 py-3 font-medium"><span className="sr-only">{t.common.actions}</span></th>
                 </tr>
               </thead>
               <tbody>
                 {categories.map((category) => (
                   <tr
                     key={category.id}
-                    className="border-t border-line transition-colors hover:bg-canvas"
+                    className="border-b border-line last:border-b-0 transition-colors hover:bg-canvas/60"
                   >
-                    <td className="px-4 py-3 text-ink">{category.name}</td>
-                    <td className="px-4 py-3 text-right">
+                    <td id={`category-${category.id}`} className="px-4 py-3.5 font-semibold text-ink">{category.name}</td>
+                    <td className="px-4 py-3.5 text-right">
                       <div className="flex justify-end gap-1">
                         <Link
                           href={`/categories/${category.id}/edit`}
                           aria-label={t.common.edit}
+                          aria-describedby={`category-${category.id}`}
                           title={t.common.edit}
                           className={iconButton}
                         >
                           <PencilIcon className="h-4 w-4" />
                         </Link>
                         <DeleteButton
+                          describedBy={`category-${category.id}`}
                           action={deleteCategory.bind(null, category.id)}
                           confirmMessage={t.categories.confirmDelete(category.name)}
                           label={t.common.delete}
                           pendingLabel={t.common.deleting}
+                          cancelLabel={t.common.cancel}
                         />
                       </div>
                     </td>

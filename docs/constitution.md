@@ -1,4 +1,4 @@
-# Constitución de MyFinances
+# Constitución de Mis Finanzas
 
 1. **Stack mínimo.** Next.js, TypeScript, Tailwind y Prisma, con Server Actions. Toda dependencia nueva de runtime se justifica en su spec.
 2. **La spec es la fuente de verdad.** `specs/<feature>/spec.md` define el comportamiento: todo cambio se aprueba primero en la spec, y spec y código cambian en el mismo commit; si difieren, manda la spec.

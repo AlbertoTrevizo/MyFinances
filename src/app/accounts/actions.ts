@@ -8,7 +8,7 @@ import { requireUser } from "@/lib/session";
 import { readFields, validateAccount, accountFieldChanges, type EditableAccountField } from "@/lib/account-validation";
 import { getTranslations } from "@/i18n/get-locale";
 
-export type ActionState = { error?: string } | undefined;
+export type ActionState = { error?: string; values?: ReturnType<typeof readFields> } | undefined;
 
 function isUniqueConstraintError(error: unknown): boolean {
   return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
@@ -20,9 +20,10 @@ export async function createAccount(
 ): Promise<ActionState> {
   await requireUser();
   const { t } = await getTranslations();
-  const { name, type, cutoffDay, paymentDay } = readFields(formData);
+  const values = readFields(formData);
+  const { name, type, cutoffDay, paymentDay } = values;
   const result = validateAccount({ name, type, cutoffDay, paymentDay }, t);
-  if ("error" in result) return result;
+  if ("error" in result) return { ...result, values };
   const { cutoffDayValue, paymentDayValue } = result;
 
   try {
@@ -30,7 +31,7 @@ export async function createAccount(
       data: { name, type, cutoffDay: cutoffDayValue, paymentDay: paymentDayValue },
     });
   } catch (error) {
-    if (isUniqueConstraintError(error)) return { error: t.accounts.errors.nameTaken };
+    if (isUniqueConstraintError(error)) return { error: t.accounts.errors.nameTaken, values };
     throw error;
   }
   revalidatePath("/accounts");
@@ -44,9 +45,10 @@ export async function updateAccount(
 ): Promise<ActionState> {
   await requireUser();
   const { t } = await getTranslations();
-  const { name, type, cutoffDay, paymentDay } = readFields(formData);
+  const values = readFields(formData);
+  const { name, type, cutoffDay, paymentDay } = values;
   const result = validateAccount({ name, type, cutoffDay, paymentDay }, t);
-  if ("error" in result) return result;
+  if ("error" in result) return { ...result, values };
   const { cutoffDayValue, paymentDayValue } = result;
 
   try {
@@ -55,7 +57,7 @@ export async function updateAccount(
       data: { name, type, cutoffDay: cutoffDayValue, paymentDay: paymentDayValue },
     });
   } catch (error) {
-    if (isUniqueConstraintError(error)) return { error: t.accounts.errors.nameTaken };
+    if (isUniqueConstraintError(error)) return { error: t.accounts.errors.nameTaken, values };
     throw error;
   }
   revalidatePath("/accounts");

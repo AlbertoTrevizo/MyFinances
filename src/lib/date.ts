@@ -52,6 +52,31 @@ export function monthBounds(key: string): { start: Date; endExclusive: Date } {
   return { start, endExclusive };
 }
 
+type Period = { kind: "month"; key: string } | { kind: "year"; year: number } | { kind: "all" };
+
+export function parsePeriod(value: string): Period | null {
+  if (typeof value !== "string") return null;
+  if (value === "all") return { kind: "all" };
+  if (parseMonthKey(value)) return { kind: "month", key: value };
+  if (/^\d{4}$/.test(value)) return { kind: "year", year: Number(value) };
+  return null;
+}
+
+export function periodBounds(period: Period): { start: Date; endExclusive: Date } | null {
+  if (period.kind === "all") return null;
+  if (period.kind === "month") return monthBounds(period.key);
+  const start = parseMonthKey(`${String(period.year).padStart(4, "0")}-01`)!;
+  const endExclusive = new Date(start.getTime());
+  endExclusive.setUTCFullYear(period.year + 1);
+  return { start, endExclusive };
+}
+
+export function previousMonthKey(key: string): string {
+  const date = parseMonthKey(key)!;
+  date.setUTCMonth(date.getUTCMonth() - 1);
+  return monthKey(date);
+}
+
 export function expenseYears(dates: Date[], currentYear: number, selectedYear: number): number[] {
   return [...new Set([...dates.map((date) => date.getUTCFullYear()), currentYear, selectedYear])]
     .sort((a, b) => a - b);

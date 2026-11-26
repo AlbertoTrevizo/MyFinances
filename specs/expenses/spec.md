@@ -1,6 +1,6 @@
 # Spec: Gastos
 
-**Estado:** Aprobada el 2026-11-04. Filtro por mes (GAS-18 a GAS-23, GAS-33, GAS-34, D-5 y D-10) aprobado el 2026-11-24. GAS-18 precisado el 2026-11-24 (orden inválido por partes). GAS-21, GAS-22 y GAS-23 ajustados el 2026-11-24 tras la revisión de código.
+**Estado:** Aprobada el 2026-11-04. Filtro por mes (GAS-18 a GAS-23, GAS-33, GAS-34, D-5 y D-10) aprobado el 2026-11-24. GAS-18 precisado el 2026-11-24 (orden inválido por partes). GAS-21, GAS-22 y GAS-23 ajustados el 2026-11-24 tras la revisión de código. Filtro por año y por todas las fechas (GAS-18 a GAS-23 y GAS-33) y mensualidades sin leyenda (GAS-29) aprobados el 2026-11-25.
 **Ruta:** `/expenses`
 
 ## Propósito
@@ -59,19 +59,26 @@ Registrar, consultar y corregir los gastos del hogar en pesos mexicanos, incluid
 
 ### Listado
 - **GAS-16.** La tabla muestra fecha, descripción, cuenta, categoría, tipo y monto. Muestra todos los resultados, sin paginación.
-- **GAS-17.** Un gasto con notas muestra un icono; al pasar el cursor aparece el texto.
-- **GAS-18.** El orden inicial es por fecha descendente. Se puede ordenar por cualquier columna: la primera vez ascendente y, al repetir el clic, se invierte. En la URL, una columna inválida usa la columna inicial y una dirección inválida usa la dirección inicial, cada una por separado: `?sort=x&dir=asc` ordena por fecha ascendente. Ordenar conserva la búsqueda y el mes.
+- **GAS-17.** Un gasto con notas muestra un botón con icono; al hacer clic, tocarlo o pulsar Enter aparece el texto, y Escape o un clic fuera lo cierran.
+- **GAS-18.** El orden inicial es por fecha descendente. Se puede ordenar por cualquier columna: la primera vez ascendente y, al repetir el clic, se invierte. En la URL, una columna inválida usa la columna inicial y una dirección inválida usa la dirección inicial, cada una por separado: `?sort=x&dir=asc` ordena por fecha ascendente. Ordenar conserva la búsqueda y el periodo.
 
 ### Filtros
-- **GAS-19.** La lista muestra siempre un solo mes, que va en la URL como `month=AAAA-MM`, igual que en el inicio. Sin `month`, o con un valor inválido, se muestra el mes actual según la hora de México (`America/Mexico_City`). Ya no hay rango libre ni "todas las fechas", y los parámetros antiguos `from` y `to` se ignoran.
-- **GAS-20.** El selector de mes es un desplegable que muestra el mes elegido, por ejemplo "Noviembre 2026".
-  - **Al abrirlo:** ofrece dos listas, una de mes (enero a diciembre) y otra de año.
+- **GAS-19.** La lista muestra un periodo, que va en la URL en el parámetro `month`:
+  - **Un mes:** `month=AAAA-MM`, igual que en el inicio.
+  - **Un año completo:** `month=AAAA`.
+  - **Todas las fechas:** `month=all`, incluidas las mensualidades futuras.
+  - Sin `month`, o con un valor inválido, se muestra el mes actual según la hora de México (`America/Mexico_City`). No hay rango libre, y los parámetros antiguos `from` y `to` se ignoran.
+- **GAS-20.** El selector de mes es un desplegable que muestra el periodo elegido: "Noviembre 2026", "Todo 2026" o "Todas las fechas".
+  - **Al abrirlo:** ofrece dos listas. La de mes empieza con "Todos los meses" y sigue de enero a diciembre. La de año empieza con "Todos los años" y sigue con los años de GAS-21.
   - **Al cambiar cualquiera de las dos:** el filtro se aplica al instante, sin botón. Cambiar el año conserva el mes, y cambiar el mes conserva el año.
+  - **"Todos los meses"** con un año muestra el año completo.
+  - **"Todos los años"** muestra todas las fechas, y la lista de mes pasa a "Todos los meses".
+  - **Elegir un mes estando en "Todos los años"** muestra ese mes del año actual.
   - **Para cerrarlo:** Escape o un clic fuera. Se puede usar con teclado.
-- **GAS-21.** La lista de años ofrece solo los años que tienen al menos un gasto, incluidas las mensualidades futuras, más el año actual y el del mes que se está viendo, en orden ascendente. Un gasto con un año mal escrito agrega una sola opción.
-- **GAS-22.** La búsqueda encuentra texto dentro de la descripción, la categoría o la cuenta del mes elegido, sin distinguir mayúsculas ni acentos: `cafe` encuentra `Café`. La `ñ` cuenta como `n`. Se aplica sola a los 300 ms de dejar de escribir, o al instante con Enter, y funciona aunque la página no haya terminado de cargar. Cambiar de mes conserva la búsqueda.
-- **GAS-23.** "Limpiar filtros" quita la búsqueda y vuelve al mes actual con el orden inicial; lo que se estaba escribiendo no se vuelve a aplicar. Solo aparece si hay búsqueda o si el mes elegido no es el actual.
-- **GAS-33.** Un mes sin gastos muestra "No hay gastos en <mes>". Una búsqueda sin resultados muestra el mensaje de búsqueda actual.
+- **GAS-21.** La lista de años ofrece solo los años que tienen al menos un gasto, incluidas las mensualidades futuras, más el año actual y el del periodo que se está viendo, en orden ascendente. Un gasto con un año mal escrito agrega una sola opción.
+- **GAS-22.** La búsqueda encuentra texto dentro de la descripción, la categoría o la cuenta del periodo elegido, sin distinguir mayúsculas ni acentos: `cafe` encuentra `Café`. La `ñ` cuenta como `n`. Se aplica sola a los 300 ms de dejar de escribir, o al instante con Enter, y funciona aunque la página no haya terminado de cargar. Cambiar de periodo conserva la búsqueda. Con "Todas las fechas", la búsqueda revisa todo el historial.
+- **GAS-23.** "Limpiar filtros" quita la búsqueda y vuelve al mes actual con el orden inicial; lo que se estaba escribiendo no se vuelve a aplicar. Solo aparece si hay búsqueda o si el periodo elegido no es el mes actual.
+- **GAS-33.** Un periodo sin gastos muestra "No hay gastos en <mes>", "No hay gastos en <año>" o "No hay gastos" si es todas las fechas. Una búsqueda sin resultados muestra el mensaje de búsqueda actual.
 - **GAS-34.** El enlace del inicio a Gastos abre el mismo mes que se ve en el inicio.
 - **GAS-24.** La barra de filtros se oculta si no existe ningún gasto.
 
@@ -84,10 +91,11 @@ Registrar, consultar y corregir los gastos del hogar en pesos mexicanos, incluid
 - **GAS-27.** Editar un gasto normal solo cambia ese registro.
 
 ### Cambios en compras a MSI
-- **GAS-29.** Las mensualidades no se editan ni se eliminan. Su fila no ofrece lápiz, doble clic ni botón de eliminar, y al pasar el cursor indica que se cambian desde la compra original. El servidor también rechaza esos cambios.
+- **GAS-29.** Las mensualidades no se editan ni se eliminan. Su fila no ofrece lápiz, doble clic ni botón de eliminar, y su descripción va en gris, más tenue que la de los gastos normales. Los lectores de pantalla oyen que se cambian desde la compra original; ese aviso no se ve. El servidor también rechaza esos cambios.
 - **GAS-30.** Editar el registro original, desde el modal o en la tabla, regenera todas sus mensualidades en la misma transacción, también las de meses pasados:
   - **Copian del original:** descripción, notas, cuenta, categoría y tipo (GAS-12).
   - **Se recalculan:** montos (GAS-13) y fechas (GAS-14), con el día de corte vigente de la cuenta.
+  - *(S10, auditoría de seguridad, aprobado el 2026-11-25).* Si el original se edita a la vez desde dos lugares, el resultado DEBERÁ ser el de una sola edición completa: el original y sus mensualidades siempre cuadran (GAS-13).
 - **GAS-31.** El número de meses es la cantidad de mensualidades que tenga el grupo y no se puede cambiar. Para cambiarlo, se elimina la compra y se crea de nuevo.
 - **GAS-32.** Si la cuenta del original no tiene día de corte, la edición se rechaza con el mismo error de GAS-10 y no se guarda nada.
 

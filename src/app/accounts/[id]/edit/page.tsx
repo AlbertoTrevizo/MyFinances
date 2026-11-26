@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { AccountForm } from "../../AccountForm";
@@ -5,6 +6,11 @@ import { updateAccount } from "../../actions";
 import { getTranslations } from "@/i18n/get-locale";
 import { PageContainer, PageTitle } from "@/components/PageContainer";
 import { requireUser } from "@/lib/session";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getTranslations();
+  return { title: t.accounts.editTitle };
+}
 
 export default async function EditAccountPage({
   params,

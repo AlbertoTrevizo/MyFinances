@@ -1,17 +1,24 @@
-import Link from "next/link";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { getTranslations } from "@/i18n/get-locale";
 import { LoginForm } from "./LoginForm";
-import { AuthCard } from "@/components/AuthCard";
+import { AuthSwitcher } from "@/components/auth/AuthSwitcher";
 import { GoogleSignIn } from "@/components/GoogleSignIn";
+import { RegisterForm } from "@/app/register/RegisterForm";
 
 const NOTICES = ["emailConfirmed", "emailChanged", "passwordReset"] as const;
 const ERRORS = {
+  google_not_authoritative: "googleNotAuthoritative",
   google_unverified: "googleUnverified",
   google_failed: "googleFailed",
   google_not_configured: "googleNotConfigured",
 } as const;
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getTranslations();
+  return { title: t.auth.title };
+}
 
 export default async function LoginPage({
   searchParams,
@@ -28,26 +35,37 @@ export default async function LoginPage({
   const errorKey = ERRORS[params.error as keyof typeof ERRORS];
 
   return (
-    <AuthCard title={t.auth.title} subtitle={t.auth.subtitle}>
-      {notice && (
-        <p role="status" className="mb-4 text-sm text-ink-muted">
-          {t.auth.notices[notice]}
-        </p>
-      )}
-      {errorKey && (
-        <p role="alert" className="mb-4 text-sm text-danger">
-          {t.auth.errors[errorKey]}
-        </p>
-      )}
-
-      <LoginForm t={t.auth} resend={t.resend} />
-      <GoogleSignIn label={t.auth.googleButton} divider={t.auth.orDivider} />
-
-      <p className="mt-6 text-sm">
-        <Link href="/register" className="text-primary hover:text-primary-strong">
-          {t.auth.registerLink}
-        </Link>
-      </p>
-    </AuthCard>
+    <AuthSwitcher
+      appName={t.appName}
+      googleButton={<GoogleSignIn label={t.auth.googleButton} divider={t.auth.emailDivider} />}
+      login={{
+        heading: t.auth.signInButton,
+        title: t.auth.title,
+        heroTitle: t.auth.newHereTitle,
+        heroText: t.auth.newHereText,
+        switchLabel: t.register.submit,
+        content: <>
+          {notice && (
+            <p role="status" className="mb-4 text-sm text-ink-muted">
+              {t.auth.notices[notice]}
+            </p>
+          )}
+          {errorKey && (
+            <p role="alert" className="mb-4 text-sm text-danger">
+              {t.auth.errors[errorKey]}
+            </p>
+          )}
+          <LoginForm t={t.auth} resend={t.resend} />
+        </>,
+      }}
+      register={{
+        heading: t.register.submit,
+        title: t.register.title,
+        heroTitle: t.auth.welcomeBackTitle,
+        heroText: t.auth.welcomeBackText,
+        switchLabel: t.auth.signInButton,
+        content: <RegisterForm t={t.register} auth={t.auth} resend={t.resend} />,
+      }}
+    />
   );
 }

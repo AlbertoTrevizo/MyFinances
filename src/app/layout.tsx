@@ -1,25 +1,21 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Sidebar } from "@/components/Sidebar";
 import { getTranslations } from "@/i18n/get-locale";
 import { getCurrentUser } from "@/lib/session";
 import { isAdmin } from "@/lib/roles";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const brandSans = Plus_Jakarta_Sans({
+  variable: "--font-sans-brand",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  display: "swap",
 });
 
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getTranslations();
   return {
-    title: t.appName,
+    title: { template: `%s | ${t.appName}`, default: t.appName },
     description: t.meta.description,
   };
 }
@@ -33,20 +29,27 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang={locale}
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${brandSans.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-canvas text-ink md:flex-row">
+        <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-white focus:outline-2 focus:outline-offset-2 focus:outline-primary">
+          {t.common.skipToContent}
+        </a>
         {user && (
           <Sidebar
             appName={t.appName}
             nav={t.nav}
             locale={locale}
+            languageLabel={t.common.language}
+            languageLabels={t.common.languages}
             userEmail={user.email}
             isAdmin={isAdmin(user)}
             logoutLabel={t.auth.logout}
           />
         )}
         <main
+          id="main"
+          tabIndex={-1}
           className={
             user ? "min-w-0 flex-1 md:h-screen md:overflow-y-auto" : "min-w-0 flex-1"
           }

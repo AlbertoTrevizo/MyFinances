@@ -1,5 +1,6 @@
 "use server";
 
+import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
@@ -10,7 +11,7 @@ import { getTranslations } from "@/i18n/get-locale";
 import { readFields, validate, expenseFieldChanges, type ExpenseChanges, type EditableExpenseField } from "@/lib/expense-validation";
 import type { Dictionary } from "@/i18n/dictionaries";
 
-export type ActionState = { error?: string } | undefined;
+export type ActionState = { error?: string; values?: ReturnType<typeof readFields> } | undefined;
 
 export async function createExpense(
   _prevState: ActionState,
@@ -20,7 +21,7 @@ export async function createExpense(
   const { t } = await getTranslations();
   const fields = readFields(formData);
   const error = validate(fields, t);
-  if (error) return { error };
+  if (error) return { error, values: fields };
 
   const cents = pesosToCents(fields.amount)!;
   const date = inputValueToDate(fields.date)!;
@@ -28,7 +29,7 @@ export async function createExpense(
 
   if (fields.msi) {
     const account = await prisma.account.findUnique({ where: { id: fields.accountId } });
-    if (!canUseMsi(account)) return { error: t.expenses.errors.msiRequiresCutoffDay };
+    if (!canUseMsi(account)) return { error: t.expenses.errors.msiRequiresCutoffDay, values: fields };
 
     const months = parseMsiMonths(fields.msiMonths)!;
     const original = {
@@ -72,26 +73,35 @@ async function applyExpenseChanges(
   changes: ExpenseChanges,
   t: Dictionary,
 ): Promise<ActionState> {
-  const expense = await prisma.expense.findUniqueOrThrow({ where: { id } });
-  if (isMsiInstallment(expense)) return { error: t.expenses.errors.msiInstallmentLocked };
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      const expense = await tx.expense.findUniqueOrThrow({ where: { id } });
+      if (isMsiInstallment(expense)) return { error: t.expenses.errors.msiInstallmentLocked };
 
-  const { msiGroupId } = expense;
-  if (!msiGroupId) {
-    await prisma.expense.update({ where: { id }, data: changes });
-  } else {
-    const updated = { ...expense, ...changes, msiGroupId };
-    const account = await prisma.account.findUnique({ where: { id: updated.accountId } });
-    if (!canUseMsi(account)) return { error: t.expenses.errors.msiRequiresCutoffDay };
+      const { msiGroupId } = expense;
+      if (!msiGroupId) {
+        await tx.expense.update({ where: { id }, data: changes });
+      } else {
+        const updated = { ...expense, ...changes, msiGroupId };
+        const account = await tx.account.findUnique({ where: { id: updated.accountId } });
+        if (!canUseMsi(account)) return { error: t.expenses.errors.msiRequiresCutoffDay };
 
-    const installments = { msiGroupId, excludeFromTotals: false };
-    const months = await prisma.expense.count({ where: installments });
-    await prisma.$transaction([
-      prisma.expense.update({ where: { id }, data: changes }),
-      prisma.expense.deleteMany({ where: installments }),
-      prisma.expense.createMany({
-        data: buildMsiInstallmentRows(updated, months, account.cutoffDay),
-      }),
-    ]);
+        const installments = { msiGroupId, excludeFromTotals: false };
+        const months = await tx.expense.count({ where: installments });
+        await tx.expense.update({ where: { id }, data: changes });
+        await tx.expense.deleteMany({ where: installments });
+        await tx.expense.createMany({
+          data: buildMsiInstallmentRows(updated, months, account.cutoffDay),
+        });
+      }
+      return {};
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+    if (result.error) return result;
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2034") {
+      return { error: t.expenses.errors.conflict };
+    }
+    throw error;
   }
 
   revalidatePath("/expenses");
@@ -107,12 +117,12 @@ export async function updateExpenseModal(
   const { t } = await getTranslations();
   const fields = readFields(formData);
   const error = validate(fields, t);
-  if (error) return { error };
+  if (error) return { error, values: fields };
 
   const cents = pesosToCents(fields.amount)!;
   const date = inputValueToDate(fields.date)!;
 
-  return applyExpenseChanges(
+  const result = await applyExpenseChanges(
     id,
     {
       description: fields.description,
@@ -125,6 +135,7 @@ export async function updateExpenseModal(
     },
     t,
   );
+  return result?.error ? { ...result, values: fields } : result;
 }
 
 export type { EditableExpenseField } from "@/lib/expense-validation";

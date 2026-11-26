@@ -1,5 +1,6 @@
+import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
-import { currentMonthKey, expenseYears, formatMonth, monthBounds, monthNames, parseMonthKey } from "@/lib/date";
+import { currentMonthKey, expenseYears, formatMonth, monthNames, parsePeriod, periodBounds } from "@/lib/date";
 import { matchesSearch } from "@/lib/search";
 import { getTranslations } from "@/i18n/get-locale";
 import { PageContainer, PageTitle } from "@/components/PageContainer";
@@ -11,6 +12,11 @@ import { resolveSort } from "@/lib/sort";
 import { requireUser } from "@/lib/session";
 
 const SORT_FIELDS = ["date", "description", "account", "category", "type", "amount"] as const;
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getTranslations();
+  return { title: t.expenses.title };
+}
 
 export default async function ExpensesPage({
   searchParams,
@@ -26,10 +32,13 @@ export default async function ExpensesPage({
   const str = (v: unknown) => (typeof v === "string" ? v : "");
   const q = str(sp.q).trim();
   const currentMonth = currentMonthKey();
-  const requestedMonth = str(sp.month);
-  const month = parseMonthKey(requestedMonth) ? requestedMonth : currentMonth;
-  const { start, endExclusive } = monthBounds(month);
-  const monthLabel = formatMonth(start, locale);
+  const requestedPeriod = str(sp.month);
+  const period = parsePeriod(requestedPeriod) ?? { kind: "month", key: currentMonth };
+  const month = period.kind === "month" ? period.key : period.kind === "year" ? String(period.year).padStart(4, "0") : "all";
+  const bounds = periodBounds(period);
+  const monthLabel = period.kind === "month"
+    ? formatMonth(bounds!.start, locale)
+    : period.kind === "year" ? t.expenses.periodYear(period.year) : t.expenses.periodAll;
 
   const orderBy =
     field === "account"
@@ -44,10 +53,10 @@ export default async function ExpensesPage({
               ? { description: dir }
               : { date: dir };
 
-  const [expenseDates, expensesInMonth, accounts, categories] = await Promise.all([
+  const [expenseDates, expensesInPeriod, accounts, categories] = await Promise.all([
     prisma.expense.findMany({ select: { date: true } }),
     prisma.expense.findMany({
-      where: { date: { gte: start, lt: endExclusive } },
+      where: bounds ? { date: { gte: bounds.start, lt: bounds.endExclusive } } : {},
       orderBy,
       include: { account: true, category: true },
     }),
@@ -59,17 +68,17 @@ export default async function ExpensesPage({
   const years = expenseYears(
     expenseDates.map((expense) => expense.date),
     Number(currentMonth.slice(0, 4)),
-    start.getUTCFullYear(),
+    bounds?.start.getUTCFullYear() ?? Number(currentMonth.slice(0, 4)),
   );
   const months = monthNames(locale);
 
   // ponytail: filters in memory because Postgres can't ignore accents without raw SQL; the list
   // is already unpaginated. Move to a normalized column if a household ever outgrows this.
   const expenses = q
-    ? expensesInMonth.filter((expense) =>
+    ? expensesInPeriod.filter((expense) =>
         matchesSearch(q, [expense.description, expense.category?.name, expense.account.name]),
       )
-    : expensesInMonth;
+    : expensesInPeriod;
 
   const accountOptions = accounts.map((account) => ({
     id: account.id,
@@ -87,6 +96,8 @@ export default async function ExpensesPage({
   }));
 
   const tableCopy = {
+    caption: t.expenses.title,
+    actionsLabel: t.common.actions,
     tableDate: t.expenses.tableDate,
     tableDescription: t.expenses.tableDescription,
     tableAccount: t.expenses.tableAccount,
@@ -100,6 +111,8 @@ export default async function ExpensesPage({
     editLabel: t.common.edit,
     deleteLabel: t.common.delete,
     deletingLabel: t.common.deleting,
+    cancelLabel: t.common.cancel,
+    closeLabel: t.common.close,
     editTitle: t.expenses.editTitle,
     editSubmit: t.expenses.editSubmit,
     savingLabel: t.common.saving,
@@ -122,6 +135,7 @@ export default async function ExpensesPage({
             createSubmit: t.expenses.createSubmit,
             noCategory: t.expenses.noCategory,
             saving: t.common.saving,
+            closeLabel: t.common.close,
             form: t.expenses.form,
             expenseTypes: t.expenseTypes,
           }}
@@ -144,7 +158,9 @@ export default async function ExpensesPage({
 
       {expenses.length === 0 ? (
         <p className="text-sm text-ink-muted">
-          {q || !hasExpenses ? t.expenses.noResults : t.expenses.noExpensesMonth(monthLabel)}
+          {q || !hasExpenses ? t.expenses.noResults : period.kind === "all"
+            ? t.expenses.noExpensesAll
+            : t.expenses.noExpensesMonth(period.kind === "year" ? String(period.year) : monthLabel)}
         </p>
       ) : (
         <div className={card}>

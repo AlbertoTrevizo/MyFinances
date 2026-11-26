@@ -4,10 +4,12 @@ import { prisma } from "@/lib/prisma";
 import { createSession } from "@/lib/session";
 import { appRedirect, appUrl } from "@/lib/app-url";
 import { normalizeEmail } from "@/lib/user-validation";
+import { isGoogleAuthoritative } from "@/lib/google-authority";
 import { logEvent } from "@/lib/log";
 
 type GoogleProfile = {
   sub?: string;
+  hd?: string;
   email?: string;
   email_verified?: boolean;
   given_name?: string;
@@ -69,6 +71,7 @@ export async function GET(request: Request) {
 
   const googleId = profile.sub;
   const email = normalizeEmail(profile.email);
+  if (!isGoogleAuthoritative(email, profile.hd)) return appRedirect("/login?error=google_not_authoritative");
   const given = profile.given_name?.trim().slice(0, 100) || null;
   const family = profile.family_name?.trim().slice(0, 100) || null;
 
@@ -102,6 +105,7 @@ export async function GET(request: Request) {
             where: { id: byEmail.id },
             data: {
               emailVerifiedAt: new Date(),
+              passwordReplaced: false,
               passwordHash: null,
               passwordSalt: null,
               googleId,

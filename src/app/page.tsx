@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { formatCents } from "@/lib/currency";
@@ -5,6 +6,7 @@ import {
   currentMonthKey as getCurrentMonthKey,
   monthKey,
   monthBounds,
+  previousMonthKey,
   parseMonthKey,
   formatMonth,
 } from "@/lib/date";
@@ -16,17 +18,18 @@ import { DoughnutChart } from "@/components/DoughnutChart";
 import { TopCategories } from "@/components/TopCategories";
 import { MonthExpensesTable } from "@/components/MonthExpensesTable";
 import { BudgetProgress } from "@/components/BudgetProgress";
+import { SpentCard } from "@/components/SpentCard";
 import { ExpensesIcon, AccountsIcon, CategoriesIcon } from "@/components/icons";
 import { card } from "@/lib/styles";
 import { requireUser } from "@/lib/session";
 
 const CHART_PALETTE = [
-  "#3457FF",
-  "#16A34A",
+  "#0F766E",
   "#F59E0B",
-  "#DC2626",
   "#8B5CF6",
   "#0EA5E9",
+  "#DC2626",
+  "#02AD98",
   "#EC4899",
   "#65A30D",
 ];
@@ -34,10 +37,16 @@ const CHART_SLICE_LIMIT = 6;
 const OTHER_COLOR = "#98A2B3";
 
 const TYPE_COLORS: Record<(typeof EXPENSE_TYPES)[number], string> = {
-  needs: "#3457FF",
+  needs: "#0F766E",
   wants: "#F59E0B",
-  savings: "#16A34A",
+  savings: "#8B5CF6",
 };
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getTranslations();
+  // The layout's template does not apply to a page in the same route segment.
+  return { title: { absolute: `${t.nav.home} | ${t.appName}` } };
+}
 
 export default async function Home({
   searchParams,
@@ -52,6 +61,8 @@ export default async function Home({
   const requestedMonth = sp.month && parseMonthKey(sp.month) ? sp.month : currentMonthKey;
   const { start: monthStart, endExclusive: monthEnd } = monthBounds(requestedMonth);
   const monthLabel = formatMonth(monthStart, locale);
+  const { start: previousStart, endExclusive: previousEnd } = monthBounds(previousMonthKey(requestedMonth));
+  const previousMonthLabel = formatMonth(previousStart, locale);
 
   const [
     accountCount,
@@ -61,6 +72,7 @@ export default async function Home({
     allExpenseDates,
     budgets,
     categoryBudgets,
+    previousMonthTotal,
   ] = await Promise.all([
     prisma.account.count(),
     prisma.category.count(),
@@ -73,16 +85,20 @@ export default async function Home({
     prisma.expense.findMany({ select: { date: true } }),
     prisma.budget.findMany(),
     prisma.categoryBudget.findMany({ include: { category: true } }),
+    prisma.expense.aggregate({
+      _sum: { amountCents: true },
+      where: { excludeFromTotals: false, date: { gte: previousStart, lt: previousEnd } },
+    }),
   ]);
 
   const countedExpenses = monthExpenses.filter((expense) => !expense.excludeFromTotals);
   const monthTotal = countedExpenses.reduce((sum, expense) => sum + expense.amountCents, 0);
 
-  const totalsByCategory = new Map<string, { label: string; value: number }>();
+  const totalsByCategory = new Map<string, { id: string; label: string; value: number }>();
   for (const expense of countedExpenses) {
     const key = expense.category?.id ?? "__none__";
     const label = expense.category?.name ?? t.expenses.noCategory;
-    const entry = totalsByCategory.get(key) ?? { label, value: 0 };
+    const entry = totalsByCategory.get(key) ?? { id: key, label, value: 0 };
     entry.value += expense.amountCents;
     totalsByCategory.set(key, entry);
   }
@@ -95,6 +111,7 @@ export default async function Home({
   const remaining = sortedCategories.slice(CHART_SLICE_LIMIT);
   if (remaining.length > 0) {
     chartSlices.push({
+      id: "__other__",
       label: t.home.otherCategory,
       value: remaining.reduce((sum, category) => sum + category.value, 0),
       color: OTHER_COLOR,
@@ -114,12 +131,13 @@ export default async function Home({
   }
   const typeSlices = [
     ...EXPENSE_TYPES.map((type) => ({
+      id: type,
       label: t.expenseTypes[type],
       value: totalsByType.get(type) ?? 0,
       color: TYPE_COLORS[type],
     })).filter((slice) => slice.value > 0),
     ...(totalsByType.get("__none__")
-      ? [{ label: t.expenses.noType, value: totalsByType.get("__none__")!, color: OTHER_COLOR }]
+      ? [{ id: "__none__", label: t.expenses.noType, value: totalsByType.get("__none__")!, color: OTHER_COLOR }]
       : []),
   ];
 
@@ -130,6 +148,7 @@ export default async function Home({
     spentCents: totalsByType.get(type) ?? 0,
     budgetCents: budgetByType.get(type) ?? 0,
   })).filter((item) => item.budgetCents > 0);
+  const typeBudgetTotal = budgetItems.reduce((sum, item) => sum + item.budgetCents, 0);
 
   const categoryBudgetItems = categoryBudgets
     .map((cb, index) => ({
@@ -179,12 +198,15 @@ export default async function Home({
         <MonthSelect value={requestedMonth} options={monthOptions} label={t.home.monthSelectLabel} />
       }
     >
-      <div className={`${card} p-5 sm:p-6`}>
-        <p className="text-sm text-ink-muted">{t.home.spentInMonth(monthLabel)}</p>
-        <p className="mt-2 font-mono text-3xl font-semibold tabular-nums text-ink sm:text-4xl">
-          {formatCents(monthTotal, locale)}
-        </p>
-      </div>
+      <SpentCard
+        spentCents={monthTotal}
+        budgetCents={typeBudgetTotal}
+        previousCents={previousMonthTotal._sum.amountCents ?? 0}
+        monthLabel={monthLabel}
+        previousMonthLabel={previousMonthLabel}
+        locale={locale}
+        t={t}
+      />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className={`${card} p-5 sm:p-6`}>
@@ -290,7 +312,7 @@ export default async function Home({
             </span>
             <span className="font-semibold text-ink">{item.label}</span>
             <span className="text-sm text-ink-muted">{item.description}</span>
-            <span className="mt-1 font-mono text-sm font-medium text-ink-muted transition-colors group-hover:text-primary">
+            <span className="mt-1 tabular-nums text-sm font-medium text-ink-muted transition-colors group-hover:text-primary">
               {item.stat}
             </span>
           </Link>

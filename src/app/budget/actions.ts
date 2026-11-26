@@ -8,7 +8,7 @@ import { pesosToCentsOrZero } from "@/lib/currency";
 import { EXPENSE_TYPES } from "@/lib/expense-type";
 import { getTranslations } from "@/i18n/get-locale";
 
-export type ActionState = { error?: string } | undefined;
+export type ActionState = { error?: string; values?: Record<string, string> } | undefined;
 
 export async function saveBudgets(
   _prevState: ActionState,
@@ -17,11 +17,16 @@ export async function saveBudgets(
   await requireUser();
   const { t } = await getTranslations();
 
+  const values = {
+    needs: String(formData.get("needs") ?? ""),
+    wants: String(formData.get("wants") ?? ""),
+    savings: String(formData.get("savings") ?? ""),
+  };
   const amounts: Record<(typeof EXPENSE_TYPES)[number], number> = {} as never;
   for (const type of EXPENSE_TYPES) {
     const raw = String(formData.get(type) ?? "").trim();
     const cents = pesosToCentsOrZero(raw);
-    if (cents === null) return { error: t.budget.errors.invalidAmount };
+    if (cents === null) return { error: t.budget.errors.invalidAmount, values };
     amounts[type] = cents;
   }
 
@@ -49,9 +54,11 @@ export async function addCategoryBudget(
   const categoryId = String(formData.get("categoryId") ?? "").trim();
   const raw = String(formData.get("amount") ?? "").trim();
 
-  if (!categoryId) return { error: t.budget.errors.categoryRequired };
+  const values = { categoryId, amount: raw };
+
+  if (!categoryId) return { error: t.budget.errors.categoryRequired, values };
   const cents = pesosToCentsOrZero(raw);
-  if (cents === null) return { error: t.budget.errors.invalidAmount };
+  if (cents === null) return { error: t.budget.errors.invalidAmount, values };
 
   await prisma.categoryBudget.upsert({
     where: { categoryId },
@@ -72,8 +79,9 @@ export async function updateCategoryBudget(
   await requireUser();
   const { t } = await getTranslations();
   const raw = String(formData.get("amount") ?? "").trim();
+  const values = { amount: raw };
   const cents = pesosToCentsOrZero(raw);
-  if (cents === null) return { error: t.budget.errors.invalidAmount };
+  if (cents === null) return { error: t.budget.errors.invalidAmount, values };
 
   await prisma.categoryBudget.update({
     where: { categoryId },

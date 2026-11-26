@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getTranslations } from "@/i18n/get-locale";
@@ -8,6 +9,11 @@ import { resolveSort } from "@/lib/sort";
 import { requireUser } from "@/lib/session";
 
 const SORT_FIELDS = ["name", "type"] as const;
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getTranslations();
+  return { title: t.accounts.title };
+}
 
 export default async function AccountsPage({
   searchParams,
@@ -33,6 +39,8 @@ export default async function AccountsPage({
   }));
 
   const accountsCopy = {
+    caption: t.accounts.title,
+    actionsLabel: t.common.actions,
     tableName: t.accounts.tableName,
     tableType: t.accounts.tableType,
     tableCutoffDay: t.accounts.tableCutoffDay,
@@ -40,6 +48,7 @@ export default async function AccountsPage({
     editLabel: t.common.edit,
     deleteLabel: t.common.delete,
     deletingLabel: t.common.deleting,
+    cancelLabel: t.common.cancel,
   };
 
   return (

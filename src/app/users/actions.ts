@@ -7,6 +7,8 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/session";
 import { getTranslations } from "@/i18n/get-locale";
 import { createToken } from "@/lib/user-tokens";
+import { reserveEmailSlot, releaseEmailSlot } from "@/lib/email";
+import { withEmailSlot } from "@/lib/email-reservation";
 import { sendAccountEmail } from "@/lib/account-emails";
 import { validateProfile } from "@/lib/user-validation";
 import { logEvent } from "@/lib/log";
@@ -24,7 +26,7 @@ export type UpdateUserState =
     }
   | undefined;
 export type DeleteUserState = { error?: string } | undefined;
-export type SetUserRoleState = { ok?: boolean; error?: string } | undefined;
+export type SetUserRoleState = { ok?: boolean; error?: string; values?: { role: string } } | undefined;
 
 function prismaCode(error: unknown): string | null {
   return error instanceof Prisma.PrismaClientKnownRequestError ? error.code : null;
@@ -48,7 +50,7 @@ export async function updateUser(
   if (Object.keys(fieldErrors).length > 0) return { fieldErrors, values };
 
   const target = await prisma.user.findUnique({ where: { id } });
-  if (!target) return { error: t.users.errors.notFound };
+  if (!target) return { error: t.users.errors.notFound, values };
 
   const taken = { fieldErrors: { email: t.users.errors.emailTaken }, values };
   const other = await prisma.user.findUnique({ where: { email: values.email } });
@@ -61,39 +63,39 @@ export async function updateUser(
   try {
     if (values.email === target.email) {
       await prisma.user.update({ where: { id }, data: names });
-    } else if (!target.emailVerifiedAt) {
-      // Pending: the address was probably mistyped, so replace it and send a new link there.
-      token = await prisma.$transaction(async (tx) => {
-        await tx.user.update({ where: { id }, data: { ...names, email: values.email } });
-        return createToken(tx, id, "confirm");
-      });
     } else {
-      pendingEmailChange = true;
-      token = await prisma.$transaction(async (tx) => {
-        await tx.user.update({ where: { id }, data: names });
-        return createToken(tx, id, "email_change", values.email);
-      });
+      pendingEmailChange = target.emailVerifiedAt !== null;
+      const sent = await withEmailSlot(
+        () => reserveEmailSlot(values.email),
+        async (slot) => {
+          token = await createToken(pendingEmailChange ? "email_change" : "confirm", async (tx) => {
+            await tx.user.update({
+              where: { id },
+              data: pendingEmailChange ? names : { ...names, email: values.email },
+            });
+            return id;
+          }, pendingEmailChange ? values.email : undefined);
+          return sendAccountEmail(pendingEmailChange ? "emailChange" : "confirm", values.email, t, token!, slot);
+        },
+        releaseEmailSlot,
+      );
+      if (sent === "limited") await prisma.user.update({ where: { id }, data: names });
+      if (sent === "failed") {
+        if (token) logEvent("user_updated", { userId: id, by: admin.id, emailChange: true });
+        revalidatePath("/users");
+        return { error: t.users.errors.emailNotSent, values };
+      }
+      // The old-address notice is exempt and only follows a delivered change link.
+      if (pendingEmailChange && sent === "sent") await sendAccountEmail("emailChangeNotice", target.email, t);
     }
   } catch (error) {
     const code = prismaCode(error);
     if (code === "P2002") return taken;
-    if (code === "P2025") return { error: t.users.errors.notFound };
+    if (code === "P2025") return { error: t.users.errors.notFound, values };
     throw error;
   }
 
   logEvent("user_updated", { userId: id, by: admin.id, emailChange: token !== null });
-
-  if (token) {
-    const kind = pendingEmailChange ? "emailChange" : "confirm";
-    const sent = await sendAccountEmail(kind, values.email, t, token);
-    if (sent === "failed") {
-      // The names are already saved, so refresh the table before reporting.
-      revalidatePath("/users");
-      return { error: t.users.errors.emailNotSent, values };
-    }
-    // Only tell the old owner about a change whose link actually went out; not counted by the hourly cap.
-    if (pendingEmailChange) await sendAccountEmail("emailChangeNotice", target.email, t);
-  }
 
   revalidatePath("/users");
   return { ok: true, pendingEmailChange };
@@ -143,8 +145,9 @@ export async function setUserRole(
 ): Promise<SetUserRoleState> {
   const admin = await requireAdmin();
   const { t } = await getTranslations();
+  const values = { role: String(formData.get("role") ?? "") };
   const role = parseRole(formData.get("role"));
-  if (!role) return { error: t.auth.errors.generic };
+  if (!role) return { error: t.auth.errors.generic, values };
 
   let outcome: { error: "notFound" | "lastAdmin" | "pendingAdmin" } | { from: Role; changed: boolean };
   try {
@@ -171,13 +174,13 @@ export async function setUserRole(
     );
   } catch (error) {
     const code = prismaCode(error);
-    if (code === "P2034") return { error: t.users.errors.conflict };
-    if (code === "P2025") return { error: t.users.errors.notFound };
+    if (code === "P2034") return { error: t.users.errors.conflict, values };
+    if (code === "P2025") return { error: t.users.errors.notFound, values };
     throw error;
   }
 
   if ("error" in outcome) {
-    return { error: t.users.errors[outcome.error === "lastAdmin" ? "lastAdminRole" : outcome.error] };
+    return { error: t.users.errors[outcome.error === "lastAdmin" ? "lastAdminRole" : outcome.error], values };
   }
   if (outcome.changed) {
     logEvent("user_role_changed", { userId: id, by: admin.id, from: outcome.from, to: role });

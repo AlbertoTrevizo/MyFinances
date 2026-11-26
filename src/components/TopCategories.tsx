@@ -1,4 +1,4 @@
-type Item = { label: string; value: number; color: string };
+type Item = { id: string; label: string; value: number; color: string };
 
 export function TopCategories({
   items,
@@ -16,15 +16,15 @@ export function TopCategories({
   }
 
   return (
-    <ol className="flex flex-col gap-3">
+    <ol role="list" className="flex flex-col gap-3">
       {items.map((item, index) => (
-        <li key={item.label} className="flex flex-col gap-1.5">
+        <li key={item.id} className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between gap-2 text-sm">
             <span className="flex min-w-0 items-center gap-2 text-ink">
-              <span className="font-mono text-xs text-ink-faint">{index + 1}</span>
+              <span className="tabular-nums text-xs text-ink-faint">{index + 1}</span>
               <span className="truncate">{item.label}</span>
             </span>
-            <span className="shrink-0 font-mono font-semibold tabular-nums text-ink">
+            <span className="shrink-0 font-semibold tabular-nums text-ink">
               {formatValue(item.value)}
             </span>
           </div>

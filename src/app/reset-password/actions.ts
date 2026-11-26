@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/password";
 import { getTranslations } from "@/i18n/get-locale";
-import { consumeToken } from "@/lib/user-tokens";
+import { consumeToken, findToken } from "@/lib/user-tokens";
 import { validateNewPassword } from "@/lib/user-validation";
 import { logEvent } from "@/lib/log";
 
@@ -15,6 +15,7 @@ export type ResetState =
 export async function resetPassword(_prev: ResetState, formData: FormData): Promise<ResetState> {
   const { t } = await getTranslations();
   const token = String(formData.get("token") ?? "");
+  if (!await findToken(token, ["reset"])) return { invalid: true };
   const password = String(formData.get("password") ?? "");
   const errors = validateNewPassword(password, String(formData.get("confirm") ?? ""));
   if (errors.password || errors.confirm) {
@@ -33,10 +34,10 @@ export async function resetPassword(_prev: ResetState, formData: FormData): Prom
     if (!row) return null;
     await tx.user.update({
       where: { id: row.userId },
-      data: { passwordHash: hash, passwordSalt: salt, failedLoginAttempts: 0, lockedUntil: null },
+      data: { passwordHash: hash, passwordSalt: salt, passwordReplaced: false, failedLoginAttempts: 0, lockedUntil: null },
     });
     await tx.session.deleteMany({ where: { userId: row.userId } });
-    await tx.userToken.deleteMany({ where: { userId: row.userId, purpose: "reset" } });
+    await tx.userToken.deleteMany({ where: { userId: row.userId } });
     return row.userId;
   });
   if (!userId) return { invalid: true };

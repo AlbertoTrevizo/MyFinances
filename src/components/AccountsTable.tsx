@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useId, useRef, useState, useTransition } from "react";
 import type { SortDir } from "@/lib/sort";
 import { inputField, iconButton } from "@/lib/styles";
 import { SortableHeader } from "./SortableHeader";
@@ -23,6 +23,8 @@ type Row = {
 };
 
 export type AccountsTableCopy = {
+  caption: string;
+  actionsLabel: string;
   tableName: string;
   tableType: string;
   tableCutoffDay: string;
@@ -30,6 +32,7 @@ export type AccountsTableCopy = {
   editLabel: string;
   deleteLabel: string;
   deletingLabel: string;
+  cancelLabel: string;
 };
 
 export function AccountsTable({
@@ -43,6 +46,8 @@ export function AccountsTable({
   sort: string;
   dir: SortDir;
 }) {
+  const captionId = useId();
+  const cancelled = useRef(false);
   const [editingCell, setEditingCell] = useState<{
     id: string;
     field: EditableAccountField;
@@ -62,58 +67,69 @@ export function AccountsTable({
     });
   }
 
+  function startEditing(id: string, field: EditableAccountField) {
+    cancelled.current = false;
+    setEditingCell({ id, field });
+  }
+
+  function cancelEditing() {
+    cancelled.current = true;
+    setEditingCell(null);
+  }
+
   function isEditing(id: string, field: EditableAccountField) {
     return editingCell?.id === id && editingCell.field === field;
   }
 
   return (
     <>
-      <div className="overflow-x-auto rounded-xl">
+      <div role="region" tabIndex={0} aria-labelledby={captionId} className="relative max-w-full overflow-x-auto rounded-2xl">
         <table className="w-full min-w-[480px] text-left text-sm">
-          <thead className="bg-canvas text-ink-muted">
-            <tr>
-              <th className="px-4 py-3 font-medium">
-                <SortableHeader
-                  label={copy.tableName}
-                  field="name"
-                  activeField={sort}
-                  dir={dir}
-                  basePath="/accounts"
-                />
-              </th>
-              <th className="px-4 py-3 font-medium">
-                <SortableHeader
-                  label={copy.tableType}
-                  field="type"
-                  activeField={sort}
-                  dir={dir}
-                  basePath="/accounts"
-                />
-              </th>
-              <th className="px-4 py-3 font-medium">{copy.tableCutoffDay}</th>
-              <th className="px-4 py-3 font-medium">{copy.tablePaymentDay}</th>
-              <th className="px-4 py-3 font-medium"></th>
+          <caption id={captionId} className="sr-only">{copy.caption}</caption>
+          <thead className="border-b border-line bg-surface text-xs font-medium text-ink-muted">
+            <tr className="[&>th]:whitespace-nowrap">
+              <SortableHeader
+                label={copy.tableName}
+                field="name"
+                activeField={sort}
+                dir={dir}
+                basePath="/accounts"
+              />
+              <SortableHeader
+                label={copy.tableType}
+                field="type"
+                activeField={sort}
+                dir={dir}
+                basePath="/accounts"
+              />
+              <th scope="col" className="px-4 py-3 font-medium">{copy.tableCutoffDay}</th>
+              <th scope="col" className="px-4 py-3 font-medium">{copy.tablePaymentDay}</th>
+              <th scope="col" className="px-4 py-3 font-medium"><span className="sr-only">{copy.actionsLabel}</span></th>
             </tr>
           </thead>
           <tbody>
             {accounts.map((account) => (
-              <tr key={account.id} className="border-t border-line transition-colors hover:bg-canvas">
+              <tr key={account.id} className="border-b border-line last:border-b-0 transition-colors hover:bg-canvas/60">
                 <td
-                  className="px-4 py-3 text-ink"
-                  onDoubleClick={() => setEditingCell({ id: account.id, field: "name" })}
+                  id={`${captionId}-${account.id}`}
+                  className="whitespace-nowrap px-4 py-3.5 font-semibold text-ink"
+                  onDoubleClick={() => startEditing(account.id, "name")}
                 >
                   {isEditing(account.id, "name") ? (
                     <input
                       type="text"
                       autoFocus
+                      aria-label={copy.tableName}
                       defaultValue={account.name}
                       disabled={isPending}
                       className={inputField}
                       onKeyDown={(e) => {
-                        if (e.key === "Enter") commit(account.id, "name", e.currentTarget.value);
-                        if (e.key === "Escape") setEditingCell(null);
+                        if (e.key === "Enter" && !e.nativeEvent.isComposing && e.keyCode !== 229) commit(account.id, "name", e.currentTarget.value);
+                        if (e.key === "Escape") cancelEditing();
                       }}
-                      onBlur={(e) => commit(account.id, "name", e.currentTarget.value)}
+                      onBlur={(e) => {
+                        if (!cancelled.current) commit(account.id, "name", e.currentTarget.value);
+                      }}
                     />
                   ) : (
                     account.name
@@ -121,21 +137,24 @@ export function AccountsTable({
                 </td>
 
                 <td
-                  className="px-4 py-3 text-ink-muted"
-                  onDoubleClick={() => setEditingCell({ id: account.id, field: "type" })}
+                  className="whitespace-nowrap px-4 py-3.5 text-ink-muted"
+                  onDoubleClick={() => startEditing(account.id, "type")}
                 >
                   {isEditing(account.id, "type") ? (
                     <input
                       type="text"
                       autoFocus
+                      aria-label={copy.tableType}
                       defaultValue={account.type}
                       disabled={isPending}
                       className={inputField}
                       onKeyDown={(e) => {
-                        if (e.key === "Enter") commit(account.id, "type", e.currentTarget.value);
-                        if (e.key === "Escape") setEditingCell(null);
+                        if (e.key === "Enter" && !e.nativeEvent.isComposing && e.keyCode !== 229) commit(account.id, "type", e.currentTarget.value);
+                        if (e.key === "Escape") cancelEditing();
                       }}
-                      onBlur={(e) => commit(account.id, "type", e.currentTarget.value)}
+                      onBlur={(e) => {
+                        if (!cancelled.current) commit(account.id, "type", e.currentTarget.value);
+                      }}
                     />
                   ) : (
                     account.type
@@ -143,8 +162,8 @@ export function AccountsTable({
                 </td>
 
                 <td
-                  className="px-4 py-3 font-mono text-ink-muted"
-                  onDoubleClick={() => setEditingCell({ id: account.id, field: "cutoffDay" })}
+                  className="whitespace-nowrap px-4 py-3.5 tabular-nums text-ink-muted"
+                  onDoubleClick={() => startEditing(account.id, "cutoffDay")}
                 >
                   {isEditing(account.id, "cutoffDay") ? (
                     <input
@@ -152,15 +171,18 @@ export function AccountsTable({
                       min={1}
                       max={31}
                       autoFocus
+                      aria-label={copy.tableCutoffDay}
                       defaultValue={account.cutoffDay ?? ""}
                       disabled={isPending}
-                      className={`${inputField} w-20 font-mono`}
+                      className={`${inputField} w-20 tabular-nums`}
                       onKeyDown={(e) => {
-                        if (e.key === "Enter")
+                        if (e.key === "Enter" && !e.nativeEvent.isComposing && e.keyCode !== 229)
                           commit(account.id, "cutoffDay", e.currentTarget.value);
-                        if (e.key === "Escape") setEditingCell(null);
+                        if (e.key === "Escape") cancelEditing();
                       }}
-                      onBlur={(e) => commit(account.id, "cutoffDay", e.currentTarget.value)}
+                      onBlur={(e) => {
+                        if (!cancelled.current) commit(account.id, "cutoffDay", e.currentTarget.value);
+                      }}
                     />
                   ) : (
                     (account.cutoffDay ?? <span className="text-ink-faint">—</span>)
@@ -168,8 +190,8 @@ export function AccountsTable({
                 </td>
 
                 <td
-                  className="px-4 py-3 font-mono text-ink-muted"
-                  onDoubleClick={() => setEditingCell({ id: account.id, field: "paymentDay" })}
+                  className="whitespace-nowrap px-4 py-3.5 tabular-nums text-ink-muted"
+                  onDoubleClick={() => startEditing(account.id, "paymentDay")}
                 >
                   {isEditing(account.id, "paymentDay") ? (
                     <input
@@ -177,36 +199,42 @@ export function AccountsTable({
                       min={1}
                       max={31}
                       autoFocus
+                      aria-label={copy.tablePaymentDay}
                       defaultValue={account.paymentDay ?? ""}
                       disabled={isPending}
-                      className={`${inputField} w-20 font-mono`}
+                      className={`${inputField} w-20 tabular-nums`}
                       onKeyDown={(e) => {
-                        if (e.key === "Enter")
+                        if (e.key === "Enter" && !e.nativeEvent.isComposing && e.keyCode !== 229)
                           commit(account.id, "paymentDay", e.currentTarget.value);
-                        if (e.key === "Escape") setEditingCell(null);
+                        if (e.key === "Escape") cancelEditing();
                       }}
-                      onBlur={(e) => commit(account.id, "paymentDay", e.currentTarget.value)}
+                      onBlur={(e) => {
+                        if (!cancelled.current) commit(account.id, "paymentDay", e.currentTarget.value);
+                      }}
                     />
                   ) : (
                     (account.paymentDay ?? <span className="text-ink-faint">—</span>)
                   )}
                 </td>
 
-                <td className="px-4 py-3 text-right">
+                <td className="px-4 py-3.5 text-right">
                   <div className="flex justify-end gap-1">
                     <Link
                       href={`/accounts/${account.id}/edit`}
                       aria-label={copy.editLabel}
+                      aria-describedby={`${captionId}-${account.id}`}
                       title={copy.editLabel}
                       className={iconButton}
                     >
                       <PencilIcon className="h-4 w-4" />
                     </Link>
                     <DeleteButton
+                      describedBy={`${captionId}-${account.id}`}
                       action={deleteAccount.bind(null, account.id)}
                       confirmMessage={account.confirmMessage}
                       label={copy.deleteLabel}
                       pendingLabel={copy.deletingLabel}
+                      cancelLabel={copy.cancelLabel}
                     />
                   </div>
                 </td>

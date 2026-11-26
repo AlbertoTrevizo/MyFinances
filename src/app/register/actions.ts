@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/password";
 import { getTranslations } from "@/i18n/get-locale";
 import { createToken } from "@/lib/user-tokens";
+import { reserveEmailSlot, releaseEmailSlot } from "@/lib/email";
+import { withEmailSlot } from "@/lib/email-reservation";
 import { sendAccountEmail } from "@/lib/account-emails";
 import { validateNewPassword, validateProfile } from "@/lib/user-validation";
 import { withMinimumDuration } from "@/lib/timing";
@@ -43,48 +45,50 @@ export async function register(_prev: RegisterState, formData: FormData): Promis
     const { hash, salt } = await hashPassword(password);
     const find = () => prisma.user.findUnique({ where: { email: values.email } });
     let existing = await find();
-    let token: string | null = null;
     let userId: string | null = null;
-
     if (!existing) {
       try {
-        const created = await prisma.$transaction(async (tx) => {
-          const user = await tx.user.create({
-            data: { ...values, passwordHash: hash, passwordSalt: salt },
-          });
-          return { user, token: await createToken(tx, user.id, "confirm") };
-        });
-        userId = created.user.id;
-        token = created.token;
+        const user = await prisma.user.create({ data: { ...values, passwordHash: hash, passwordSalt: salt } });
+        userId = user.id;
         logEvent("registration", { userId });
       } catch (error) {
         // A simultaneous registration won the race: continue as an existing account.
-        if (!(error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002")) {
-          throw error;
-        }
+        if (!(error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002")) throw error;
         existing = await find();
       }
     }
-
+    let accountExistsNotice = false;
     if (existing) {
-      if (existing.emailVerifiedAt) {
-        // No change to the account; failure here stays invisible (RF-13).
-        await sendAccountEmail("accountExists", existing.email, t);
-        return { sent: true };
-      }
-      const replaced = await prisma.$transaction(async (tx) => {
-        await tx.user.update({
-          where: { id: existing!.id },
-          data: { name: values.name, lastName: values.lastName, passwordHash: hash, passwordSalt: salt },
-        });
-        return createToken(tx, existing!.id, "confirm");
-      });
       userId = existing.id;
-      token = replaced;
-      logEvent("registration_replaced", { userId });
+      const { count } = await prisma.user.updateMany({
+        where: { id: userId, emailVerifiedAt: null },
+        data: {
+          name: values.name, lastName: values.lastName,
+          passwordHash: hash, passwordSalt: salt, passwordReplaced: true,
+        },
+      });
+      accountExistsNotice = count === 0;
+      if (count) logEvent("registration_replaced", { userId });
     }
-
-    const result = await sendAccountEmail("confirm", values.email, t, token!);
-    return result === "failed" ? { sendFailedEmail: values.email } : { sent: true };
+    const result = await withEmailSlot(
+      () => reserveEmailSlot(values.email),
+      async (slot) => {
+        if (accountExistsNotice) return sendAccountEmail("accountExists", values.email, t, undefined, slot);
+        const token = await createToken("confirm", async (tx) => {
+          // Confirmation may finish between the replacement and the email reservation.
+          const { count } = await tx.user.updateMany({
+            where: { id: userId!, emailVerifiedAt: null }, data: { emailVerifiedAt: null },
+          });
+          return count ? userId : null;
+        });
+        if (!token) {
+          accountExistsNotice = true;
+          return sendAccountEmail("accountExists", values.email, t, undefined, slot);
+        }
+        return sendAccountEmail("confirm", values.email, t, token, slot);
+      },
+      releaseEmailSlot,
+    );
+    return result === "failed" && !accountExistsNotice ? { sendFailedEmail: values.email } : { sent: true };
   });
 }

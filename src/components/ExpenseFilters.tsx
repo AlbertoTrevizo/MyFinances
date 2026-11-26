@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
+import { ChevronDownIcon } from "@/components/icons";
 import type { Dictionary } from "@/i18n/dictionaries";
 import { card, inputField } from "@/lib/styles";
 import type { SortDir } from "@/lib/sort";
@@ -29,6 +30,7 @@ export function ExpenseFilters({
   t: Dictionary["expenses"]["filters"];
 }) {
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
   const pickerRef = useRef<HTMLDetailsElement>(null);
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const [search, setSearch] = useState(q);
@@ -43,10 +45,14 @@ export function ExpenseFilters({
     setSelectedMonth(month);
   }
 
-  function navigate(nextSearch: string, nextMonth: string) {
+  function navigate(nextSearch: string, nextMonth: string, replace = false) {
     const params = new URLSearchParams({ month: nextMonth, sort, dir });
     if (nextSearch.trim()) params.set("q", nextSearch.trim());
-    router.push(`/expenses?${params.toString()}`);
+    const href = `/expenses?${params.toString()}`;
+    startTransition(() => {
+      if (replace) router.replace(href);
+      else router.push(href);
+    });
   }
 
   useEffect(() => {
@@ -85,79 +91,92 @@ export function ExpenseFilters({
     clearTimeout(searchTimeout.current);
     setSearch(nextSearch);
     if (nextSearch.trim() !== q) {
-      searchTimeout.current = setTimeout(() => navigate(nextSearch, selectedMonth), 300);
+      searchTimeout.current = setTimeout(() => navigate(nextSearch, selectedMonth, true), 300);
     }
   }
 
-  const [selectedYear, selectedMonthNumber] = selectedMonth.split("-");
+  const [selectedYear, selectedMonthNumber = ""] = selectedMonth.split("-");
   const hasFilters = Boolean(q || month !== currentMonth);
 
   return (
-    <form
-      method="get"
-      action="/expenses"
-      onSubmit={(event) => {
-        event.preventDefault();
-        clearTimeout(searchTimeout.current);
-        navigate(search, selectedMonth);
-      }}
-      className={`flex flex-wrap items-end gap-3 ${card} p-4`}
-    >
-      <input type="hidden" name="month" value={selectedMonth} />
-      <input type="hidden" name="sort" value={sort} />
-      <input type="hidden" name="dir" value={dir} />
-      <label className="flex min-w-0 basis-full flex-col gap-1.5 sm:flex-1">
-        <span className="text-sm font-medium text-ink-muted">{t.searchLabel}</span>
-        <input
-          type="search"
-          name="q"
-          value={search}
-          onChange={(e) => changeSearch(e.target.value)}
-          placeholder={t.searchPlaceholder}
-          className={inputField}
-        />
-      </label>
+    <search data-pending={isPending ? "" : undefined} aria-busy={isPending}>
+      <form
+        method="get"
+        action="/expenses"
+        onSubmit={(event) => {
+          event.preventDefault();
+          clearTimeout(searchTimeout.current);
+          navigate(search, selectedMonth, true);
+        }}
+        className={`flex flex-wrap items-end gap-3 ${card} p-4`}
+      >
+        <input type="hidden" name="month" value={selectedMonth} />
+        <input type="hidden" name="sort" value={sort} />
+        <input type="hidden" name="dir" value={dir} />
+        <label className="flex min-w-0 basis-full flex-col gap-1.5 sm:flex-1">
+          <span className="text-sm font-medium text-ink-muted">{t.searchLabel}</span>
+          <input
+            type="search"
+            name="q"
+            value={search}
+            onChange={(e) => changeSearch(e.target.value)}
+            placeholder={t.searchPlaceholder}
+            className={inputField}
+          />
+        </label>
 
-      <details ref={pickerRef} className="relative w-full sm:w-auto">
-        <summary className={`${inputField} cursor-pointer`}>{monthLabel}</summary>
-        <div className={`absolute left-0 z-10 mt-2 grid w-full grid-cols-2 gap-3 ${card} p-3 sm:left-auto sm:right-0 sm:w-72`}>
-          <label className="flex min-w-0 flex-col gap-1.5">
-            <span className="text-sm font-medium text-ink-muted">{t.monthLabel}</span>
-            <select
-              value={selectedMonthNumber}
-              onChange={(e) => changeMonth(`${selectedYear}-${e.target.value}`)}
-              className={`${inputField} min-w-0 capitalize`}
-            >
-              {months.map((option) => (
-                <option key={option.value} value={option.value}>{option.label}</option>
-              ))}
-            </select>
-          </label>
-          <label className="flex min-w-0 flex-col gap-1.5">
-            <span className="text-sm font-medium text-ink-muted">{t.yearLabel}</span>
-            <select
-              value={selectedYear}
-              onChange={(e) => changeMonth(`${e.target.value.padStart(4, "0")}-${selectedMonthNumber}`)}
-              className={`${inputField} min-w-0`}
-            >
-              {years.map((year) => <option key={year} value={String(year).padStart(4, "0")}>{year}</option>)}
-            </select>
-          </label>
-        </div>
-      </details>
+        <details ref={pickerRef} className="group relative w-full sm:w-auto">
+          <summary className={`${inputField} flex cursor-pointer list-none items-center justify-between gap-3 pr-3.5 [&::-webkit-details-marker]:hidden`}>
+            <span>{monthLabel}</span>
+            <ChevronDownIcon className="h-4 w-4 shrink-0 text-ink-faint transition-transform group-open:rotate-180 motion-reduce:transition-none" />
+          </summary>
+          <div className={`absolute left-0 z-10 mt-2 grid w-full grid-cols-1 gap-3 ${card} p-3 sm:left-auto sm:right-0 sm:w-96 sm:grid-cols-2`}>
+            <label className="flex min-w-0 flex-col gap-1.5">
+              <span className="text-sm font-medium text-ink-muted">{t.monthLabel}</span>
+              <select
+                value={selectedMonthNumber}
+                onChange={(e) => {
+                  const year = selectedYear === "all" ? currentMonth.slice(0, 4) : selectedYear;
+                  changeMonth(e.target.value ? `${year}-${e.target.value}` : selectedYear);
+                }}
+                className={`${inputField} select-picker min-w-0 whitespace-nowrap`}
+              >
+                <option value="">{t.monthAll}</option>
+                {months.map((option) => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
+              </select>
+            </label>
+            <label className="flex min-w-0 flex-col gap-1.5">
+              <span className="text-sm font-medium text-ink-muted">{t.yearLabel}</span>
+              <select
+                value={selectedYear}
+                onChange={(e) => {
+                  const year = e.target.value;
+                  changeMonth(year === "all" || !selectedMonthNumber ? year : `${year}-${selectedMonthNumber}`);
+                }}
+                className={`${inputField} select-picker min-w-0 whitespace-nowrap`}
+              >
+                <option value="all">{t.yearAll}</option>
+                {years.map((year) => <option key={year} value={String(year).padStart(4, "0")}>{year}</option>)}
+              </select>
+            </label>
+          </div>
+        </details>
 
-      {hasFilters && (
-        <Link
-          href="/expenses"
-          onClick={() => {
-            clearTimeout(searchTimeout.current);
-            setSearch(q);
-          }}
-          className="text-sm font-medium text-ink-muted underline underline-offset-2 hover:text-ink"
-        >
-          {t.clear}
-        </Link>
-      )}
-    </form>
+        {hasFilters && (
+          <Link
+            href="/expenses"
+            onClick={() => {
+              clearTimeout(searchTimeout.current);
+              setSearch(q);
+            }}
+            className="text-sm font-medium text-ink-muted underline underline-offset-2 hover:text-ink"
+          >
+            {t.clear}
+          </Link>
+        )}
+      </form>
+    </search>
   );
 }

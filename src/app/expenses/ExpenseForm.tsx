@@ -45,8 +45,10 @@ export function ExpenseForm({
   onSuccess?: () => void;
 }) {
   const [state, formAction, isPending] = useActionState(action, initialState);
+  const values = state?.values ?? defaultValues;
   const [accountId, setAccountId] = useState(defaultValues?.accountId ?? "");
   const [msiEnabled, setMsiEnabled] = useState(false);
+  const msiMonths = state?.values?.msi ? state.values.msiMonths : 3;
 
   useEffect(() => {
     if (state !== undefined && !state.error) {
@@ -68,7 +70,7 @@ export function ExpenseForm({
           name="description"
           type="text"
           required
-          defaultValue={defaultValues?.description}
+          defaultValue={values?.description}
           placeholder={form.descriptionPlaceholder}
           className={inputField}
         />
@@ -79,7 +81,7 @@ export function ExpenseForm({
         <textarea
           name="notes"
           rows={3}
-          defaultValue={defaultValues?.notes}
+          defaultValue={values?.notes}
           placeholder={form.notesPlaceholder}
           className={inputField}
         />
@@ -92,9 +94,9 @@ export function ExpenseForm({
           type="text"
           inputMode="decimal"
           required
-          defaultValue={defaultValues?.amount}
+          defaultValue={values?.amount}
           placeholder={form.amountPlaceholder}
-          className={`${inputField} font-mono`}
+          className={`${inputField} tabular-nums`}
         />
       </label>
 
@@ -104,7 +106,7 @@ export function ExpenseForm({
           name="date"
           type="date"
           required
-          defaultValue={defaultValues?.date}
+          defaultValue={values?.date}
           className={inputField}
         />
       </label>
@@ -112,9 +114,10 @@ export function ExpenseForm({
       <label className="flex flex-col gap-1.5">
         <span className="text-sm font-medium text-ink-muted">{form.accountLabel}</span>
         <select
+          key={values?.accountId ?? ""}
           name="accountId"
           required
-          defaultValue={defaultValues?.accountId ?? ""}
+          defaultValue={values?.accountId ?? ""}
           onChange={(e) => setAccountId(e.target.value)}
           className={inputField}
         >
@@ -132,9 +135,10 @@ export function ExpenseForm({
       <label className="flex flex-col gap-1.5">
         <span className="text-sm font-medium text-ink-muted">{form.typeLabel}</span>
         <select
+          key={values?.type ?? ""}
           name="type"
           required
-          defaultValue={defaultValues?.type ?? ""}
+          defaultValue={values?.type ?? ""}
           className={inputField}
         >
           <option value="" disabled>
@@ -151,8 +155,9 @@ export function ExpenseForm({
       <label className="flex flex-col gap-1.5">
         <span className="text-sm font-medium text-ink-muted">{form.categoryLabel}</span>
         <select
+          key={values?.categoryId ?? ""}
           name="categoryId"
-          defaultValue={defaultValues?.categoryId ?? ""}
+          defaultValue={values?.categoryId ?? ""}
           className={inputField}
         >
           <option value="">{noCategory}</option>
@@ -170,9 +175,9 @@ export function ExpenseForm({
             <input
               type="checkbox"
               name="msi"
-              checked={msiEnabled}
+              defaultChecked={msiEnabled}
               onChange={(e) => setMsiEnabled(e.target.checked)}
-              className="h-4 w-4 rounded border-line text-primary focus:ring-2 focus:ring-primary-soft"
+              className="accent-primary h-4 w-4"
             />
             {form.msiLabel}
           </label>
@@ -182,13 +187,14 @@ export function ExpenseForm({
               <label className="flex flex-col gap-1.5">
                 <span className="text-sm font-medium text-ink-muted">{form.msiMonthsLabel}</span>
                 <input
+                  key={msiMonths}
                   name="msiMonths"
                   type="number"
                   min={MSI_MIN_MONTHS}
                   max={MSI_MAX_MONTHS}
                   required
-                  defaultValue={3}
-                  className={`${inputField} w-24 font-mono`}
+                  defaultValue={msiMonths}
+                  className={`${inputField} w-24 tabular-nums`}
                 />
               </label>
               <p className="text-xs text-ink-faint">{form.msiHint}</p>
@@ -197,7 +203,9 @@ export function ExpenseForm({
         </div>
       )}
 
-      {state?.error && <p className="text-sm text-danger">{state.error}</p>}
+      <div aria-live="polite">
+        {state?.error && <p className="text-sm text-danger">{state.error}</p>}
+      </div>
 
       <button type="submit" disabled={isPending} className={buttonPrimary}>
         {isPending ? saving : submitLabel}

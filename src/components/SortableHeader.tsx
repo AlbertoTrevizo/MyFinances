@@ -22,14 +22,20 @@ export function SortableHeader({
   const { active, href } = sortHeader(field, activeField, dir, basePath, query);
 
   return (
-    <Link
-      href={href}
-      className={`inline-flex items-center gap-1 transition-colors hover:text-ink ${
-        align === "right" ? "flex-row-reverse" : ""
-      } ${active ? "text-ink" : ""}`}
+    <th
+      scope="col"
+      aria-sort={active ? (dir === "asc" ? "ascending" : "descending") : undefined}
+      className={`px-4 py-3 text-xs font-medium text-ink-muted ${align === "right" ? "text-right" : ""}`}
     >
-      <span>{label}</span>
-      <SortIcon direction={active ? dir : undefined} className="h-3 w-3 shrink-0" />
-    </Link>
+      <Link
+        href={href}
+        className={`inline-flex items-center gap-1 transition-colors hover:text-ink ${
+          align === "right" ? "flex-row-reverse" : ""
+        } ${active ? "text-ink" : ""}`}
+      >
+        <span>{label}</span>
+        {active && <SortIcon direction={dir} className="h-3.5 w-3.5 shrink-0" />}
+      </Link>
+    </th>
   );
 }

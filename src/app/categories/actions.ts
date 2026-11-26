@@ -7,7 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { getTranslations } from "@/i18n/get-locale";
 
-export type ActionState = { error?: string } | undefined;
+export type ActionState = { error?: string; values?: { name: string } } | undefined;
 
 function readFields(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
@@ -24,13 +24,14 @@ export async function createCategory(
 ): Promise<ActionState> {
   await requireUser();
   const { t } = await getTranslations();
-  const { name } = readFields(formData);
-  if (!name) return { error: t.categories.errors.nameRequired };
+  const values = readFields(formData);
+  const { name } = values;
+  if (!name) return { error: t.categories.errors.nameRequired, values };
 
   try {
     await prisma.category.create({ data: { name } });
   } catch (error) {
-    if (isUniqueConstraintError(error)) return { error: t.categories.errors.nameTaken };
+    if (isUniqueConstraintError(error)) return { error: t.categories.errors.nameTaken, values };
     throw error;
   }
   revalidatePath("/categories");
@@ -44,13 +45,14 @@ export async function updateCategory(
 ): Promise<ActionState> {
   await requireUser();
   const { t } = await getTranslations();
-  const { name } = readFields(formData);
-  if (!name) return { error: t.categories.errors.nameRequired };
+  const values = readFields(formData);
+  const { name } = values;
+  if (!name) return { error: t.categories.errors.nameRequired, values };
 
   try {
     await prisma.category.update({ where: { id }, data: { name } });
   } catch (error) {
-    if (isUniqueConstraintError(error)) return { error: t.categories.errors.nameTaken };
+    if (isUniqueConstraintError(error)) return { error: t.categories.errors.nameTaken, values };
     throw error;
   }
   revalidatePath("/categories");

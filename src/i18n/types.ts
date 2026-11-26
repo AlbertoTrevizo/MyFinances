@@ -4,6 +4,7 @@ export type Dictionary = {
     description: string;
   };
   nav: {
+    label: string;
     home: string;
     expenses: string;
     accounts: string;
@@ -12,10 +13,17 @@ export type Dictionary = {
     users: string;
   };
   common: {
+    actions: string;
+    close: string;
+    cancel: string;
+    skipToContent: string;
+    language: string;
+    languages: { es: string; en: string };
     edit: string;
     delete: string;
     deleting: string;
     saving: string;
+    loading: string;
   };
   auth: {
     title: string;
@@ -24,7 +32,11 @@ export type Dictionary = {
     passwordLabel: string;
     signInButton: string;
     signingIn: string;
-    orDivider: string;
+    emailDivider: string;
+    newHereTitle: string;
+    newHereText: string;
+    welcomeBackTitle: string;
+    welcomeBackText: string;
     logout: string;
     googleButton: string;
     registerLink: string;
@@ -39,6 +51,7 @@ export type Dictionary = {
       invalidCredentials: string;
       generic: string;
       emailNotConfirmed: string;
+      googleNotAuthoritative: string;
       googleUnverified: string;
       googleFailed: string;
       googleNotConfigured: string;
@@ -72,6 +85,7 @@ export type Dictionary = {
     emailNotSent: string;
   };
   confirmEmail: {
+    passwordBody: string;
     confirmTitle: string;
     confirmBody: string;
     changeTitle: string;
@@ -159,6 +173,11 @@ export type Dictionary = {
     greeting: string;
     monthSelectLabel: string;
     spentInMonth: (month: string) => string;
+    spentMoreThan: (percent: number, month: string) => string;
+    spentLessThan: (percent: number, month: string) => string;
+    spentSameAs: (month: string) => string;
+    budgetAmount: (amount: string) => string;
+    noBudget: string;
     byCategoryTitle: string;
     byTypeTitle: string;
     topCategoriesTitle: string;
@@ -171,6 +190,7 @@ export type Dictionary = {
     categoriesCard: { label: string; description: string; stat: (count: number) => string };
   };
   budget: {
+    percentLabel: (percent: number) => string;
     title: string;
     description: string;
     saveSubmit: string;
@@ -272,12 +292,17 @@ export type Dictionary = {
     noType: string;
     noResults: string;
     noExpensesMonth: (month: string) => string;
+    noExpensesAll: string;
+    periodYear: (year: number) => string;
+    periodAll: string;
     msiBadge: string;
     filters: {
       searchLabel: string;
       searchPlaceholder: string;
       monthLabel: string;
       yearLabel: string;
+      monthAll: string;
+      yearAll: string;
       clear: string;
     };
     form: {
@@ -299,6 +324,7 @@ export type Dictionary = {
     };
     confirmDelete: (description: string) => string;
     errors: {
+      conflict: string;
       descriptionRequired: string;
       accountRequired: string;
       invalidAmount: string;

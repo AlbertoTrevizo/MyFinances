@@ -1,4 +1,4 @@
-# Our Finances
+# My Finances
 
 An app to organize personal expenses, with amounts in Mexican pesos (MXN). Available in Spanish and English (switch in the top nav bar).
 

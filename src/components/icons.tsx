@@ -1,6 +1,7 @@
 type IconProps = { className?: string };
 
 const base = {
+  "aria-hidden": true,
   viewBox: "0 0 24 24",
   fill: "none",
   stroke: "currentColor",
@@ -8,6 +9,14 @@ const base = {
   strokeLinecap: "round" as const,
   strokeLinejoin: "round" as const,
 };
+
+export function ChevronDownIcon({ className }: IconProps) {
+  return (
+    <svg className={className} {...base}>
+      <path d="M6 9l6 6 6-6" />
+    </svg>
+  );
+}
 
 export function HomeIcon({ className }: IconProps) {
   return (
@@ -85,11 +94,10 @@ export function NoteIcon({ className }: IconProps) {
   );
 }
 
-export function SortIcon({ direction, className }: { direction?: "asc" | "desc"; className?: string }) {
+export function SortIcon({ direction, className }: { direction: "asc" | "desc"; className?: string }) {
   return (
-    <svg viewBox="0 0 12 12" className={className} fill="currentColor">
-      <path d="M6 2.5 8.7 6H3.3L6 2.5Z" opacity={direction === "asc" ? 1 : 0.35} />
-      <path d="M6 9.5 3.3 6h5.4L6 9.5Z" opacity={direction === "desc" ? 1 : 0.35} />
+    <svg className={className} {...base}>
+      <path d={direction === "asc" ? "M12 20V4m-6 6 6-6 6 6" : "M12 4v16m-6-6 6 6 6-6"} />
     </svg>
   );
 }
@@ -101,6 +109,15 @@ export function UsersIcon({ className }: IconProps) {
       <path d="M2.5 20a6.5 6.5 0 0 1 13 0" />
       <path d="M16 4.6a3.5 3.5 0 0 1 0 6.8" />
       <path d="M18 14.2a6.5 6.5 0 0 1 3.5 5.8" />
+    </svg>
+  );
+}
+
+export function LogoutIcon({ className }: IconProps) {
+  return (
+    <svg className={className} {...base}>
+      <path d="M10 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h5" />
+      <path d="M10 12h10M16 8l4 4-4 4" />
     </svg>
   );
 }

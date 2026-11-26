@@ -25,6 +25,8 @@ async function main() {
   // A password reset must also log out every existing session (e.g. a stolen cookie).
   const { count } = await prisma.session.deleteMany({ where: { userId: user.id } });
 
+  await prisma.userToken.deleteMany({ where: { userId: user.id } });
+
   console.log(`Admin user ready: ${user.email} (${count} existing session(s) revoked)`);
   console.log(`Password: ${password}`);
   console.log(

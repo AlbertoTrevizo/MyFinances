@@ -1,40 +1,59 @@
 "use client";
 
-import { useEffect, type ReactNode } from "react";
-import { card } from "@/lib/styles";
+import { useEffect, useId, useRef, type ReactNode } from "react";
+import { buttonSecondary, card } from "@/lib/styles";
 
 export function Modal({
+  open,
   onClose,
   title,
+  closeLabel,
   children,
 }: {
+  open: boolean;
   onClose: () => void;
-  title?: ReactNode;
+  title: string;
+  closeLabel?: string;
   children: ReactNode;
 }) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
+
   useEffect(() => {
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") onClose();
-    }
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (open && !dialog.open) dialog.showModal();
+    else if (!open && dialog.open) dialog.close();
+  }, [open]);
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+    <dialog
+      ref={dialogRef}
+      aria-labelledby={titleId}
+      {...({ closedby: "any" } as object)}
+      onClose={onClose}
+      className={`m-auto max-h-[90vh] w-[calc(100%-2rem)] max-w-md overflow-y-auto p-6 text-left text-ink backdrop:bg-black/40 ${card}`}
       onClick={(event) => {
-        if (event.target === event.currentTarget) onClose();
+        const dialog = event.currentTarget;
+        if ("closedBy" in HTMLDialogElement.prototype || event.target !== dialog) return;
+        const rect = dialog.getBoundingClientRect();
+        if (
+          event.clientX < rect.left || event.clientX > rect.right ||
+          event.clientY < rect.top || event.clientY > rect.bottom
+        ) dialog.close();
       }}
     >
-      <div
-        role="dialog"
-        aria-modal="true"
-        className={`max-h-[90vh] w-full max-w-md overflow-y-auto p-6 ${card}`}
-      >
-        {title}
-        {children}
-      </div>
-    </div>
+      <h1 id={titleId} className="mb-4 text-lg font-semibold text-ink">{title}</h1>
+      {open && (
+        <>
+          {children}
+          {closeLabel && (
+            <button type="button" className={`${buttonSecondary} mt-4`} onClick={() => dialogRef.current?.close()}>
+              {closeLabel}
+            </button>
+          )}
+        </>
+      )}
+    </dialog>
   );
 }

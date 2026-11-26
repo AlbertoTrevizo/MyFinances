@@ -21,6 +21,7 @@ export function AccountForm({
   saving: string;
 }) {
   const [state, formAction, isPending] = useActionState(action, initialState);
+  const values = state?.values ?? defaultValues;
 
   return (
     <form action={formAction} className="flex max-w-md flex-col gap-4">
@@ -30,7 +31,7 @@ export function AccountForm({
           name="name"
           type="text"
           required
-          defaultValue={defaultValues?.name}
+          defaultValue={values?.name}
           placeholder={form.namePlaceholder}
           className={inputField}
         />
@@ -42,7 +43,7 @@ export function AccountForm({
           name="type"
           type="text"
           required
-          defaultValue={defaultValues?.type}
+          defaultValue={values?.type}
           placeholder={form.typePlaceholder}
           className={inputField}
         />
@@ -54,31 +55,35 @@ export function AccountForm({
         <label className="flex flex-col gap-1.5">
           <span className="text-sm font-medium text-ink-muted">{form.cutoffDayLabel}</span>
           <input
+            key={values?.cutoffDay}
             name="cutoffDay"
             type="number"
             min={1}
             max={31}
-            defaultValue={defaultValues?.cutoffDay}
+            defaultValue={values?.cutoffDay}
             placeholder={form.cutoffDayPlaceholder}
-            className={`${inputField} font-mono`}
+            className={`${inputField} tabular-nums`}
           />
         </label>
 
         <label className="flex flex-col gap-1.5">
           <span className="text-sm font-medium text-ink-muted">{form.paymentDayLabel}</span>
           <input
+            key={values?.paymentDay}
             name="paymentDay"
             type="number"
             min={1}
             max={31}
-            defaultValue={defaultValues?.paymentDay}
+            defaultValue={values?.paymentDay}
             placeholder={form.paymentDayPlaceholder}
-            className={`${inputField} font-mono`}
+            className={`${inputField} tabular-nums`}
           />
         </label>
       </div>
 
-      {state?.error && <p className="text-sm text-danger">{state.error}</p>}
+      <div aria-live="polite">
+        {state?.error && <p className="text-sm text-danger">{state.error}</p>}
+      </div>
 
       <button type="submit" disabled={isPending} className={buttonPrimary}>
         {isPending ? saving : submitLabel}

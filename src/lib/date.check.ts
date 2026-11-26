@@ -1,5 +1,5 @@
 // Run: npx tsx src/lib/date.check.ts
-import { currentMonthKey, dateToInputValue, expenseYears, formatDate, formatMonth, inputValueToDate, monthBounds, monthKey, monthNames, parseMonthKey } from "./date";
+import { currentMonthKey, dateToInputValue, expenseYears, formatDate, formatMonth, inputValueToDate, monthBounds, monthKey, monthNames, parseMonthKey, parsePeriod, periodBounds, previousMonthKey } from "./date";
 
 const assert = (c: boolean, m: string) => {
   if (!c) throw new Error(m);
@@ -18,6 +18,14 @@ assert(monthKey(new Date("2026-01-01T00:00:00Z")) === "2026-01", "GAS-19: month 
 assert(monthKey(new Date("2026-12-01T01:00:00+02:00")) === "2026-11", "GAS-19: month keys use the UTC month of an offset date");
 assert(monthKey(new Date("0050-01-01T00:00:00Z")) === "0050-01", "GAS-19: month keys pad year 50 to four digits");
 assert(monthKey(new Date("0000-12-01T00:00:00Z")) === "0000-12", "GAS-19: month keys pad year zero to four digits");
+for (const [key, previous] of [
+  ["2026-01", "2025-12"],
+  ["2026-11", "2026-10"],
+  ["2026-10", "2026-09"],
+  ["0050-01", "0049-12"],
+] as const) {
+  assert(previousMonthKey(key) === previous, `RED-14/INI-1: ${key} follows ${previous} in UTC, preserving padded years and months`);
+}
 for (const [key, es, en] of [
   ["2026-11", "Noviembre 2026", "November 2026"],
   ["2026-01", "Enero 2026", "January 2026"],
@@ -90,4 +98,37 @@ assert(years([date(2024)], 2035) === "2024,2026,2035", "GAS-21: selected year ou
 assert(years([new Date("2025-12-31T23:59:59Z")]) === "2025,2026", "GAS-21: last UTC second of 2025 belongs to 2025");
 assert(years([new Date("2026-01-01T01:00:00+02:00")]) === "2025,2026", "GAS-21: offset dates use their UTC year");
 assert(years([new Date("2025-01-01T00:00:00Z")]) === "2025,2026", "GAS-21: UTC midnight starts the new year");
+for (const key of ["2026-01", "2026-12", "0000-01", "0099-12"]) {
+  assert(JSON.stringify(parsePeriod(key)) === JSON.stringify({ kind: "month", key }), `GAS-19: parses month period ${key}`);
+}
+for (const key of ["2026", "0000", "0001", "0099", "9999"]) {
+  assert(JSON.stringify(parsePeriod(key)) === JSON.stringify({ kind: "year", year: Number(key) }), `GAS-19: parses year period ${key}`);
+}
+assert(JSON.stringify(parsePeriod("all")) === JSON.stringify({ kind: "all" }), "GAS-19: parses all dates");
+for (const invalid of ["", "2026-13", "2026-00", "2026-1", "abc", "20261", "202", " 2026", "2026 ", "ALL", "all ", "2026-11-25", "2026,2027"]) {
+  assert(parsePeriod(invalid) === null, `GAS-19: rejects invalid period ${JSON.stringify(invalid)}`);
+}
+for (const odd of [["2026"], ["2026", "2027"], ["2026-11"], ["all"], [], null, undefined, 2026, {}]) {
+  assert(parsePeriod(odd as unknown as string) === null, `GAS-19: rejects non-string period ${JSON.stringify(odd)}`);
+}
+assert(periodBounds({ kind: "all" }) === null, "GAS-19: all dates has no bounds");
+for (const key of ["2026-12", "0000-01"]) {
+  const bounds = periodBounds({ kind: "month", key });
+  assert(JSON.stringify(bounds) === JSON.stringify(monthBounds(key)), `GAS-19: month period retains bounds ${key}`);
+}
+for (const key of ["2026", "0000", "0099", "9999"]) {
+  const bounds = periodBounds({ kind: "year", year: Number(key) })!;
+  assert(bounds.start.toISOString() === `${key}-01-01T00:00:00.000Z`, `GAS-19: year ${key} starts at UTC midnight`);
+  const nextYear = key === "9999" ? "+010000" : String(Number(key) + 1).padStart(4, "0");
+  assert(bounds.endExclusive.toISOString() === `${nextYear}-01-01T00:00:00.000Z`, `GAS-19: year ${key} ends at next UTC year`);
+}
+const year2026 = periodBounds({ kind: "year", year: 2026 })!;
+const in2026 = (iso: string) => {
+  const date = new Date(iso);
+  return date >= year2026.start && date < year2026.endExclusive;
+};
+assert(!in2026("2025-12-31T23:59:59Z"), "GAS-19: year excludes the previous year's last second");
+assert(in2026("2026-01-01T00:00:00Z"), "GAS-19: year includes its first UTC instant");
+assert(in2026("2026-12-31T23:59:59Z"), "GAS-19: year includes its last UTC second");
+assert(!in2026("2027-01-01T00:00:00Z"), "GAS-19: year excludes the next year's first instant");
 console.log("date ok");

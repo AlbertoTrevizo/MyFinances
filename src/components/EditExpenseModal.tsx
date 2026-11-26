@@ -27,7 +27,7 @@ export function EditExpenseModal({
   onClose,
   copy,
 }: {
-  expense: ExpenseForEdit;
+  expense: ExpenseForEdit | null;
   accounts: Option[];
   categories: Option[];
   onClose: () => void;
@@ -35,29 +35,33 @@ export function EditExpenseModal({
 }) {
   return (
     <Modal
+      open={expense !== null}
       onClose={onClose}
-      title={<h2 className="mb-4 text-lg font-semibold text-ink">{copy.editTitle}</h2>}
+      title={copy.editTitle}
+      closeLabel={copy.closeLabel}
     >
-      <ExpenseForm
-        action={updateExpenseModal.bind(null, expense.id)}
-        accounts={accounts}
-        categories={categories}
-        defaultValues={{
-          description: expense.description,
-          notes: expense.notes ?? "",
-          amount: centsToPesosInput(expense.amountCents),
-          date: dateToInputValue(expense.date),
-          accountId: expense.accountId,
-          categoryId: expense.categoryId ?? "",
-          type: expense.type ?? "",
-        }}
-        submitLabel={copy.editSubmit}
-        form={copy.form}
-        noCategory={copy.noCategory}
-        expenseTypes={copy.expenseTypes}
-        saving={copy.savingLabel}
-        onSuccess={onClose}
-      />
+      {expense && (
+        <ExpenseForm
+          action={updateExpenseModal.bind(null, expense.id)}
+          accounts={accounts}
+          categories={categories}
+          defaultValues={{
+            description: expense.description,
+            notes: expense.notes ?? "",
+            amount: centsToPesosInput(expense.amountCents),
+            date: dateToInputValue(expense.date),
+            accountId: expense.accountId,
+            categoryId: expense.categoryId ?? "",
+            type: expense.type ?? "",
+          }}
+          submitLabel={copy.editSubmit}
+          form={copy.form}
+          noCategory={copy.noCategory}
+          expenseTypes={copy.expenseTypes}
+          saving={copy.savingLabel}
+          onSuccess={onClose}
+        />
+      )}
     </Modal>
   );
 }

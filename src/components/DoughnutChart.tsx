@@ -1,4 +1,4 @@
-type Slice = { label: string; value: number; color: string };
+type Slice = { id: string; label: string; value: number; color: string };
 
 export function DoughnutChart({
   data,
@@ -28,7 +28,7 @@ export function DoughnutChart({
   return (
     <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-center sm:justify-center">
       <div className="relative shrink-0" style={{ width: size, height: size }}>
-        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
+        <svg aria-hidden="true" width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
           <circle
             cx={size / 2}
             cy={size / 2}
@@ -39,7 +39,7 @@ export function DoughnutChart({
           />
           {segments.map(({ slice, dash, offset }) => (
             <circle
-              key={slice.label}
+              key={slice.id}
               cx={size / 2}
               cy={size / 2}
               r={radius}
@@ -52,7 +52,7 @@ export function DoughnutChart({
           ))}
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center px-2 text-center">
-          <span className="font-mono text-base font-semibold tabular-nums text-ink">{centerValue}</span>
+          <span className="text-base font-semibold tabular-nums text-ink">{centerValue}</span>
           <span className="text-xs text-ink-muted capitalize">{centerLabel}</span>
         </div>
       </div>
@@ -60,9 +60,9 @@ export function DoughnutChart({
       {total === 0 ? (
         <p className="text-sm text-ink-muted">{emptyMessage}</p>
       ) : (
-        <ul className="flex w-full min-w-0 flex-col gap-2 sm:max-w-[180px]">
+        <ul role="list" className="flex w-full min-w-0 flex-col gap-2 sm:max-w-[180px]">
           {data.map((slice) => (
-            <li key={slice.label} className="flex items-center justify-between gap-2 text-sm">
+            <li key={slice.id} className="flex items-center justify-between gap-2 text-sm">
               <span className="flex min-w-0 items-center gap-2">
                 <span
                   className="h-2.5 w-2.5 shrink-0 rounded-full"
@@ -70,7 +70,7 @@ export function DoughnutChart({
                 />
                 <span className="truncate text-ink-muted">{slice.label}</span>
               </span>
-              <span className="shrink-0 font-mono text-xs font-medium tabular-nums text-ink-faint">
+              <span className="shrink-0 text-xs font-medium tabular-nums text-ink-faint">
                 {Math.round((slice.value / total) * 100)}%
               </span>
             </li>

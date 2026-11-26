@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useId } from "react";
 import type { ActionState } from "./actions";
 import { addCategoryBudget, deleteCategoryBudget, updateCategoryBudget } from "./actions";
 import { DeleteButton } from "@/components/DeleteButton";
@@ -27,38 +27,45 @@ export type CategoryBudgetCopy = {
   noCategoryBudgets: string;
   deleteLabel: string;
   deletingLabel: string;
+  cancelLabel: string;
   savingLabel: string;
 };
 
 function CategoryBudgetRowForm({ row, copy }: { row: CategoryBudgetRow; copy: CategoryBudgetCopy }) {
+  const amountId = useId();
   const [state, formAction, isPending] = useActionState(
     updateCategoryBudget.bind(null, row.categoryId),
     initialState
   );
 
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-1 border-b border-line px-4 py-3.5 last:border-b-0 transition-colors hover:bg-canvas/60">
       <form action={formAction} className="flex flex-wrap items-center gap-2">
-        <span className="min-w-[140px] flex-1 text-sm text-ink">{row.categoryName}</span>
+        <label id={`${amountId}-category`} htmlFor={amountId} className="min-w-[140px] flex-1 text-sm font-semibold text-ink">{row.categoryName}</label>
         <input
+          id={amountId}
           name="amount"
           type="text"
           inputMode="decimal"
-          defaultValue={row.defaultValue}
+          defaultValue={state?.values?.amount ?? row.defaultValue}
           placeholder={copy.amountPlaceholder}
-          className={`${inputField} w-32 font-mono`}
+          className={`${inputField} w-32 tabular-nums`}
         />
         <button type="submit" disabled={isPending} className={buttonPrimary}>
           {isPending ? copy.savingLabel : copy.saveCategoryButton}
         </button>
         <DeleteButton
+          describedBy={`${amountId}-category`}
           action={deleteCategoryBudget.bind(null, row.categoryId)}
           confirmMessage={row.confirmMessage}
           label={copy.deleteLabel}
           pendingLabel={copy.deletingLabel}
+          cancelLabel={copy.cancelLabel}
         />
       </form>
-      {state?.error && <p className="text-xs text-danger">{state.error}</p>}
+      <div aria-live="polite">
+        {state?.error && <p className="text-xs text-danger">{state.error}</p>}
+      </div>
     </div>
   );
 }
@@ -76,7 +83,7 @@ function AddCategoryBudgetForm({
     <form action={formAction} className="flex flex-wrap items-end gap-2 border-t border-line pt-4">
       <label className="flex flex-col gap-1.5">
         <span className="text-sm font-medium text-ink-muted">{copy.categoryLabel}</span>
-        <select name="categoryId" required defaultValue="" className={inputField}>
+        <select key={state?.values?.categoryId ?? ""} name="categoryId" required defaultValue={state?.values?.categoryId ?? ""} className={inputField}>
           <option value="" disabled>
             {copy.categoryPlaceholder}
           </option>
@@ -93,14 +100,17 @@ function AddCategoryBudgetForm({
           name="amount"
           type="text"
           inputMode="decimal"
+          defaultValue={state?.values?.amount}
           placeholder={copy.amountPlaceholder}
-          className={`${inputField} w-32 font-mono`}
+          className={`${inputField} w-32 tabular-nums`}
         />
       </label>
       <button type="submit" disabled={isPending} className={buttonPrimary}>
         {isPending ? copy.savingLabel : copy.addCategoryButton}
       </button>
-      {state?.error && <p className="w-full text-xs text-danger">{state.error}</p>}
+      <div aria-live="polite" className="w-full">
+        {state?.error && <p className="text-xs text-danger">{state.error}</p>}
+      </div>
     </form>
   );
 }
@@ -119,7 +129,7 @@ export function CategoryBudgetManager({
       {categoryBudgets.length === 0 ? (
         <p className="text-sm text-ink-muted">{copy.noCategoryBudgets}</p>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col">
           {categoryBudgets.map((row) => (
             <CategoryBudgetRowForm key={row.categoryId} row={row} copy={copy} />
           ))}

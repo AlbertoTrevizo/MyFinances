@@ -1,6 +1,6 @@
 # Spec: Roles
 
-**Estado:** Aprobada el 2026-11-24.
+**Estado:** Aprobada el 2026-11-24. Cambio de la auditoría de seguridad (S8) aprobado el 2026-11-25.
 
 ## Contexto y objetivo
 Hoy cualquier usuario confirmado consulta la tabla de usuarios, con nombre, correo, método y estado de todas las cuentas. Como el registro está abierto, cualquiera con un correo válido puede ver esos datos. Además, la marca de administrador solo se otorga desde la terminal.
@@ -25,6 +25,7 @@ Las finanzas (gastos, cuentas, categorías y presupuesto) no cambian: siguen com
 - Toda cuenta DEBERÁ tener exactamente un rol: `user` o `admin`.
 - CUANDO se cree una cuenta con el formulario de registro o con Google, el sistema DEBERÁ asignarle el rol `user`.
 - `scripts/create-admin.ts` DEBERÁ dejar la cuenta con el rol `admin`.
+- *(S8)* Cuando `scripts/create-admin.ts` restablezca la contraseña de una cuenta existente, DEBERÁ también anular todos sus enlaces pendientes (recuperación, confirmación y cambio de correo), además de cerrar sus sesiones. Así un cambio de correo dejado por quien robó una sesión no le devuelve el acceso.
 
 **ROL-2. Acceso a usuarios y roles.** Reemplaza el primer y el último punto de RF-14 de `specs/users/spec.md`.
 - MIENTRAS un usuario confirmado tenga el rol `admin`, el sistema DEBERÁ permitirle ver la tabla de usuarios, editar, eliminar y cambiar roles.

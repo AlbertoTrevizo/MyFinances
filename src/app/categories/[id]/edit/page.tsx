@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { CategoryForm } from "../../CategoryForm";
@@ -5,6 +6,11 @@ import { updateCategory } from "../../actions";
 import { getTranslations } from "@/i18n/get-locale";
 import { PageContainer, PageTitle } from "@/components/PageContainer";
 import { requireUser } from "@/lib/session";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getTranslations();
+  return { title: t.categories.editTitle };
+}
 
 export default async function EditCategoryPage({
   params,

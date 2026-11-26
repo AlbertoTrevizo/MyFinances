@@ -1,6 +1,7 @@
 import { appUrl } from "./app-url";
 import { logEvent } from "./log";
-import { sendEmail, type SendResult } from "./email";
+import { withEmailSlot, type EmailSlot } from "./email-reservation";
+import { reserveEmailSlot, releaseEmailSlot, sendEmail, type SendResult } from "./email";
 import type { Dictionary } from "@/i18n/dictionaries";
 
 export type AccountEmailKind =
@@ -30,8 +31,16 @@ export async function sendAccountEmail(
   kind: AccountEmailKind,
   to: string,
   t: Dictionary,
-  token?: string
+  token?: string,
+  slot?: EmailSlot
 ): Promise<SendResult> {
+  if (kind !== "emailChangeNotice" && !slot) {
+    return withEmailSlot(
+      () => reserveEmailSlot(to),
+      (reserved) => sendAccountEmail(kind, to, t, token, reserved),
+      releaseEmailSlot,
+    );
+  }
   const copy = t.emails[kind];
   const path = PATHS[kind];
   let body = `<p>${escapeHtml(copy.intro)}</p>`;
@@ -53,7 +62,6 @@ export async function sendAccountEmail(
   body += `<p>${escapeHtml(t.emails.ignore)}</p>`;
 
   return sendEmail(
-    { to, subject: copy.subject, html: body, senderName: t.appName },
-    { skipLimit: kind === "emailChangeNotice" }
+    { to, subject: copy.subject, html: body, senderName: t.appName }
   );
 }

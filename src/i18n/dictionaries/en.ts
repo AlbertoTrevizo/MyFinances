@@ -1,11 +1,12 @@
 import type { Dictionary } from "../types";
 
 const en: Dictionary = {
-  appName: "Our Finances",
+  appName: "My Finances",
   meta: {
     description: "Personal expense tracker",
   },
   nav: {
+    label: "Main navigation",
     home: "Home",
     expenses: "Expenses",
     accounts: "Accounts",
@@ -14,10 +15,17 @@ const en: Dictionary = {
     users: "Users",
   },
   common: {
+    actions: "Actions",
+    close: "Close",
+    cancel: "Cancel",
+    skipToContent: "Skip to content",
+    language: "Language",
+    languages: { es: "ES", en: "EN" },
     edit: "Edit",
     delete: "Delete",
     deleting: "Deleting…",
     saving: "Saving…",
+    loading: "Loading…",
   },
   auth: {
     title: "Welcome back",
@@ -26,7 +34,11 @@ const en: Dictionary = {
     passwordLabel: "Password",
     signInButton: "Sign in",
     signingIn: "Signing in…",
-    orDivider: "or",
+    emailDivider: "or use your email",
+    newHereTitle: "New here?",
+    newHereText: "Create your account and start organizing your household finances.",
+    welcomeBackTitle: "Welcome back!",
+    welcomeBackText: "Sign in to see where your money goes this month.",
     logout: "Log out",
     googleButton: "Continue with Google",
     registerLink: "Create an account",
@@ -38,6 +50,7 @@ const en: Dictionary = {
       passwordReset: "Your password was updated. Sign in with the new one.",
     },
     errors: {
+      googleNotAuthoritative: "For this email address, sign in or register with email and password.",
       invalidCredentials: "Invalid email or password.",
       generic: "Something went wrong. Please try again.",
       emailNotConfirmed: "Your email isn't confirmed yet. Check your inbox or request another link.",
@@ -76,6 +89,7 @@ const en: Dictionary = {
     emailNotSent: "The email didn't go out. Please try again in a few minutes.",
   },
   confirmEmail: {
+    passwordBody: "Choose a new password to secure your account and confirm your email.",
     confirmTitle: "Confirm your email",
     confirmBody: "Press the button to activate your account.",
     changeTitle: "Confirm your new email",
@@ -187,6 +201,11 @@ const en: Dictionary = {
     greeting: "Hi 👋",
     monthSelectLabel: "Select month",
     spentInMonth: (month) => `Spent in ${month}:`,
+    spentMoreThan: (percent, month) => `${percent}% more than ${month}`,
+    spentLessThan: (percent, month) => `${percent}% less than ${month}`,
+    spentSameAs: (month) => `Same as ${month}`,
+    budgetAmount: (amount) => `Budget: ${amount}`,
+    noBudget: "No budget",
     byCategoryTitle: "Expenses by category",
     byTypeTitle: "Expenses by type",
     topCategoriesTitle: "Top categories",
@@ -211,6 +230,7 @@ const en: Dictionary = {
     },
   },
   budget: {
+    percentLabel: (percent) => `${percent}%`,
     title: "Budget",
     description: "Set a monthly budget for each expense type.",
     saveSubmit: "Save budget",
@@ -313,12 +333,17 @@ const en: Dictionary = {
     noType: "No type",
     noResults: "No expenses match your filters.",
     noExpensesMonth: (month) => `No expenses in ${month}`,
+    noExpensesAll: "No expenses",
+    periodYear: (year) => `All of ${year}`,
+    periodAll: "All dates",
     msiBadge: "Installments",
     filters: {
       searchLabel: "Search",
       searchPlaceholder: "Search description, category, or account",
       monthLabel: "Month",
       yearLabel: "Year",
+      monthAll: "All months",
+      yearAll: "All years",
       clear: "Clear filters",
     },
     form: {
@@ -341,6 +366,7 @@ const en: Dictionary = {
     },
     confirmDelete: (description) => `Delete the expense "${description}"?`,
     errors: {
+      conflict: "This expense was edited elsewhere at the same time. Please try again.",
       descriptionRequired: "Description is required.",
       accountRequired: "Select an account.",
       invalidAmount: "Amount must be a number greater than zero.",

@@ -5,11 +5,17 @@ export function isLoginLocked(user: { lockedUntil: Date | null } | null, now: Da
   return Boolean(user?.lockedUntil && user.lockedUntil > now);
 }
 
-export function shouldLockLogin(
-  user: { failedLoginAttempts: number } | null,
-  locked: boolean,
-): boolean {
-  return Boolean(user && !locked && user.failedLoginAttempts + 1 >= MAX_FAILED_ATTEMPTS);
+// The database compares the old count before applying this reservation.
+export function loginAttemptReservation(
+  user: { failedLoginAttempts: number; lockedUntil: Date | null } | null,
+  now: Date,
+): { failedLoginAttempts: number; lockedUntil: Date | undefined } | null {
+  if (!user || isLoginLocked(user, now)) return null;
+  const failedLoginAttempts = user.failedLoginAttempts + 1;
+  return {
+    failedLoginAttempts,
+    lockedUntil: failedLoginAttempts >= MAX_FAILED_ATTEMPTS ? loginLockoutUntil(now) : undefined,
+  };
 }
 
 export function loginLockoutUntil(now: Date): Date {

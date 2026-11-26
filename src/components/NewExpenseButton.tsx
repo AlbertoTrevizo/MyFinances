@@ -25,6 +25,7 @@ export function NewExpenseButton({
     createSubmit: string;
     noCategory: string;
     saving: string;
+    closeLabel: string;
     form: Dictionary["expenses"]["form"];
     expenseTypes: Dictionary["expenseTypes"];
   };
@@ -38,37 +39,37 @@ export function NewExpenseButton({
         {copy.newButton}
       </button>
 
-      {open && (
-        <Modal
-          onClose={close}
-          title={<h2 className="mb-4 text-lg font-semibold text-ink">{copy.newTitle}</h2>}
-        >
-          {accounts.length === 0 ? (
-            <div className="flex flex-col gap-3">
-              <p className="text-sm text-ink-muted">{copy.needsAccount}</p>
-              <Link
-                href="/accounts/new"
-                className="w-fit text-sm font-medium text-primary underline underline-offset-2"
-              >
-                {copy.createAccountLink}
-              </Link>
-            </div>
-          ) : (
-            <ExpenseForm
-              action={createExpense}
-              accounts={accounts}
-              categories={categories}
-              submitLabel={copy.createSubmit}
-              form={copy.form}
-              noCategory={copy.noCategory}
-              expenseTypes={copy.expenseTypes}
-              allowMsi
-              saving={copy.saving}
-              onSuccess={close}
-            />
-          )}
-        </Modal>
-      )}
+      <Modal
+        open={open}
+        onClose={close}
+        title={copy.newTitle}
+        closeLabel={copy.closeLabel}
+      >
+        {accounts.length === 0 ? (
+          <div className="flex flex-col gap-3">
+            <p className="text-sm text-ink-muted">{copy.needsAccount}</p>
+            <Link
+              href="/accounts/new"
+              className="w-fit text-sm font-medium text-primary underline underline-offset-2"
+            >
+              {copy.createAccountLink}
+            </Link>
+          </div>
+        ) : (
+          <ExpenseForm
+            action={createExpense}
+            accounts={accounts}
+            categories={categories}
+            submitLabel={copy.createSubmit}
+            form={copy.form}
+            noCategory={copy.noCategory}
+            expenseTypes={copy.expenseTypes}
+            allowMsi
+            saving={copy.saving}
+            onSuccess={close}
+          />
+        )}
+      </Modal>
     </>
   );
 }

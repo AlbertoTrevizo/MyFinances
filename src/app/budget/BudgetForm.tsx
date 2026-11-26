@@ -30,14 +30,16 @@ export function BudgetForm({
             name={field.type}
             type="text"
             inputMode="decimal"
-            defaultValue={field.defaultValue}
+            defaultValue={state?.values?.[field.type] ?? field.defaultValue}
             placeholder={amountPlaceholder}
-            className={`${inputField} font-mono`}
+            className={`${inputField} tabular-nums`}
           />
         </label>
       ))}
 
-      {state?.error && <p className="text-sm text-danger">{state.error}</p>}
+      <div aria-live="polite">
+        {state?.error && <p className="text-sm text-danger">{state.error}</p>}
+      </div>
 
       <button type="submit" disabled={isPending} className={buttonPrimary}>
         {isPending ? saving : saveSubmit}

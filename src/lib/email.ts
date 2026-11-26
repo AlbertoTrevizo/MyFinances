@@ -1,41 +1,51 @@
 import { prisma } from "./prisma";
 import { logEvent } from "./log";
 
-export type SendResult = "sent" | "limited" | "failed";
+import type { EmailReservation, EmailSlot, SendResult } from "./email-reservation";
+export type { SendResult } from "./email-reservation";
 
 const HOUR_MS = 60 * 60 * 1000;
 const MAX_PER_HOUR = 3;
+const MAX_GLOBAL_PER_HOUR = 50;
 type Message = { to: string; subject: string; html: string; senderName: string };
 
-// skipLimit: for notices that RF-12 does not count (the old-address notice of an email change).
-export async function sendEmail(
-  message: Message,
-  options: { skipLimit?: boolean } = {}
-): Promise<SendResult> {
+export async function reserveEmailSlot(recipient: string): Promise<EmailReservation> {
+  let slot: EmailSlot | null = null;
+  try {
+    const since = new Date(Date.now() - HOUR_MS);
+    await prisma.emailSend.deleteMany({ where: { createdAt: { lt: since } } });
+    // Insert first, then count both limits, including simultaneous reservations.
+    slot = await prisma.emailSend.create({ data: { recipient } });
+    const [recent, total] = await Promise.all([
+      prisma.emailSend.count({ where: { recipient, createdAt: { gte: since } } }),
+      prisma.emailSend.count({ where: { createdAt: { gte: since } } }),
+    ]);
+    if (total > MAX_GLOBAL_PER_HOUR) logEvent("email_global_limit");
+    if (recent > MAX_PER_HOUR || total > MAX_GLOBAL_PER_HOUR) {
+      await releaseEmailSlot(slot);
+      return "limited";
+    }
+    return slot;
+  } catch {
+    if (slot) await releaseEmailSlot(slot);
+    logEvent("email_send_failed", { reason: "reservation_failed" });
+    return "failed";
+  }
+}
+
+export async function releaseEmailSlot(slot: EmailSlot): Promise<void> {
+  await prisma.emailSend.deleteMany({ where: { id: slot.id } }).catch(() => {});
+}
+
+// The caller has already reserved its counted slot (or sends an exempt notice).
+export async function sendEmail(message: Message): Promise<SendResult> {
   const apiKey = process.env.BREVO_API_KEY;
   const from = process.env.EMAIL_FROM;
   const production = process.env.NODE_ENV === "production";
-  let rowId: string | null = null;
-
   try {
     if (production && (!apiKey || !from)) {
       logEvent("email_send_failed", { reason: "not_configured" });
       return "failed";
-    }
-
-    if (!options.skipLimit) {
-      const now = Date.now();
-      await prisma.emailSend.deleteMany({ where: { createdAt: { lt: new Date(now - HOUR_MS) } } });
-      // Insert first, then count: two simultaneous requests can't both slip under the cap.
-      const row = await prisma.emailSend.create({ data: { recipient: message.to } });
-      rowId = row.id;
-      const recent = await prisma.emailSend.count({
-        where: { recipient: message.to, createdAt: { gte: new Date(now - HOUR_MS) } },
-      });
-      if (recent > MAX_PER_HOUR) {
-        await prisma.emailSend.delete({ where: { id: rowId } });
-        return "limited";
-      }
     }
 
     if (!apiKey) {
@@ -56,18 +66,12 @@ export async function sendEmail(
       signal: AbortSignal.timeout(5000),
     });
     if (!response.ok) {
-      await releaseRow(rowId);
       logEvent("email_send_failed", { status: response.status });
       return "failed";
     }
     return "sent";
   } catch {
-    await releaseRow(rowId);
     logEvent("email_send_failed", { reason: "exception" });
     return "failed";
   }
-}
-
-async function releaseRow(id: string | null) {
-  if (id) await prisma.emailSend.delete({ where: { id } }).catch(() => {});
 }

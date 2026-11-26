@@ -37,9 +37,9 @@ export function BudgetProgress({
                 {item.label}
               </span>
               <span
-                className={`font-mono text-xs font-medium ${over ? "text-danger" : "text-ink-muted"}`}
+                className={`tabular-nums text-xs font-medium ${over ? "text-danger" : "text-ink-muted"}`}
               >
-                {percent}%
+                {t.percentLabel(percent)}
               </span>
             </div>
             <div className="h-2 w-full overflow-hidden rounded-full bg-canvas">

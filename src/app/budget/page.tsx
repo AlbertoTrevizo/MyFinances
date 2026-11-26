@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { centsToPesosInput } from "@/lib/currency";
 import { EXPENSE_TYPES } from "@/lib/expense-type";
@@ -8,6 +9,11 @@ import { getTranslations } from "@/i18n/get-locale";
 import { PageContainer, PageTitle } from "@/components/PageContainer";
 import { card } from "@/lib/styles";
 import { requireUser } from "@/lib/session";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getTranslations();
+  return { title: t.budget.title };
+}
 
 export default async function BudgetPage() {
   await requireUser();
@@ -50,6 +56,7 @@ export default async function BudgetPage() {
     noCategoryBudgets: t.budget.noCategoryBudgets,
     deleteLabel: t.common.delete,
     deletingLabel: t.common.deleting,
+    cancelLabel: t.common.cancel,
     savingLabel: t.common.saving,
   };
 

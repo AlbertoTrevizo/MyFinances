@@ -1,5 +1,7 @@
+import type { Prisma } from "@prisma/client";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { cache } from "react";
 import { randomBytes, createHash } from "crypto";
 import { prisma } from "./prisma";
 import { isAdmin } from "./roles";
@@ -11,12 +13,12 @@ export function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
 }
 
-export async function createSession(userId: string): Promise<void> {
+export async function createSession(userId: string, db: Prisma.TransactionClient = prisma): Promise<void> {
   const token = randomBytes(32).toString("hex");
   const tokenHash = hashToken(token);
   const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
 
-  await prisma.session.create({ data: { userId, tokenHash, expiresAt } });
+  await db.session.create({ data: { userId, tokenHash, expiresAt } });
 
   const cookieStore = await cookies();
   cookieStore.set(COOKIE_NAME, token, {
@@ -28,7 +30,7 @@ export async function createSession(userId: string): Promise<void> {
   });
 }
 
-export async function getCurrentUser() {
+export const getCurrentUser = cache(async () => {
   const cookieStore = await cookies();
   const token = cookieStore.get(COOKIE_NAME)?.value;
   if (!token) return null;
@@ -47,7 +49,7 @@ export async function getCurrentUser() {
   }
 
   return session.user;
-}
+});
 
 export async function destroySession(): Promise<void> {
   const cookieStore = await cookies();

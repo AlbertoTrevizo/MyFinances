@@ -1,7 +1,7 @@
 "use client";
 
 import { useId } from "react";
-import { inputField } from "@/lib/styles";
+import { inputField, inputFilled } from "@/lib/styles";
 
 export function FormField({
   label,
@@ -12,6 +12,7 @@ export function FormField({
   hint,
   autoComplete,
   required = true,
+  variant = "default",
 }: {
   label: string;
   name: string;
@@ -21,6 +22,7 @@ export function FormField({
   hint?: string;
   autoComplete?: string;
   required?: boolean;
+  variant?: "default" | "filled";
 }) {
   const id = useId();
   const errorId = `${id}-error`;
@@ -39,20 +41,24 @@ export function FormField({
         required={required}
         defaultValue={defaultValue}
         autoComplete={autoComplete}
+        spellCheck={type === "email" ? false : undefined}
+        autoCapitalize={type === "email" ? "none" : undefined}
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy || undefined}
-        className={inputField}
+        className={variant === "filled" ? inputFilled : inputField}
       />
       {hint && (
         <p id={hintId} className="text-xs text-ink-faint">
           {hint}
         </p>
       )}
-      {error && (
-        <p id={errorId} className="text-sm text-danger">
-          {error}
-        </p>
-      )}
+      <div aria-live="polite" className={error ? undefined : "sr-only"}>
+        {error && (
+          <p id={errorId} className="text-sm text-danger">
+            {error}
+          </p>
+        )}
+      </div>
     </div>
   );
 }
