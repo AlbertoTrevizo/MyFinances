@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { ChevronDownIcon } from "@/components/icons";
 import type { Dictionary } from "@/i18n/dictionaries";
-import { card, inputField } from "@/lib/styles";
+import { card, inputField, selectField } from "@/lib/styles";
 import type { SortDir } from "@/lib/sort";
 
 export function ExpenseFilters({
@@ -139,7 +139,7 @@ export function ExpenseFilters({
                   const year = selectedYear === "all" ? currentMonth.slice(0, 4) : selectedYear;
                   changeMonth(e.target.value ? `${year}-${e.target.value}` : selectedYear);
                 }}
-                className={`${inputField} select-picker min-w-0 whitespace-nowrap`}
+                className={`${selectField} min-w-0`}
               >
                 <option value="">{t.monthAll}</option>
                 {months.map((option) => (
@@ -155,7 +155,7 @@ export function ExpenseFilters({
                   const year = e.target.value;
                   changeMonth(year === "all" || !selectedMonthNumber ? year : `${year}-${selectedMonthNumber}`);
                 }}
-                className={`${inputField} select-picker min-w-0 whitespace-nowrap`}
+                className={`${selectField} min-w-0`}
               >
                 <option value="all">{t.yearAll}</option>
                 {years.map((year) => <option key={year} value={String(year).padStart(4, "0")}>{year}</option>)}

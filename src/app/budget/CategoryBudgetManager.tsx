@@ -4,7 +4,7 @@ import { useActionState, useId } from "react";
 import type { ActionState } from "./actions";
 import { addCategoryBudget, deleteCategoryBudget, updateCategoryBudget } from "./actions";
 import { DeleteButton } from "@/components/DeleteButton";
-import { buttonPrimary, inputField } from "@/lib/styles";
+import { buttonPrimary, inputField, selectField } from "@/lib/styles";
 
 const initialState: ActionState = undefined;
 
@@ -81,9 +81,9 @@ function AddCategoryBudgetForm({
 
   return (
     <form action={formAction} className="flex flex-wrap items-end gap-2 border-t border-line pt-4">
-      <label className="flex flex-col gap-1.5">
+      <label className="flex w-full min-w-0 flex-col gap-1.5 sm:w-auto sm:flex-1">
         <span className="text-sm font-medium text-ink-muted">{copy.categoryLabel}</span>
-        <select key={state?.values?.categoryId ?? ""} name="categoryId" required defaultValue={state?.values?.categoryId ?? ""} className={inputField}>
+        <select key={state?.values?.categoryId ?? ""} name="categoryId" required defaultValue={state?.values?.categoryId ?? ""} className={`${selectField} w-full min-w-0`}>
           <option value="" disabled>
             {copy.categoryPlaceholder}
           </option>

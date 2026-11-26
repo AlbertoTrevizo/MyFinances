@@ -8,7 +8,7 @@ import { formatCents, centsToPesosInput } from "@/lib/currency";
 import { formatDate, dateToInputValue } from "@/lib/date";
 import { EXPENSE_TYPES, isExpenseType } from "@/lib/expense-type";
 import { isMsiInstallment } from "@/lib/msi";
-import { inputField, iconButton, badge, expenseTypeBadge } from "@/lib/styles";
+import { inputField, selectField, iconButton, badge, expenseTypeBadge } from "@/lib/styles";
 import { SortableHeader } from "./SortableHeader";
 import { DeleteButton } from "./DeleteButton";
 import { EditExpenseModal } from "./EditExpenseModal";
@@ -249,7 +249,7 @@ export function ExpensesTable({
                       aria-label={copy.tableAccount}
                       defaultValue={expense.accountId}
                       disabled={isPending}
-                      className={inputField}
+                      className={`${selectField} w-full min-w-40`}
                       onChange={(e) => commit(expense.id, "accountId", e.currentTarget.value)}
                       onKeyDown={(e) => {
                         if (e.key === "Escape") cancelEditing();
@@ -277,7 +277,7 @@ export function ExpensesTable({
                       aria-label={copy.tableCategory}
                       defaultValue={expense.categoryId ?? ""}
                       disabled={isPending}
-                      className={inputField}
+                      className={`${selectField} w-full min-w-40`}
                       onChange={(e) => commit(expense.id, "categoryId", e.currentTarget.value)}
                       onKeyDown={(e) => {
                         if (e.key === "Escape") cancelEditing();
@@ -308,7 +308,7 @@ export function ExpensesTable({
                       aria-label={copy.tableType}
                       defaultValue={expense.type ?? ""}
                       disabled={isPending}
-                      className={inputField}
+                      className={`${selectField} w-full min-w-40`}
                       onChange={(e) => commit(expense.id, "type", e.currentTarget.value)}
                       onKeyDown={(e) => {
                         if (e.key === "Escape") cancelEditing();

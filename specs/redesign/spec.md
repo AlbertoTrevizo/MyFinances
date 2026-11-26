@@ -71,6 +71,9 @@ No cambia ninguna regla de datos. Siguen vigentes las reglas de accesibilidad de
   - Los campos pasan al estilo gris relleno de la referencia, y el botón principal es una píldora.
 - **RED-21.** Confirmar correo, olvidé mi contraseña, restablecer contraseña y completar perfil usan el mismo estilo de tarjeta, logo y campos, sin el panel ni la animación.
 
+### Desplegables
+- **RED-23.** Todos los desplegables (`<select>`) de la app siguen RED-22: el selector de mes del inicio, los formularios de gastos, cuentas, categorías y presupuesto, la edición en tabla y el cambio de rol en usuarios. Se ven iguales y comparten un solo estilo.
+
 ### Selector de mes en gastos
 - **RED-22.** El selector de mes de gastos (GAS-20) y sus listas de mes y año usan la misma flecha: un chevrón gris tenue, a la derecha, con espacio hasta la orilla.
   - La flecha del selector gira al abrirlo.

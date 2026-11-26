@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useId, useRef, useState } from "react";
 import type { SortDir } from "@/lib/sort";
-import { buttonPrimary, iconButton, inputField } from "@/lib/styles";
+import { buttonPrimary, iconButton, selectField } from "@/lib/styles";
 import { SortableHeader } from "./SortableHeader";
 import { DeleteButton } from "./DeleteButton";
 import { FormField } from "./FormField";
@@ -106,7 +106,7 @@ function ChangeRoleModal({ row, copy, onClose }: { row: UserRow; copy: Copy; onC
             id="user-role"
             name="role"
             defaultValue={state?.values?.role ?? row.role}
-            className={inputField}
+            className={`${selectField} w-full min-w-0`}
             aria-invalid={state?.error ? true : undefined}
             aria-describedby={state?.error ? "user-role-error" : undefined}
           >

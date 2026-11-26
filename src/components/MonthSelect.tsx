@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
-import { inputField } from "@/lib/styles";
+import { selectField } from "@/lib/styles";
 
 export function MonthSelect({
   value,
@@ -26,10 +26,10 @@ export function MonthSelect({
         const month = e.target.value;
         startTransition(() => router.push(`/?month=${month}`));
       }}
-      className={`${inputField} month-select capitalize`}
+      className={`${selectField} month-select w-full min-w-0 sm:w-auto sm:min-w-52`}
     >
       {options.map((option) => (
-        <option key={option.value} value={option.value} className="capitalize">
+        <option key={option.value} value={option.value}>
           {option.label}
         </option>
       ))}

@@ -5,7 +5,7 @@ import type { ActionState } from "./actions";
 import type { Dictionary } from "@/i18n/dictionaries";
 import { EXPENSE_TYPES } from "@/lib/expense-type";
 import { MSI_MAX_MONTHS, MSI_MIN_MONTHS } from "@/lib/msi";
-import { buttonPrimary, inputField } from "@/lib/styles";
+import { buttonPrimary, inputField, selectField } from "@/lib/styles";
 
 const initialState: ActionState = undefined;
 
@@ -119,7 +119,7 @@ export function ExpenseForm({
           required
           defaultValue={values?.accountId ?? ""}
           onChange={(e) => setAccountId(e.target.value)}
-          className={inputField}
+          className={`${selectField} w-full min-w-0`}
         >
           <option value="" disabled>
             {form.accountPlaceholder}
@@ -139,7 +139,7 @@ export function ExpenseForm({
           name="type"
           required
           defaultValue={values?.type ?? ""}
-          className={inputField}
+          className={`${selectField} w-full min-w-0`}
         >
           <option value="" disabled>
             {form.typePlaceholder}
@@ -158,7 +158,7 @@ export function ExpenseForm({
           key={values?.categoryId ?? ""}
           name="categoryId"
           defaultValue={values?.categoryId ?? ""}
-          className={inputField}
+          className={`${selectField} w-full min-w-0`}
         >
           <option value="">{noCategory}</option>
           {categories.map((category) => (
