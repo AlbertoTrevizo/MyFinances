@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/session";
+import { getCurrentUser, takeInvitationReturn } from "@/lib/session";
 import { getTranslations } from "@/i18n/get-locale";
 import { validateName } from "@/lib/user-validation";
 
@@ -32,5 +32,5 @@ export async function completeProfile(_prev: ProfileState, formData: FormData): 
     where: { id: user.id },
     data: { name: name.value, lastName: lastName.value, profileIncomplete: false },
   });
-  redirect("/");
+  redirect(await takeInvitationReturn());
 }

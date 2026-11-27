@@ -3,7 +3,7 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Sidebar } from "@/components/Sidebar";
 import { getTranslations } from "@/i18n/get-locale";
-import { getCurrentUser } from "@/lib/session";
+import { getCurrentUser, resolveBook } from "@/lib/session";
 import { isAdmin } from "@/lib/roles";
 
 const brandSans = Plus_Jakarta_Sans({
@@ -25,6 +25,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   const current = await getCurrentUser();
   // No sidebar for a stale session or while the profile is incomplete.
   const user = current?.emailVerifiedAt && !current.profileIncomplete ? current : null;
+  const bookContext = user ? await resolveBook(user) : null;
 
   return (
     <html
@@ -35,7 +36,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-white focus:outline-2 focus:outline-offset-2 focus:outline-primary">
           {t.common.skipToContent}
         </a>
-        {user && (
+        {user && bookContext && (
           <Sidebar
             appName={t.appName}
             nav={t.nav}
@@ -45,6 +46,9 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
             userEmail={user.email}
             isAdmin={isAdmin(user)}
             logoutLabel={t.auth.logout}
+            activeBook={bookContext.book}
+            books={bookContext.books}
+            activeBookLabel={t.books.activeBook}
           />
         )}
         <main

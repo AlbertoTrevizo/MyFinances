@@ -12,6 +12,7 @@ import { withEmailSlot } from "@/lib/email-reservation";
 import { sendAccountEmail } from "@/lib/account-emails";
 import { validateProfile } from "@/lib/user-validation";
 import { logEvent } from "@/lib/log";
+import { resolveOwnedBooks } from "@/lib/book-data";
 import { parseRole, removesLastAdmin, roleChangeError, type Role } from "@/lib/roles";
 
 type Field = "name" | "lastName" | "email";
@@ -105,7 +106,7 @@ export async function deleteUser(id: string): Promise<DeleteUserState> {
   const admin = await requireAdmin();
   const { t } = await getTranslations();
 
-  let outcome: "deleted" | "gone" | "lastAdmin";
+  let outcome: Awaited<ReturnType<typeof resolveOwnedBooks>> | "gone" | "lastAdmin";
   try {
     outcome = await prisma.$transaction(
       async (tx) => {
@@ -115,9 +116,10 @@ export async function deleteUser(id: string): Promise<DeleteUserState> {
         if (removesLastAdmin(target.role, adminCount)) {
           return "lastAdmin" as const;
         }
-        // Sessions and links go with the user (cascade); expenses, accounts and budget don't reference users.
+        const events = await resolveOwnedBooks(tx, id);
+        // Sessions, links and remaining memberships go with the user (cascade); owned books are resolved above.
         await tx.user.delete({ where: { id } });
-        return "deleted" as const;
+        return events;
       },
       { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
     );
@@ -132,6 +134,7 @@ export async function deleteUser(id: string): Promise<DeleteUserState> {
   if (outcome === "gone") return { error: t.users.errors.notFound };
   if (outcome === "lastAdmin") return { error: t.users.errors.lastAdmin };
 
+  for (const { event, data } of outcome) logEvent(event, data);
   logEvent("user_deleted", { userId: id, by: admin.id });
   if (id === admin.id) redirect("/login");
   revalidatePath("/users");

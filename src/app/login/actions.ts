@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { randomBytes } from "crypto";
 import { hashPassword, verifyPassword } from "@/lib/password";
-import { createSession, destroySession } from "@/lib/session";
+import { createSession, destroySession, takeInvitationReturn } from "@/lib/session";
 import { getTranslations } from "@/i18n/get-locale";
 import { normalizeEmail } from "@/lib/user-validation";
 import { withMinimumDuration } from "@/lib/timing";
@@ -82,7 +82,7 @@ export async function loginWithPassword(
     }
     logEvent("login", { userId: user!.id });
     await prisma.session.deleteMany({ where: { expiresAt: { lt: new Date() } } });
-    redirect("/");
+    redirect(await takeInvitationReturn());
   });
 }
 

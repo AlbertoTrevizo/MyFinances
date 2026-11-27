@@ -48,7 +48,9 @@ export async function register(_prev: RegisterState, formData: FormData): Promis
     let userId: string | null = null;
     if (!existing) {
       try {
-        const user = await prisma.user.create({ data: { ...values, passwordHash: hash, passwordSalt: salt } });
+        const user = await prisma.user.create({
+          data: { ...values, passwordHash: hash, passwordSalt: salt, ownedBooks: { create: { name: t.books.defaultName } } },
+        });
         userId = user.id;
         logEvent("registration", { userId });
       } catch (error) {

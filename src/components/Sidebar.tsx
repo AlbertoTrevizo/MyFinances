@@ -4,7 +4,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { LanguageSwitcher } from "./LanguageSwitcher";
-import { HomeIcon, ExpensesIcon, AccountsIcon, CategoriesIcon, BudgetIcon, UsersIcon, LogoutIcon } from "./icons";
+import { HomeIcon, ExpensesIcon, AccountsIcon, CategoriesIcon, BudgetIcon, BooksIcon, UsersIcon, LogoutIcon } from "./icons";
+import { BookSwitcher } from "@/app/books/BookSwitcher";
 import logo from "@/assets/logo.png";
 import { logout } from "@/app/login/actions";
 import { iconButton } from "@/lib/styles";
@@ -20,6 +21,9 @@ export function Sidebar({
   userEmail,
   logoutLabel,
   isAdmin,
+  activeBook,
+  books,
+  activeBookLabel,
 }: {
   appName: string;
   nav: Dictionary["nav"];
@@ -29,6 +33,9 @@ export function Sidebar({
   userEmail: string;
   logoutLabel: string;
   isAdmin: boolean;
+  activeBook: { id: string; name: string };
+  books: { id: string; name: string }[];
+  activeBookLabel: string;
 }) {
   const pathname = usePathname();
 
@@ -38,6 +45,7 @@ export function Sidebar({
     { href: "/accounts", label: nav.accounts, icon: AccountsIcon },
     { href: "/categories", label: nav.categories, icon: CategoriesIcon },
     { href: "/budget", label: nav.budget, icon: BudgetIcon },
+    { href: "/books", label: nav.books, icon: BooksIcon },
     ...(isAdmin ? [{ href: "/users", label: nav.users, icon: UsersIcon }] : []),
   ];
 
@@ -68,6 +76,10 @@ export function Sidebar({
             </button>
           </form>
         </div>
+      </div>
+
+      <div className="min-w-0 px-4 pb-3 md:px-5 md:pb-5">
+        <BookSwitcher activeBook={activeBook} books={books} label={activeBookLabel} />
       </div>
 
       <nav aria-label={nav.label} className="flex gap-1 overflow-x-auto px-2 pb-2 md:flex-1 md:flex-col md:gap-1 md:overflow-visible md:px-3 md:pb-0">

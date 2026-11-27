@@ -1,11 +1,12 @@
 import { Prisma } from "@prisma/client";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
-import { createSession } from "@/lib/session";
+import { createSession, takeInvitationReturn } from "@/lib/session";
 import { appRedirect, appUrl } from "@/lib/app-url";
 import { normalizeEmail } from "@/lib/user-validation";
 import { isGoogleAuthoritative } from "@/lib/google-authority";
 import { logEvent } from "@/lib/log";
+import { getTranslations } from "@/i18n/get-locale";
 
 type GoogleProfile = {
   sub?: string;
@@ -81,6 +82,7 @@ export async function GET(request: Request) {
     if (!user) {
       const byEmail = await prisma.user.findUnique({ where: { email } });
       if (!byEmail) {
+        const { t } = await getTranslations();
         user = await prisma.user.create({
           data: {
             email,
@@ -89,6 +91,7 @@ export async function GET(request: Request) {
             lastName: family,
             emailVerifiedAt: new Date(),
             profileIncomplete: !given || !family,
+            ownedBooks: { create: { name: t.books.defaultName } },
           },
         });
         logEvent("registration", { userId: user.id, method: "google" });
@@ -117,7 +120,7 @@ export async function GET(request: Request) {
     }
 
     await createSession(user.id);
-    return appRedirect(user.profileIncomplete ? "/complete-profile" : "/");
+    return appRedirect(user.profileIncomplete ? "/complete-profile" : await takeInvitationReturn());
   } catch (error) {
     // A simultaneous sign-in may have created the account first; sending the person back to retry is enough.
     if (!(error instanceof Prisma.PrismaClientKnownRequestError)) throw error;

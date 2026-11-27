@@ -5,6 +5,7 @@ import { reserveEmailSlot, releaseEmailSlot, sendEmail, type SendResult } from "
 import type { Dictionary } from "@/i18n/dictionaries";
 
 export type AccountEmailKind =
+  | "invitation"
   | "confirm"
   | "emailChange"
   | "reset"
@@ -12,6 +13,7 @@ export type AccountEmailKind =
   | "emailChangeNotice";
 
 const PATHS: Partial<Record<AccountEmailKind, string>> = {
+  invitation: "/invitations",
   confirm: "/confirm-email",
   emailChange: "/confirm-email",
   reset: "/reset-password",

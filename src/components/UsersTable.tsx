@@ -204,7 +204,7 @@ export function UsersTable({
                         const result = await deleteUser(row.id);
                         if (result?.error) setDeleteError(result.error);
                       }}
-                      confirmMessage={row.confirmMessage}
+                      confirmMessage={`${row.confirmMessage} ${copy.users.deleteBooksWarning}`}
                       label={copy.deleteLabel}
                       pendingLabel={copy.deletingLabel}
                       cancelLabel={copy.cancelLabel}

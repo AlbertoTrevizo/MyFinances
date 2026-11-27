@@ -11,7 +11,7 @@ Los roles y su asignación se definen en `specs/roles/spec.md`.
 
 ## Usuarios
 - **Visitante:** no tiene sesión. Puede registrarse, confirmar su correo, iniciar sesión y recuperar su contraseña.
-- **Usuario confirmado:** tiene una cuenta con correo confirmado. Usa gastos, cuentas, categorías y presupuesto; no consulta la tabla de usuarios salvo que sea administrador.
+- **Usuario confirmado:** tiene una cuenta con correo confirmado. Usa las finanzas de los libros a los que pertenece, según LIB-3 de `specs/books/spec.md`; no consulta la tabla de usuarios salvo que sea administrador.
 - **Administrador:** usuario confirmado con el rol `admin` que además consulta, edita y elimina usuarios y cambia roles, según `specs/roles/spec.md`.
 
 **Estados de una cuenta:** "Pendiente" hasta que confirma su correo y "Confirmada" después.
@@ -29,7 +29,7 @@ Los roles y su asignación se definen en `specs/roles/spec.md`.
 
 ### Acceso
 **RF-1. Acceso a la app.** Reemplaza las reglas GAS-1, CUE-1, CAT-1 y PRE-1, que hoy exigen sesión de administrador.
-- MIENTRAS un usuario tenga sesión y su cuenta esté confirmada, el sistema DEBERÁ permitirle ver y modificar gastos, cuentas, categorías y presupuesto.
+- El acceso a gastos, cuentas, categorías y presupuesto se rige por LIB-3 de `specs/books/spec.md`: ver requiere ser miembro confirmado del libro activo y modificar requiere ser Dueño o tener permiso de Escritura.
 - MIENTRAS no haya sesión de un usuario confirmado, el sistema DEBERÁ permitir solo las pantallas de iniciar sesión, registro, confirmación de correo y recuperación de contraseña, y DEBERÁ redirigir cualquier otra a iniciar sesión.
 - CUANDO alguien con sesión abra registro o iniciar sesión, el sistema DEBERÁ llevarlo al inicio.
 
@@ -130,7 +130,7 @@ Los roles y su asignación se definen en `specs/roles/spec.md`.
 **RF-17. Eliminar.**
 - MIENTRAS el usuario sea administrador, el sistema DEBERÁ permitirle eliminar cualquier cuenta, incluso la suya, tras pedir confirmación.
 - SI la cuenta es del último administrador, contado por el rol `admin`, ENTONCES el sistema DEBERÁ rechazar la eliminación e indicar el motivo, también si se intenta a la vez que otra eliminación o cambio de rol, según ROL-5 de `specs/roles/spec.md`.
-- CUANDO se elimine una cuenta, el sistema DEBERÁ cerrar sus sesiones al instante, anular sus enlaces y conservar intactos gastos, cuentas, categorías y presupuesto.
+- CUANDO se elimine una cuenta, el sistema DEBERÁ cerrar sus sesiones al instante y anular sus enlaces; sus membresías y libros se resuelven según LIB-17 de `specs/books/spec.md`.
 - CUANDO un administrador se elimine a sí mismo, el sistema DEBERÁ llevarlo a iniciar sesión.
 
 ### Cuentas existentes
@@ -175,10 +175,9 @@ La constitución pide justificar aquí lo nuevo que la app necesita para funcion
 | Usuario sin permiso abierto en otra pestaña tras perder la sesión | Va a iniciar sesión en su siguiente acción (RF-1). |
 
 ## Fuera de alcance
-- Datos por usuario: gastos, cuentas y presupuesto siguen siendo únicos y compartidos.
 - Perfil propio: que un usuario cambie su propio nombre, correo o contraseña estando dentro de la app.
 - Desactivar cuentas sin eliminarlas, y restaurar cuentas eliminadas.
-- Otros proveedores de identidad, verificación en dos pasos e invitaciones.
+- Otros proveedores de identidad y verificación en dos pasos.
 - Reintentos automáticos de correos y borrado automático de cuentas Pendientes.
 - Límite de intentos por conexión o IP en el código de la app. *(S12):* se cubre fuera del código, con una regla de Vercel Firewall que limite por IP las peticiones a `/login`, `/register`, `/forgot-password` y `/reset-password`. La configura el dueño en el panel de Vercel.
 

@@ -65,6 +65,15 @@ export function BudgetIcon({ className }: IconProps) {
   );
 }
 
+export function BooksIcon({ className }: IconProps) {
+  return (
+    <svg className={className} {...base}>
+      <path d="M5 3h14v18H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" />
+      <path d="M3 17h16M7 3v14M10 7h5" />
+    </svg>
+  );
+}
+
 export function PencilIcon({ className }: IconProps) {
   return (
     <svg className={className} {...base}>

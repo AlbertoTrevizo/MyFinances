@@ -7,7 +7,7 @@ Hoy cualquier usuario confirmado consulta la tabla de usuarios, con nombre, corr
 
 El objetivo es que solo los administradores vean la información de usuarios y roles, y que asignen roles desde la app. Por ahora hay dos roles: `user` y `admin`.
 
-Las finanzas (gastos, cuentas, categorías y presupuesto) no cambian: siguen compartidas y abiertas a todo usuario confirmado.
+El acceso a las finanzas (gastos, cuentas, categorías y presupuesto) se rige por `specs/books/spec.md`, según la membresía y el permiso en cada libro.
 
 ## Roles
 - **Usuario (`user`):** es el rol de toda cuenta nueva. Usa gastos, cuentas, categorías y presupuesto. No ve usuarios ni roles.
@@ -72,7 +72,7 @@ Ninguna.
 
 ## Fuera de alcance
 - Más roles, permisos configurables o una pantalla para crear roles.
-- Restringir las finanzas por rol y tener datos por usuario.
+- Restringir las finanzas por rol de la app.
 - Avisar por correo de un cambio de rol.
 - Configurar el pipeline de CI: esta spec solo deja los checks listos para él.
 

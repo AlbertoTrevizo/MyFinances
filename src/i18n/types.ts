@@ -10,6 +10,7 @@ export type Dictionary = {
     accounts: string;
     categories: string;
     budget: string;
+    books: string;
     users: string;
   };
   common: {
@@ -145,6 +146,7 @@ export type Dictionary = {
     close: string;
     emailChangePending: string;
     confirmDelete: (email: string) => string;
+    deleteBooksWarning: string;
     errors: {
       notFound: string;
       emailTaken: string;
@@ -158,6 +160,7 @@ export type Dictionary = {
   emails: {
     linkFallback: string;
     ignore: string;
+    invitation: { subject: string; intro: string; button: string };
     confirm: { subject: string; intro: string; button: string };
     emailChange: { subject: string; intro: string; button: string };
     reset: { subject: string; intro: string; button: string };
@@ -272,6 +275,59 @@ export type Dictionary = {
       nameTaken: string;
     };
   };
+  books: {
+    defaultName: string;
+    title: string;
+    createTitle: string;
+    create: string;
+    nameLabel: string;
+    activeBook: string;
+    active: string;
+    useBook: string;
+    switching: string;
+    memberCount: (count: number) => string;
+    membersTitle: string;
+    renameTitle: string;
+    rename: string;
+    delete: string;
+    deleting: string;
+    leave: string;
+    leaving: string;
+    removeMember: string;
+    removing: string;
+    roleLabel: string;
+    changeRole: string;
+    saving: string;
+    cancel: string;
+    invite: {
+      title: string; email: string; send: string; sending: string; sent: string;
+      linkTitle: string; generate: string; generating: string; linkHint: string;
+      url: string; copy: string; copied: string; copyFailed: string;
+    };
+    invitations: {
+      title: string; empty: string; email: string; link: string; expires: string;
+      revoke: string; revoking: string; confirmRevoke: string;
+    };
+    invitation: {
+      title: string; invalid: string; wrongAccount: string; alreadyMember: string;
+      invitedBy: string; join: string; joining: string; goToBook: string;
+    };
+    roles: { owner: string; editor: string; viewer: string };
+    confirmDelete: (name: string) => string;
+    confirmRemove: (email: string) => string;
+    confirmLeave: (name: string) => string;
+    errors: {
+      required: string;
+      tooLong: string;
+      notFound: string;
+      conflict: string;
+      alreadyMember: string;
+      limited: string;
+      failed: string;
+      ownerCannotLeave: string;
+      invalidRole: string;
+    };
+  };
   expenses: {
     title: string;
     newButton: string;
@@ -332,6 +388,7 @@ export type Dictionary = {
       typeRequired: string;
       invalidMsiMonths: string;
       msiRequiresCutoffDay: string;
+      invalidReference: string;
       msiInstallmentLocked: string;
     };
   };

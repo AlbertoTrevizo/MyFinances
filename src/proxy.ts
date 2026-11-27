@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { invitationReturnPath } from "./lib/book-rules";
 
 const PUBLIC_PATHS = [
   "/login",
@@ -20,11 +21,22 @@ export default function proxy(request: NextRequest) {
   }
 
   const token = request.cookies.get("session")?.value;
-  if (!token) {
-    return NextResponse.redirect(new URL("/login", request.url));
+  const response = !token
+    ? NextResponse.redirect(new URL("/login", request.url))
+    : NextResponse.next();
+  const returnPath = pathname === "/invitations"
+    ? invitationReturnPath(pathname + request.nextUrl.search)
+    : null;
+  if (returnPath) {
+    response.cookies.set("invitation_return", returnPath, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 24 * 60 * 60,
+    });
   }
-
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {
