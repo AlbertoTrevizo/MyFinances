@@ -10,7 +10,7 @@ Definir cuánto se quiere gastar al mes, por tipo de gasto o por categoría, y c
 
 | Modelo | Campo | Regla |
 |---|---|---|
-| `Budget` | `type` | `needs`, `wants` o `savings`. Máximo un registro por tipo. |
+| `Budget` | `type` | `needs`, `wants` o `savings`. Máximo un registro por tipo dentro de cada libro (LIB-2 de `specs/books/spec.md`). |
 | `Budget` | `amountCents` | Entero de 0 o más, en centavos. |
 | `CategoryBudget` | `categoryId` | Máximo un registro por categoría. Se borra si se borra la categoría. |
 | `CategoryBudget` | `amountCents` | Entero de 0 o más, en centavos. |
@@ -18,7 +18,7 @@ Definir cuánto se quiere gastar al mes, por tipo de gasto o por categoría, y c
 ## Reglas
 
 ### Acceso
-- **PRE-1.** La página y todas las acciones requieren una sesión de usuario confirmado. Sin ella, se redirige a `/login`.
+- **PRE-1.** El acceso se rige por LIB-3 de `specs/books/spec.md`: los datos pertenecen al libro activo; verlos requiere ser miembro confirmado y modificarlos requiere ser Dueño o tener permiso de Escritura.
 
 ### Montos
 - **PRE-2.** Se aplican las reglas de formato de GAS-2 a GAS-4, con dos diferencias: `0` es válido y un campo vacío se guarda como 0.

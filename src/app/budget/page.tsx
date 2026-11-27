@@ -8,7 +8,8 @@ import { saveBudgets } from "./actions";
 import { getTranslations } from "@/i18n/get-locale";
 import { PageContainer, PageTitle } from "@/components/PageContainer";
 import { card } from "@/lib/styles";
-import { requireUser } from "@/lib/session";
+import { requireBook } from "@/lib/session";
+import { canWrite } from "@/lib/book-rules";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getTranslations();
@@ -16,12 +17,13 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function BudgetPage() {
-  await requireUser();
+  const { book, access } = await requireBook();
+  const canEdit = canWrite(access);
   const { t } = await getTranslations();
   const [budgets, categories, categoryBudgets] = await Promise.all([
-    prisma.budget.findMany(),
-    prisma.category.findMany({ orderBy: { createdAt: "asc" } }),
-    prisma.categoryBudget.findMany({ include: { category: true } }),
+    prisma.budget.findMany({ where: { bookId: book.id } }),
+    prisma.category.findMany({ where: { bookId: book.id }, orderBy: { createdAt: "asc" } }),
+    prisma.categoryBudget.findMany({ where: { category: { bookId: book.id } }, include: { category: true } }),
   ]);
   const amountByType = new Map(budgets.map((b) => [b.type, b.amountCents]));
 
@@ -68,6 +70,7 @@ export default async function BudgetPage() {
           <p className="mt-1 text-sm text-ink-muted">{t.budget.description}</p>
         </div>
         <BudgetForm
+          canEdit={canEdit}
           action={saveBudgets}
           fields={fields}
           amountPlaceholder={t.budget.amountPlaceholder}
@@ -82,6 +85,7 @@ export default async function BudgetPage() {
           <p className="mt-1 text-sm text-ink-muted">{t.budget.categoryDescription}</p>
         </div>
         <CategoryBudgetManager
+          canEdit={canEdit}
           categoryBudgets={categoryBudgetRows}
           availableCategories={availableCategories}
           copy={categoryBudgetCopy}

@@ -11,10 +11,12 @@ import { buttonPrimary } from "@/lib/styles";
 type Option = { id: string; label: string; cutoffDay?: number | null };
 
 export function NewExpenseButton({
+  canEdit,
   accounts,
   categories,
   copy,
 }: {
+  canEdit: boolean;
   accounts: Option[];
   categories: Option[];
   copy: {
@@ -32,6 +34,8 @@ export function NewExpenseButton({
 }) {
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
+
+  if (!canEdit) return null;
 
   return (
     <>

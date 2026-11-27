@@ -6,7 +6,8 @@ import { PageContainer, PageTitle } from "@/components/PageContainer";
 import { AccountsTable } from "@/components/AccountsTable";
 import { buttonPrimary, card } from "@/lib/styles";
 import { resolveSort } from "@/lib/sort";
-import { requireUser } from "@/lib/session";
+import { requireBook } from "@/lib/session";
+import { canWrite } from "@/lib/book-rules";
 
 const SORT_FIELDS = ["name", "type"] as const;
 
@@ -20,12 +21,14 @@ export default async function AccountsPage({
 }: {
   searchParams: Promise<{ error?: string; sort?: string; dir?: string }>;
 }) {
-  await requireUser();
+  const { book, access } = await requireBook();
+  const canEdit = canWrite(access);
   const { error, ...sp } = await searchParams;
   const { t } = await getTranslations();
   const { field, dir } = resolveSort(sp, SORT_FIELDS, "name");
 
   const accounts = await prisma.account.findMany({
+    where: { bookId: book.id },
     orderBy: { [field]: dir },
   });
 
@@ -54,11 +57,11 @@ export default async function AccountsPage({
   return (
     <PageContainer
       title={<PageTitle>{t.accounts.title}</PageTitle>}
-      actions={
+      actions={canEdit && (
         <Link href="/accounts/new" className={buttonPrimary}>
           {t.accounts.newButton}
         </Link>
-      }
+      )}
     >
       {error === "hasExpenses" && (
         <p className="rounded-lg border border-danger-soft bg-danger-soft px-4 py-2 text-sm text-danger">
@@ -70,7 +73,7 @@ export default async function AccountsPage({
         <p className="text-sm text-ink-muted">{t.accounts.emptyMessage}</p>
       ) : (
         <div className={card}>
-          <AccountsTable accounts={accountRows} copy={accountsCopy} sort={field} dir={dir} />
+          <AccountsTable canEdit={canEdit} accounts={accountRows} copy={accountsCopy} sort={field} dir={dir} />
         </div>
       )}
     </PageContainer>

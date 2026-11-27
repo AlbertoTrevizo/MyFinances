@@ -5,7 +5,7 @@ import { AccountForm } from "../../AccountForm";
 import { updateAccount } from "../../actions";
 import { getTranslations } from "@/i18n/get-locale";
 import { PageContainer, PageTitle } from "@/components/PageContainer";
-import { requireUser } from "@/lib/session";
+import { requireBookWriter } from "@/lib/session";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getTranslations();
@@ -17,10 +17,10 @@ export default async function EditAccountPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireUser();
+  const { book } = await requireBookWriter();
   const { id } = await params;
   const { t } = await getTranslations();
-  const account = await prisma.account.findUnique({ where: { id } });
+  const account = await prisma.account.findUnique({ where: { id_bookId: { id, bookId: book.id } } });
   if (!account) notFound();
 
   return (

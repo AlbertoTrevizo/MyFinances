@@ -21,7 +21,8 @@ import { BudgetProgress } from "@/components/BudgetProgress";
 import { SpentCard } from "@/components/SpentCard";
 import { ExpensesIcon, AccountsIcon, CategoriesIcon } from "@/components/icons";
 import { card } from "@/lib/styles";
-import { requireUser } from "@/lib/session";
+import { requireBook } from "@/lib/session";
+import { canWrite } from "@/lib/book-rules";
 
 const CHART_PALETTE = [
   "#0F766E",
@@ -53,7 +54,8 @@ export default async function Home({
 }: {
   searchParams: Promise<{ month?: string }>;
 }) {
-  await requireUser();
+  const { book, access } = await requireBook();
+  const canEdit = canWrite(access);
   const { locale, t } = await getTranslations();
 
   const currentMonthKey = getCurrentMonthKey();
@@ -74,20 +76,20 @@ export default async function Home({
     categoryBudgets,
     previousMonthTotal,
   ] = await Promise.all([
-    prisma.account.count(),
-    prisma.category.count(),
-    prisma.expense.count(),
+    prisma.account.count({ where: { bookId: book.id } }),
+    prisma.category.count({ where: { bookId: book.id } }),
+    prisma.expense.count({ where: { bookId: book.id } }),
     prisma.expense.findMany({
-      where: { date: { gte: monthStart, lt: monthEnd } },
+      where: { bookId: book.id, date: { gte: monthStart, lt: monthEnd } },
       include: { category: true, account: true },
       orderBy: { date: "desc" },
     }),
-    prisma.expense.findMany({ select: { date: true } }),
-    prisma.budget.findMany(),
-    prisma.categoryBudget.findMany({ include: { category: true } }),
+    prisma.expense.findMany({ where: { bookId: book.id }, select: { date: true } }),
+    prisma.budget.findMany({ where: { bookId: book.id } }),
+    prisma.categoryBudget.findMany({ where: { category: { bookId: book.id } }, include: { category: true } }),
     prisma.expense.aggregate({
       _sum: { amountCents: true },
-      where: { excludeFromTotals: false, date: { gte: previousStart, lt: previousEnd } },
+      where: { bookId: book.id, excludeFromTotals: false, date: { gte: previousStart, lt: previousEnd } },
     }),
   ]);
 
@@ -246,12 +248,12 @@ export default async function Home({
         <div className={`${card} p-5 sm:p-6`}>
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-sm font-semibold text-ink">{t.budget.widgetTitle}</h2>
-            <Link
+            {canEdit && (<Link
               href="/budget"
               className="text-sm font-medium text-primary hover:text-primary-strong"
             >
               {t.budget.setBudgetLink}
-            </Link>
+            </Link>)}
           </div>
           <BudgetProgress
             items={budgetItems}
@@ -264,12 +266,12 @@ export default async function Home({
       <div className={`${card} p-5 sm:p-6`}>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-sm font-semibold text-ink">{t.budget.categoryWidgetTitle}</h2>
-          <Link
+          {canEdit && (<Link
             href="/budget"
             className="text-sm font-medium text-primary hover:text-primary-strong"
           >
             {t.budget.setBudgetLink}
-          </Link>
+          </Link>)}
         </div>
         <BudgetProgress
           items={categoryBudgetItems}

@@ -3,7 +3,7 @@ import { AccountForm } from "../AccountForm";
 import { createAccount } from "../actions";
 import { getTranslations } from "@/i18n/get-locale";
 import { PageContainer, PageTitle } from "@/components/PageContainer";
-import { requireUser } from "@/lib/session";
+import { requireBookWriter } from "@/lib/session";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getTranslations();
@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function NewAccountPage() {
-  await requireUser();
+  await requireBookWriter();
   const { t } = await getTranslations();
 
   return (

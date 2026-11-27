@@ -5,7 +5,7 @@ import { CategoryForm } from "../../CategoryForm";
 import { updateCategory } from "../../actions";
 import { getTranslations } from "@/i18n/get-locale";
 import { PageContainer, PageTitle } from "@/components/PageContainer";
-import { requireUser } from "@/lib/session";
+import { requireBookWriter } from "@/lib/session";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getTranslations();
@@ -17,10 +17,10 @@ export default async function EditCategoryPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireUser();
+  const { book } = await requireBookWriter();
   const { id } = await params;
   const { t } = await getTranslations();
-  const category = await prisma.category.findUnique({ where: { id } });
+  const category = await prisma.category.findUnique({ where: { id_bookId: { id, bookId: book.id } } });
   if (!category) notFound();
 
   return (

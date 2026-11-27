@@ -9,7 +9,8 @@ import { PencilIcon } from "@/components/icons";
 import { buttonPrimary, iconButton, card } from "@/lib/styles";
 import { resolveSort } from "@/lib/sort";
 import { deleteCategory } from "./actions";
-import { requireUser } from "@/lib/session";
+import { requireBook } from "@/lib/session";
+import { canWrite } from "@/lib/book-rules";
 
 const SORT_FIELDS = ["name"] as const;
 
@@ -23,23 +24,25 @@ export default async function CategoriesPage({
 }: {
   searchParams: Promise<{ error?: string; sort?: string; dir?: string }>;
 }) {
-  await requireUser();
+  const { book, access } = await requireBook();
+  const canEdit = canWrite(access);
   const { error, ...sp } = await searchParams;
   const { t } = await getTranslations();
   const { field, dir } = resolveSort(sp, SORT_FIELDS, "name");
 
   const categories = await prisma.category.findMany({
+    where: { bookId: book.id },
     orderBy: { [field]: dir },
   });
 
   return (
     <PageContainer
       title={<PageTitle>{t.categories.title}</PageTitle>}
-      actions={
+      actions={canEdit && (
         <Link href="/categories/new" className={buttonPrimary}>
           {t.categories.newButton}
         </Link>
-      }
+      )}
     >
       {error === "hasExpenses" && (
         <p className="rounded-lg border border-danger-soft bg-danger-soft px-4 py-2 text-sm text-danger">
@@ -74,7 +77,7 @@ export default async function CategoriesPage({
                   >
                     <td id={`category-${category.id}`} className="px-4 py-3.5 font-semibold text-ink">{category.name}</td>
                     <td className="px-4 py-3.5 text-right">
-                      <div className="flex justify-end gap-1">
+                      {canEdit && <div className="flex justify-end gap-1">
                         <Link
                           href={`/categories/${category.id}/edit`}
                           aria-label={t.common.edit}
@@ -92,7 +95,7 @@ export default async function CategoriesPage({
                           pendingLabel={t.common.deleting}
                           cancelLabel={t.common.cancel}
                         />
-                      </div>
+                      </div>}
                     </td>
                   </tr>
                 ))}

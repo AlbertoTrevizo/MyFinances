@@ -36,11 +36,13 @@ export type AccountsTableCopy = {
 };
 
 export function AccountsTable({
+  canEdit,
   accounts,
   copy,
   sort,
   dir,
 }: {
+  canEdit: boolean;
   accounts: Row[];
   copy: AccountsTableCopy;
   sort: string;
@@ -68,6 +70,7 @@ export function AccountsTable({
   }
 
   function startEditing(id: string, field: EditableAccountField) {
+    if (!canEdit) return;
     cancelled.current = false;
     setEditingCell({ id, field });
   }
@@ -78,7 +81,7 @@ export function AccountsTable({
   }
 
   function isEditing(id: string, field: EditableAccountField) {
-    return editingCell?.id === id && editingCell.field === field;
+    return canEdit && editingCell?.id === id && editingCell.field === field;
   }
 
   return (
@@ -218,7 +221,7 @@ export function AccountsTable({
                 </td>
 
                 <td className="px-4 py-3.5 text-right">
-                  <div className="flex justify-end gap-1">
+                  {canEdit && <div className="flex justify-end gap-1">
                     <Link
                       href={`/accounts/${account.id}/edit`}
                       aria-label={copy.editLabel}
@@ -236,7 +239,7 @@ export function AccountsTable({
                       pendingLabel={copy.deletingLabel}
                       cancelLabel={copy.cancelLabel}
                     />
-                  </div>
+                  </div>}
                 </td>
               </tr>
             ))}

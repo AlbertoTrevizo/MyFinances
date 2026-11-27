@@ -116,10 +116,12 @@ function AddCategoryBudgetForm({
 }
 
 export function CategoryBudgetManager({
+  canEdit,
   categoryBudgets,
   availableCategories,
   copy,
 }: {
+  canEdit: boolean;
   categoryBudgets: CategoryBudgetRow[];
   availableCategories: Option[];
   copy: CategoryBudgetCopy;
@@ -131,16 +133,21 @@ export function CategoryBudgetManager({
       ) : (
         <div className="flex flex-col">
           {categoryBudgets.map((row) => (
-            <CategoryBudgetRowForm key={row.categoryId} row={row} copy={copy} />
+            canEdit ? <CategoryBudgetRowForm key={row.categoryId} row={row} copy={copy} /> : (
+              <div key={row.categoryId} className="flex justify-between gap-2 border-b border-line px-4 py-3.5 last:border-b-0">
+                <span className="text-sm font-semibold text-ink">{row.categoryName}</span>
+                <span className="text-sm tabular-nums text-ink">{row.defaultValue}</span>
+              </div>
+            )
           ))}
         </div>
       )}
 
-      {availableCategories.length > 0 ? (
+      {canEdit && (availableCategories.length > 0 ? (
         <AddCategoryBudgetForm categories={availableCategories} copy={copy} />
       ) : (
         <p className="text-sm text-ink-faint">{copy.noCategoriesAvailable}</p>
-      )}
+      ))}
     </div>
   );
 }

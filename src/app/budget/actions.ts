@@ -1,9 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireBookWriter } from "@/lib/session";
 import { pesosToCentsOrZero } from "@/lib/currency";
 import { EXPENSE_TYPES } from "@/lib/expense-type";
 import { getTranslations } from "@/i18n/get-locale";
@@ -14,7 +14,7 @@ export async function saveBudgets(
   _prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  await requireUser();
+  const { book } = await requireBookWriter();
   const { t } = await getTranslations();
 
   const values = {
@@ -33,9 +33,9 @@ export async function saveBudgets(
   await prisma.$transaction(
     EXPENSE_TYPES.map((type) =>
       prisma.budget.upsert({
-        where: { type },
+        where: { bookId_type: { bookId: book.id, type } },
         update: { amountCents: amounts[type] },
-        create: { type, amountCents: amounts[type] },
+        create: { bookId: book.id, type, amountCents: amounts[type] },
       }),
     ),
   );
@@ -49,7 +49,7 @@ export async function addCategoryBudget(
   _prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  await requireUser();
+  const { book } = await requireBookWriter();
   const { t } = await getTranslations();
   const categoryId = String(formData.get("categoryId") ?? "").trim();
   const raw = String(formData.get("amount") ?? "").trim();
@@ -57,11 +57,13 @@ export async function addCategoryBudget(
   const values = { categoryId, amount: raw };
 
   if (!categoryId) return { error: t.budget.errors.categoryRequired, values };
+  const category = await prisma.category.findUnique({ where: { id_bookId: { id: categoryId, bookId: book.id } } });
+  if (!category) return { error: t.budget.errors.categoryRequired, values };
   const cents = pesosToCentsOrZero(raw);
   if (cents === null) return { error: t.budget.errors.invalidAmount, values };
 
   await prisma.categoryBudget.upsert({
-    where: { categoryId },
+    where: { categoryId, category: { bookId: book.id } },
     update: { amountCents: cents },
     create: { categoryId, amountCents: cents },
   });
@@ -76,17 +78,20 @@ export async function updateCategoryBudget(
   _prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  await requireUser();
+  const { book } = await requireBookWriter();
   const { t } = await getTranslations();
   const raw = String(formData.get("amount") ?? "").trim();
   const values = { amount: raw };
+  const category = await prisma.category.findUnique({ where: { id_bookId: { id: categoryId, bookId: book.id } } });
+  if (!category) return { error: t.budget.errors.categoryRequired, values };
   const cents = pesosToCentsOrZero(raw);
   if (cents === null) return { error: t.budget.errors.invalidAmount, values };
 
-  await prisma.categoryBudget.update({
-    where: { categoryId },
+  const result = await prisma.categoryBudget.updateMany({
+    where: { categoryId, category: { bookId: book.id } },
     data: { amountCents: cents },
   });
+  if (!result.count) notFound();
 
   revalidatePath("/budget");
   revalidatePath("/");
@@ -94,8 +99,11 @@ export async function updateCategoryBudget(
 }
 
 export async function deleteCategoryBudget(categoryId: string): Promise<void> {
-  await requireUser();
-  await prisma.categoryBudget.delete({ where: { categoryId } });
+  const { book } = await requireBookWriter();
+  const category = await prisma.category.findUnique({ where: { id_bookId: { id: categoryId, bookId: book.id } } });
+  if (!category) notFound();
+  const result = await prisma.categoryBudget.deleteMany({ where: { categoryId, category: { bookId: book.id } } });
+  if (!result.count) notFound();
   revalidatePath("/budget");
   revalidatePath("/");
 }

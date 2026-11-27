@@ -2,9 +2,9 @@
 
 import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireBookWriter } from "@/lib/session";
 import { readFields, validateAccount, accountFieldChanges, type EditableAccountField } from "@/lib/account-validation";
 import { getTranslations } from "@/i18n/get-locale";
 
@@ -18,7 +18,7 @@ export async function createAccount(
   _prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  await requireUser();
+  const { book } = await requireBookWriter();
   const { t } = await getTranslations();
   const values = readFields(formData);
   const { name, type, cutoffDay, paymentDay } = values;
@@ -28,7 +28,7 @@ export async function createAccount(
 
   try {
     await prisma.account.create({
-      data: { name, type, cutoffDay: cutoffDayValue, paymentDay: paymentDayValue },
+      data: { bookId: book.id, name, type, cutoffDay: cutoffDayValue, paymentDay: paymentDayValue },
     });
   } catch (error) {
     if (isUniqueConstraintError(error)) return { error: t.accounts.errors.nameTaken, values };
@@ -43,7 +43,7 @@ export async function updateAccount(
   _prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  await requireUser();
+  const { book } = await requireBookWriter();
   const { t } = await getTranslations();
   const values = readFields(formData);
   const { name, type, cutoffDay, paymentDay } = values;
@@ -53,11 +53,12 @@ export async function updateAccount(
 
   try {
     await prisma.account.update({
-      where: { id },
+      where: { id_bookId: { id, bookId: book.id } },
       data: { name, type, cutoffDay: cutoffDayValue, paymentDay: paymentDayValue },
     });
   } catch (error) {
     if (isUniqueConstraintError(error)) return { error: t.accounts.errors.nameTaken, values };
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") notFound();
     throw error;
   }
   revalidatePath("/accounts");
@@ -71,21 +72,18 @@ export async function updateAccountField(
   field: EditableAccountField,
   rawValue: string
 ): Promise<ActionState> {
-  await requireUser();
+  const { book } = await requireBookWriter();
   const { t } = await getTranslations();
   const result = accountFieldChanges(field, rawValue, t);
   if (result && "error" in result) return result;
 
   if (result) {
-    if (field === "name") {
-      try {
-        await prisma.account.update({ where: { id }, data: result.data });
-      } catch (error) {
-        if (isUniqueConstraintError(error)) return { error: t.accounts.errors.nameTaken };
-        throw error;
-      }
-    } else {
-      await prisma.account.update({ where: { id }, data: result.data });
+    try {
+      await prisma.account.update({ where: { id_bookId: { id, bookId: book.id } }, data: result.data });
+    } catch (error) {
+      if (isUniqueConstraintError(error)) return { error: t.accounts.errors.nameTaken };
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") notFound();
+      throw error;
     }
   }
 
@@ -94,11 +92,16 @@ export async function updateAccountField(
 }
 
 export async function deleteAccount(id: string): Promise<void> {
-  await requireUser();
-  const expenseCount = await prisma.expense.count({ where: { accountId: id } });
+  const { book } = await requireBookWriter();
+  const expenseCount = await prisma.expense.count({ where: { bookId: book.id, accountId: id } });
   if (expenseCount > 0) {
     redirect("/accounts?error=hasExpenses");
   }
-  await prisma.account.delete({ where: { id } });
+  try {
+    await prisma.account.delete({ where: { id_bookId: { id, bookId: book.id } } });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") notFound();
+    throw error;
+  }
   revalidatePath("/accounts");
 }

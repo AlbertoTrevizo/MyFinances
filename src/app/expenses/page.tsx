@@ -9,7 +9,8 @@ import { ExpensesTable } from "@/components/ExpensesTable";
 import { NewExpenseButton } from "@/components/NewExpenseButton";
 import { card } from "@/lib/styles";
 import { resolveSort } from "@/lib/sort";
-import { requireUser } from "@/lib/session";
+import { requireBook } from "@/lib/session";
+import { canWrite } from "@/lib/book-rules";
 
 const SORT_FIELDS = ["date", "description", "account", "category", "type", "amount"] as const;
 
@@ -23,7 +24,8 @@ export default async function ExpensesPage({
 }: {
   searchParams: Promise<{ sort?: string; dir?: string; q?: string; month?: string }>;
 }) {
-  await requireUser();
+  const { book, access } = await requireBook();
+  const canEdit = canWrite(access);
   const { locale, t } = await getTranslations();
   const sp = await searchParams;
   const { field, dir } = resolveSort(sp, SORT_FIELDS, "date", "desc");
@@ -54,14 +56,14 @@ export default async function ExpensesPage({
               : { date: dir };
 
   const [expenseDates, expensesInPeriod, accounts, categories] = await Promise.all([
-    prisma.expense.findMany({ select: { date: true } }),
+    prisma.expense.findMany({ where: { bookId: book.id }, select: { date: true } }),
     prisma.expense.findMany({
-      where: bounds ? { date: { gte: bounds.start, lt: bounds.endExclusive } } : {},
+      where: { bookId: book.id, ...(bounds ? { date: { gte: bounds.start, lt: bounds.endExclusive } } : {}) },
       orderBy,
       include: { account: true, category: true },
     }),
-    prisma.account.findMany({ orderBy: { createdAt: "asc" } }),
-    prisma.category.findMany({ orderBy: { createdAt: "asc" } }),
+    prisma.account.findMany({ where: { bookId: book.id }, orderBy: { createdAt: "asc" } }),
+    prisma.category.findMany({ where: { bookId: book.id }, orderBy: { createdAt: "asc" } }),
   ]);
 
   const hasExpenses = expenseDates.length > 0;
@@ -125,6 +127,7 @@ export default async function ExpensesPage({
       title={<PageTitle>{t.expenses.title}</PageTitle>}
       actions={
         <NewExpenseButton
+          canEdit={canEdit}
           accounts={accountOptions}
           categories={categoryOptions}
           copy={{
@@ -165,6 +168,7 @@ export default async function ExpensesPage({
       ) : (
         <div className={card}>
           <ExpensesTable
+            canEdit={canEdit}
             expenses={expenseRows}
             accounts={accountOptions}
             categories={categoryOptions}

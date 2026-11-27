@@ -10,12 +10,12 @@ Administrar las etiquetas opcionales que agrupan los gastos y que pueden tener p
 
 | Campo | Regla |
 |---|---|
-| `name` | Obligatorio y único. Se guarda sin espacios al inicio ni al final. |
+| `name` | Obligatorio y único dentro de cada libro (LIB-2 de `specs/books/spec.md`). Se guarda sin espacios al inicio ni al final. |
 
 ## Reglas
 
 ### Acceso
-- **CAT-1.** Las páginas y todas las acciones requieren una sesión de usuario confirmado. Sin ella, se redirige a `/login`.
+- **CAT-1.** El acceso se rige por LIB-3 de `specs/books/spec.md`: los datos pertenecen al libro activo; verlos requiere ser miembro confirmado y modificarlos requiere ser Dueño o tener permiso de Escritura.
 
 ### Listado
 - **CAT-2.** La tabla muestra el nombre, con orden inicial ascendente. Es la única columna ordenable.
@@ -23,7 +23,7 @@ Administrar las etiquetas opcionales que agrupan los gastos y que pueden tener p
 
 ### Crear y editar
 - **CAT-4.** Crear y editar usan páginas propias con el mismo formulario. Al guardar, se regresa a `/categories`. Si hay error, el formulario sigue abierto con el mensaje.
-- **CAT-5.** Un nombre vacío o repetido se rechaza con un mensaje propio. La comparación es exacta: `Viaje` y `viaje` pueden coexistir.
+- **CAT-5.** Un nombre vacío o repetido dentro del mismo libro se rechaza con un mensaje propio (LIB-2 de `specs/books/spec.md`). La comparación es exacta: `Viaje` y `viaje` pueden coexistir.
 - **CAT-6.** Editar una categoría inexistente muestra la página 404.
 - **CAT-7.** La tabla no permite editar con doble clic, a diferencia de Cuentas.
 - **CAT-8.** Cambiar el nombre se refleja en todos sus gastos y en su presupuesto.
@@ -37,7 +37,7 @@ Administrar las etiquetas opcionales que agrupan los gastos y que pueden tener p
 - **CAT-12.** Si no tiene gastos pero sí presupuesto, se borran ambos. La confirmación no lo avisa.
 
 ### Datos iniciales
-- **CAT-13.** `prisma/seed.ts` crea las categorías iniciales solo si se ejecuta a mano. Al repetirlo, no duplica las existentes, pero vuelve a crear las que se borraron o renombraron.
+- **CAT-13.** Reemplazado por LIB-19 de `specs/books/spec.md`: se eliminó el seed y los libros nuevos empiezan vacíos.
 
 ## Por decidir
 Así funciona hoy, pero podría no ser lo que quieres. Cada punto queda igual hasta que decidas; al cambiarlo, se actualiza la regla y el código.

@@ -1,11 +1,11 @@
-// Run: npx tsx src/app/access.check.ts
+// Run: node --import tsx src/app/access.check.ts
 import path from "node:path";
 import ts from "typescript";
 
 const app = path.resolve("src/app");
 const files = ts.sys.readDirectory(app, [".ts", ".tsx", ".js", ".jsx"]);
 if (!files.length) throw new Error(`No files found in ${app}`);
-for (const required of ["users/page.tsx", "users/actions.ts"]) {
+for (const required of ["users/page.tsx", "users/actions.ts", "expenses/actions.ts"]) {
   if (!files.includes(path.join(app, required))) {
     throw new Error(`Required file not analyzed: ${path.join(app, required)}`);
   }
@@ -28,14 +28,26 @@ function fail(file: string, name: string, message: string) {
   failures++;
 }
 
-function callsGuard(node: ts.Node, adminOnly: boolean): boolean {
+type Guard = "user" | "admin" | "book" | "writer";
+const guards: Record<Guard, string[]> = {
+  user: ["requireUser", "requireAdmin", "requireBook", "requireBookWriter"],
+  admin: ["requireAdmin"],
+  book: ["requireBook", "requireBookWriter"],
+  writer: ["requireBookWriter"],
+};
+
+function guardMessage(guard: Guard): string {
+  return `must call ${guards[guard].map((name) => `${name}()`).join(" or ")}`;
+}
+
+function callsGuard(node: ts.Node, guard: Guard): boolean {
   // A nested callback or helper is not the exported function's access check.
   if (ts.isFunctionLike(node)) return false;
   if (ts.isCallExpression(node) && ts.isIdentifier(node.expression)) {
     const symbol = checker.getSymbolAtLocation(node.expression);
     if (symbol && symbol.flags & ts.SymbolFlags.Alias) {
       const target = checker.getAliasedSymbol(symbol);
-      const allowed = target.name === "requireAdmin" || (!adminOnly && target.name === "requireUser");
+      const allowed = guards[guard].includes(target.name);
       if (allowed && target.declarations?.some((d) => path.resolve(d.getSourceFile().fileName) === path.resolve("src/lib/session.ts"))) {
         let parent = node.parent;
         while (ts.isParenthesizedExpression(parent)) parent = parent.parent;
@@ -43,7 +55,7 @@ function callsGuard(node: ts.Node, adminOnly: boolean): boolean {
       }
     }
   }
-  return ts.forEachChild(node, (child) => callsGuard(child, adminOnly) || undefined) === true;
+  return ts.forEachChild(node, (child) => callsGuard(child, guard) || undefined) === true;
 }
 
 function hasServerDirective(statements: ts.NodeArray<ts.Statement>): boolean {
@@ -61,14 +73,18 @@ for (const file of files) {
   if (exemptions.some((route) => relative.startsWith(`${route}/`))) continue;
 
   const source = program.getSourceFile(file)!;
-  const adminOnly = relative.startsWith("users/");
+  const finance = relative === "page.tsx" || /^(expenses|accounts|categories|budget)\//.test(relative);
+  const actionGuard: Guard = finance ? "writer" : relative.startsWith("users/") ? "admin" : "user";
+  const pageGuard: Guard = finance
+    ? /(?:^|\/)new\/|(?:^|\/)\[id\]\/edit\//.test(relative) ? "writer" : "book"
+    : actionGuard;
   function checkInlineActions(node: ts.Node) {
     if ((ts.isFunctionDeclaration(node) || ts.isFunctionExpression(node) || ts.isArrowFunction(node) || ts.isMethodDeclaration(node))
       && node.body && ts.isBlock(node.body) && hasServerDirective(node.body.statements)
-      && !callsGuard(node.body, adminOnly)) {
+      && !callsGuard(node.body, actionGuard)) {
       const name = (!ts.isArrowFunction(node) && node.name?.getText(source))
         || (ts.isVariableDeclaration(node.parent) ? node.parent.name.getText(source) : `inline action at line ${source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1}`);
-      fail(file, name, `must call ${adminOnly ? "requireAdmin()" : "requireUser() or requireAdmin()"}`);
+      fail(file, name, guardMessage(actionGuard));
     }
     ts.forEachChild(node, checkInlineActions);
   }
@@ -76,6 +92,7 @@ for (const file of files) {
 
   const server = hasServerDirective(source.statements);
   const page = path.basename(file) === "page.tsx";
+  const guard = server ? actionGuard : pageGuard;
   if (!page && !server) continue;
 
   const moduleSymbol = checker.getSymbolAtLocation(source);
@@ -94,11 +111,11 @@ for (const file of files) {
     const guarded = signatures.some((signature) => {
       const fn = signature.getDeclaration();
       return fn && (ts.isFunctionDeclaration(fn) || ts.isFunctionExpression(fn) || ts.isArrowFunction(fn))
-        && fn.body && callsGuard(fn.body, adminOnly);
+        && fn.body && callsGuard(fn.body, guard);
     });
     if (!guarded) {
       const name = ts.isFunctionDeclaration(declaration) && declaration.name ? declaration.name.text : exported.name;
-      fail(file, name, `must call ${adminOnly ? "requireAdmin()" : "requireUser() or requireAdmin()"}`);
+      fail(file, name, guardMessage(guard));
     }
   }
 }

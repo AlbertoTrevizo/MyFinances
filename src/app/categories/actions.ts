@@ -2,9 +2,9 @@
 
 import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireBookWriter } from "@/lib/session";
 import { getTranslations } from "@/i18n/get-locale";
 
 export type ActionState = { error?: string; values?: { name: string } } | undefined;
@@ -22,14 +22,14 @@ export async function createCategory(
   _prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  await requireUser();
+  const { book } = await requireBookWriter();
   const { t } = await getTranslations();
   const values = readFields(formData);
   const { name } = values;
   if (!name) return { error: t.categories.errors.nameRequired, values };
 
   try {
-    await prisma.category.create({ data: { name } });
+    await prisma.category.create({ data: { bookId: book.id, name } });
   } catch (error) {
     if (isUniqueConstraintError(error)) return { error: t.categories.errors.nameTaken, values };
     throw error;
@@ -43,16 +43,17 @@ export async function updateCategory(
   _prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  await requireUser();
+  const { book } = await requireBookWriter();
   const { t } = await getTranslations();
   const values = readFields(formData);
   const { name } = values;
   if (!name) return { error: t.categories.errors.nameRequired, values };
 
   try {
-    await prisma.category.update({ where: { id }, data: { name } });
+    await prisma.category.update({ where: { id_bookId: { id, bookId: book.id } }, data: { name } });
   } catch (error) {
     if (isUniqueConstraintError(error)) return { error: t.categories.errors.nameTaken, values };
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") notFound();
     throw error;
   }
   revalidatePath("/categories");
@@ -60,11 +61,16 @@ export async function updateCategory(
 }
 
 export async function deleteCategory(id: string): Promise<void> {
-  await requireUser();
-  const expenseCount = await prisma.expense.count({ where: { categoryId: id } });
+  const { book } = await requireBookWriter();
+  const expenseCount = await prisma.expense.count({ where: { bookId: book.id, categoryId: id } });
   if (expenseCount > 0) {
     redirect("/categories?error=hasExpenses");
   }
-  await prisma.category.delete({ where: { id } });
+  try {
+    await prisma.category.delete({ where: { id_bookId: { id, bookId: book.id } } });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") notFound();
+    throw error;
+  }
   revalidatePath("/categories");
 }

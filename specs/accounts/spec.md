@@ -10,7 +10,7 @@ Administrar los medios de pago a los que se asigna cada gasto: bancos, tarjetas 
 
 | Campo | Regla |
 |---|---|
-| `name` | Obligatorio y único. Se guarda sin espacios al inicio ni al final. |
+| `name` | Obligatorio y único dentro de cada libro (LIB-2 de `specs/books/spec.md`). Se guarda sin espacios al inicio ni al final. |
 | `type` | Obligatorio. Texto libre, por ejemplo "Débito" o "Crédito". No afecta ningún cálculo. |
 | `cutoffDay` | Opcional. Entero de 1 a 31. Vacío se guarda como `null`. |
 | `paymentDay` | Opcional. Entero de 1 a 31. Vacío se guarda como `null`. Es informativo: ningún cálculo lo usa. |
@@ -18,7 +18,7 @@ Administrar los medios de pago a los que se asigna cada gasto: bancos, tarjetas 
 ## Reglas
 
 ### Acceso
-- **CUE-1.** Las páginas y todas las acciones requieren una sesión de usuario confirmado. Sin ella, se redirige a `/login`.
+- **CUE-1.** El acceso se rige por LIB-3 de `specs/books/spec.md`: los datos pertenecen al libro activo; verlos requiere ser miembro confirmado y modificarlos requiere ser Dueño o tener permiso de Escritura.
 
 ### Listado
 - **CUE-2.** La tabla muestra nombre, tipo, día de corte y día de pago. Un día vacío se muestra como `—`.
@@ -28,7 +28,7 @@ Administrar los medios de pago a los que se asigna cada gasto: bancos, tarjetas 
 ### Crear y editar
 - **CUE-5.** Crear y editar usan páginas propias con el mismo formulario. Al guardar, se regresa a `/accounts`. Si hay error, el formulario sigue abierto con el mensaje.
 - **CUE-6.** Si hay varios errores, se muestra uno solo, en este orden: nombre, tipo, día de corte, día de pago.
-- **CUE-7.** Un nombre repetido se rechaza con un mensaje propio. La comparación es exacta: `BBVA` y `bbva` pueden coexistir.
+- **CUE-7.** Un nombre repetido dentro del mismo libro se rechaza con un mensaje propio (LIB-2 de `specs/books/spec.md`). La comparación es exacta: `BBVA` y `bbva` pueden coexistir.
 - **CUE-8.** El formulario indica que los días solo aplican a tarjetas de crédito, pero no se valida: cualquier cuenta puede tenerlos.
 - **CUE-9.** Editar una cuenta inexistente muestra la página 404.
 - **CUE-10.** Doble clic edita cualquiera de los cuatro campos en la tabla. Guarda con Enter o al salir del campo; Escape cancela. Si hay error, se muestra debajo de la tabla y la celda sigue en edición. Dejar un día vacío lo borra.
@@ -42,7 +42,7 @@ Administrar los medios de pago a los que se asigna cada gasto: bancos, tarjetas 
 - **CUE-14.** Eliminar pide confirmación. Si la cuenta tiene cualquier gasto, incluidos registros de MSI, no se borra y se muestra un error. La base de datos también lo impide.
 
 ### Datos iniciales
-- **CUE-15.** `prisma/seed.ts` crea las cuentas iniciales solo si se ejecuta a mano. Al repetirlo, no duplica cuentas, pero restaura el tipo de las que ya existen con ese nombre y vuelve a crear las que se borraron o renombraron.
+- **CUE-15.** Reemplazado por LIB-19 de `specs/books/spec.md`: se eliminó el seed y los libros nuevos empiezan vacíos.
 
 ## Por decidir
 Así funciona hoy, pero podría no ser lo que quieres. Cada punto queda igual hasta que decidas; al cambiarlo, se actualiza la regla y el código.

@@ -29,7 +29,8 @@ Antes de dar un cambio por terminado, corre lint, tipos y checks.
 - No subas a Prisma 7: exige driver adapters, una complejidad que esta app no necesita.
 
 ## Reglas del dominio
-- **Acceso:** toda página y Server Action, salvo las públicas (`/login`, `/register`, `/confirm-email`, `/forgot-password`, `/reset-password` y `/api/auth/google`), llama a `requireUser()` de `src/lib/session.ts`; ver y administrar usuarios y roles llama a `requireAdmin()`. `/complete-profile` verifica la sesión a mano porque `requireUser()` la redirigiría a sí misma. `src/proxy.ts` es solo una primera capa.
+- **Acceso:** toda página y Server Action, salvo las públicas (`/login`, `/register`, `/confirm-email`, `/forgot-password`, `/reset-password` y `/api/auth/google`), llama a `requireUser()` de `src/lib/session.ts`; ver y administrar usuarios y roles llama a `requireAdmin()`. Las páginas de finanzas llaman a `requireBook()` y sus Server Actions a `requireBookWriter()`, ambos de `src/lib/session.ts`; `/invitations` usa `requireUser()`. `/complete-profile` verifica la sesión a mano porque `requireUser()` la redirigiría a sí misma. `src/proxy.ts` es solo una primera capa.
+- **Libros:** toda consulta de finanzas filtra por `bookId`; `src/app/book-scope.check.ts` lo revisa.
 - **Dinero:** convierte montos con `src/lib/currency.ts`.
 - **Fechas:** se guardan a medianoche UTC y se muestran en UTC; el mes actual se calcula en hora de México. Usa `src/lib/date.ts`.
 - **MSI (meses sin intereses):** una compra se guarda como un gasto original con `excludeFromTotals: true` más sus mensualidades, unidos por `msiGroupId`. Solo las mensualidades cuentan en los totales. Las mensualidades no se editan ni se borran: editar el original las regenera y borrarlo borra todo el grupo.

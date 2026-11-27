@@ -63,6 +63,7 @@ export type ExpensesTableCopy = {
 };
 
 export function ExpensesTable({
+  canEdit,
   expenses,
   accounts,
   categories,
@@ -72,6 +73,7 @@ export function ExpensesTable({
   dir,
   query,
 }: {
+  canEdit: boolean;
   expenses: Row[];
   accounts: Option[];
   categories: Option[];
@@ -104,7 +106,7 @@ export function ExpensesTable({
   }
 
   function startEditing(expense: Row, field: EditableExpenseField) {
-    if (!isMsiInstallment(expense)) {
+    if (canEdit && !isMsiInstallment(expense)) {
       cancelled.current = false;
       setEditingCell({ id: expense.id, field });
     }
@@ -116,7 +118,7 @@ export function ExpensesTable({
   }
 
   function isEditing(id: string, field: EditableExpenseField) {
-    return editingCell?.id === id && editingCell.field === field;
+    return canEdit && editingCell?.id === id && editingCell.field === field;
   }
 
   const header = (label: string, key: string, align?: "right") => (
@@ -357,7 +359,7 @@ export function ExpensesTable({
                 </td>
 
                 <td className="px-4 py-3.5 text-right">
-                  {!isMsiInstallment(expense) && (
+                  {canEdit && !isMsiInstallment(expense) && (
                     <div className="flex justify-end gap-1">
                       <button
                         type="button"
@@ -389,7 +391,7 @@ export function ExpensesTable({
       {fieldError && <p className="mt-2 text-sm text-danger">{fieldError}</p>}
 
       <EditExpenseModal
-        expense={editingExpense}
+        expense={canEdit ? editingExpense : null}
         accounts={accounts}
         categories={categories}
         onClose={() => setEditingExpenseId(null)}
