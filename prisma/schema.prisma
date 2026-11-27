@@ -10,27 +10,41 @@ datasource db {
 
 model Account {
   id         String    @id @default(cuid())
-  name       String    @unique
+  name       String
   type       String
   cutoffDay  Int?
   paymentDay Int?
   createdAt  DateTime  @default(now())
   expenses   Expense[]
+  bookId     String
+  book       Book      @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@unique([bookId, name])
+  @@unique([id, bookId])
 }
 
 model Budget {
   id          String   @id @default(cuid())
-  type        String   @unique
+  type        String
   amountCents Int
   updatedAt   DateTime @updatedAt
+  bookId      String
+  book        Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@unique([bookId, type])
 }
 
 model Category {
   id             String          @id @default(cuid())
-  name           String          @unique
+  name           String
   createdAt      DateTime        @default(now())
   expenses       Expense[]
   categoryBudget CategoryBudget?
+  bookId         String
+  book           Book            @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@unique([bookId, name])
+  @@unique([id, bookId])
 }
 
 model CategoryBudget {
@@ -46,23 +60,75 @@ enum Role {
   admin
 }
 
+enum BookRole {
+  editor
+  viewer
+}
+
+model Book {
+  id          String           @id @default(cuid())
+  name        String
+  ownerId     String
+  owner       User             @relation("OwnedBooks", fields: [ownerId], references: [id], onDelete: Restrict)
+  createdAt   DateTime         @default(now())
+  members     BookMember[]
+  invitations BookInvitation[]
+  accounts    Account[]
+  categories  Category[]
+  expenses    Expense[]
+  budgets     Budget[]
+  activeFor   User[]           @relation("ActiveBook")
+
+  @@index([ownerId])
+}
+
+model BookMember {
+  id        String   @id @default(cuid())
+  bookId    String
+  book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      BookRole
+  createdAt DateTime @default(now())
+
+  @@unique([bookId, userId])
+  @@index([userId])
+}
+
+model BookInvitation {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  bookId    String
+  book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  role      BookRole
+  email     String?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([bookId])
+}
+
 model User {
-  id                  String      @id @default(cuid())
-  email               String      @unique
+  id                  String       @id @default(cuid())
+  email               String       @unique
   name                String?
   lastName            String?
   passwordHash        String?
   passwordSalt        String?
-  passwordReplaced    Boolean     @default(false)
+  passwordReplaced    Boolean      @default(false)
   emailVerifiedAt     DateTime?
-  googleId            String?     @unique
-  profileIncomplete   Boolean     @default(false)
-  role                Role        @default(user)
-  failedLoginAttempts Int         @default(0)
+  googleId            String?      @unique
+  profileIncomplete   Boolean      @default(false)
+  role                Role         @default(user)
+  failedLoginAttempts Int          @default(0)
   lockedUntil         DateTime?
-  createdAt           DateTime    @default(now())
+  createdAt           DateTime     @default(now())
   sessions            Session[]
   tokens              UserToken[]
+  activeBookId        String?
+  activeBook          Book?        @relation("ActiveBook", fields: [activeBookId], references: [id], onDelete: SetNull)
+  ownedBooks          Book[]       @relation("OwnedBooks")
+  memberships         BookMember[]
 }
 
 model UserToken {
@@ -107,7 +173,11 @@ model Expense {
   createdAt         DateTime @default(now())
 
   accountId  String
-  account    Account   @relation(fields: [accountId], references: [id])
+  account    Account   @relation(fields: [accountId, bookId], references: [id, bookId], onDelete: NoAction)
   categoryId String?
-  category   Category? @relation(fields: [categoryId], references: [id])
+  category   Category? @relation(fields: [categoryId, bookId], references: [id, bookId], onDelete: NoAction)
+  bookId     String
+  book       Book      @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@unique([id, bookId])
 }

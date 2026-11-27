@@ -75,6 +75,7 @@ export function buildMsiInstallmentRows(
     notes: string | null;
     amountCents: number;
     date: Date;
+    bookId: string;
     accountId: string;
     categoryId: string | null;
     type: string | null;
@@ -93,6 +94,7 @@ export function buildMsiInstallmentRows(
     notes: original.notes,
     amountCents,
     date,
+    bookId: original.bookId,
     accountId: original.accountId,
     categoryId: original.categoryId,
     type: original.type,

@@ -53,10 +53,10 @@ const leap = buildMsiInstallments({ totalCents: 100, months: 2, purchaseDate: ne
 assert(leap[1].date.toISOString() === "2028-02-29T00:00:00.000Z", "GAS-14: clamps to the last day of leap February");
 
 for (const optional of [{ notes: "note", categoryId: "category", type: "wants" }, { notes: null, categoryId: null, type: null }]) {
-  const original = { description: "TV", amountCents: 100000, date: new Date("2026-03-16T00:00:00Z"), accountId: "account", msiGroupId: "group", ...optional };
+  const original = { description: "TV", amountCents: 100000, date: new Date("2026-03-16T00:00:00Z"), bookId: "book", accountId: "account", msiGroupId: "group", ...optional };
   const rows = buildMsiInstallmentRows(original, 3, 15);
   assert(rows.length === 3 && rows.map((r) => r.description).join() === "TV 1/3,TV 2/3,TV 3/3", "GAS-12: builds N descriptions with i/N suffixes");
-  assert(rows.every((r) => r.accountId === original.accountId && r.categoryId === original.categoryId && r.type === original.type && r.notes === original.notes && r.msiGroupId === original.msiGroupId && r.excludeFromTotals === false), "GAS-12: copies notes, account, category, type and group, including nulls, and counts installments in totals");
+  assert(rows.every((r) => r.bookId === original.bookId && r.accountId === original.accountId && r.categoryId === original.categoryId && r.type === original.type && r.notes === original.notes && r.msiGroupId === original.msiGroupId && r.excludeFromTotals === false), "GAS-12: copies book, notes, account, category, type and group, including nulls, and counts installments in totals");
   assert(rows.map((r) => r.amountCents).join() === "33334,33333,33333", "GAS-13: rows retain the distributed amounts");
   assert(rows.map((r) => r.date.toISOString()).join() === "2026-04-15T00:00:00.000Z,2026-05-15T00:00:00.000Z,2026-06-15T00:00:00.000Z", "GAS-14: rows retain installment dates");
   assert(original.description === "TV" && original.amountCents === 100000 && original.date.toISOString() === "2026-03-16T00:00:00.000Z", "GAS-12: generating installments preserves the original description, total and date");
