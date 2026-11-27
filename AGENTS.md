@@ -24,7 +24,7 @@ Antes de dar un cambio por terminado, corre lint, tipos y checks.
 `.env` apunta a Supabase y desarrollo comparte la base con producción: trata sus datos como reales.
 - Para cambiar el esquema, sigue `docs/migrations.md`.
 - Nunca corras `prisma migrate dev`, `prisma migrate reset` ni `prisma db push`.
-- Pide confirmación antes de correr cualquier otro `prisma migrate`, `prisma/seed.ts` o `scripts/create-admin.ts`.
+- Pide confirmación antes de correr cualquier otro `prisma migrate` o `scripts/create-admin.ts`.
 - No muestres el contenido de `.env`.
 - No subas a Prisma 7: exige driver adapters, una complejidad que esta app no necesita.
 
